@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klaryx Portal</title>
+<style>
+  :root {
+    --bg: #080b12;
+    --surface: #0f1420;
+    --surface2: #141926;
+    --border: #1a2236;
+    --text: #dde0eb;
+    --muted: #4e5870;
+    --accent: #5b7fff;
+    --accent2: #a78bfa;
+    --green: #22d3a0;
+    --yellow: #f5c542;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; min-height: 100vh; }
+  .container { max-width: 800px; margin: 0 auto; }
+
+  nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .logo { font-size: 20px; font-weight: bold; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .connect-section { background: var(--surface); border: 1px solid var(--border); padding: 30px; border-radius: 12px; text-align: center; }
+  .connect-section h2 { margin-bottom: 20px; }
+  input { width: 100%; padding: 12px; margin: 10px 0; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: monospace; font-size: 12px; }
+  button { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: opacity 0.2s; }
+  button:hover { opacity: 0.9; }
+
+  .portal-screen { display: none; }
+  .wallet-header { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+  .wallet-info { display: flex; justify-content: space-between; align-items: center; }
+  .wallet-address { font-family: monospace; font-size: 12px; color: var(--muted); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; text-align: center; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+  .stat-value { font-size: 28px; font-weight: bold; color: var(--accent); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+  .badge-section { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+  .badge-display { font-size: 60px; text-align: center; margin: 20px 0; }
+  .badge-name { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+  .badge-progress { background: var(--surface2); border-radius: 8px; overflow: hidden; height: 8px; margin-top: 10px; }
+  .badge-bar { background: linear-gradient(90deg, var(--accent), var(--green)); height: 100%; transition: width 0.3s; }
+
+  .ref-section { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+  .ref-section h3 { margin-bottom: 15px; color: var(--accent2); }
+  .ref-link { display: flex; gap: 10px; }
+  .ref-link input { flex: 1; }
+  .ref-link button { width: 100px; background: var(--green); }
+
+  .tier-info { background: rgba(34, 211, 160, 0.05); border: 1px solid rgba(34, 211, 160, 0.2); padding: 15px; border-radius: 8px; margin-top: 10px; }
+  .tier-badge { display: inline-block; background: rgba(34, 211, 160, 0.2); border: 1px solid rgba(34, 211, 160, 0.4); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: var(--green); margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav>
+    <div class="logo">⚡ Klaryx Portal</div>
+    <div style="font-size: 12px; color: var(--muted);">Beta</div>
+  </nav>
+
+  <!-- CONNECT SCREEN -->
+  <div class="connect-section" id="connectSection">
+    <h2>🔐 Portal betreten</h2>
+    <p style="color: var(--muted); margin-bottom: 20px;">Gib deine Solana Wallet-Adresse ein um dein Klaryx Profil zu laden.</p>
+    <input type="text" id="walletAddr" placeholder="z.B. DYw8jCTfwc8LU7tVo5DryXjJ2eUbRD2mk5udAGdPJzb">
+    <button onclick="handleWallet()">Portal laden</button>
+    <p style="font-size: 11px; color: var(--muted); margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;"><strong>Disclaimer:</strong> $KLRX ist kein Finanzprodukt. Dies ist ein privates Community-Projekt ohne Gewinn- oder Renditeversprechen. Teilnahme auf eigenes Risiko.</p>
+  </div>
+
+  <!-- PORTAL SCREEN -->
+  <div class="portal-screen" id="portalScreen">
+    <div class="wallet-header">
+      <div class="wallet-info">
+        <div>
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Deine Wallet</div>
+          <div class="wallet-address" id="displayWallet">-</div>
+        </div>
+        <button onclick="disconnect()" style="width: 120px; padding: 8px;">Logout</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tier</div>
+        <div class="stat-value" id="tierDisplay">Free</div>
+        <div class="stat-sub" id="tierSub">OG-Status aktiv</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">KLRX Balance</div>
+        <div class="stat-value" id="balanceDisplay">0.01</div>
+        <div class="stat-sub">Verfügbar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Einladungen</div>
+        <div class="stat-value" id="referralCount">0</div>
+        <div class="stat-sub" id="referralSub">Bisher</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" id="statusDisplay" style="font-size: 14px; color: var(--green);">Ausstehend</div>
+        <div class="stat-sub">KLRX erhalten</div>
+      </div>
+    </div>
+
+    <!-- BADGE -->
+    <div class="badge-section">
+      <div class="badge-name" id="badgeName">🥉 Bronze</div>
+      <div class="badge-display" id="badgeEmoji">🥉</div>
+      <div style="text-align: center; color: var(--muted); font-size: 12px; margin-bottom: 15px;">
+        <span id="badgeProgress">0 von 5</span> Einladungen bis nächste Stufe
+      </div>
+      <div class="badge-progress">
+        <div class="badge-bar" id="badgeBar" style="width: 0%"></div>
+      </div>
+      <div class="tier-info">
+        <strong id="nextTierName">🥈 Silber:</strong> <span id="nextTierDesc">5–9 Einladungen</span>
+        <br><small style="color: var(--muted); margin-top: 8px; display: block;">Bonus: +0.05 KLRX + Badge</small>
+        <br><small style="color: #888; margin-top: 8px; display: block; font-style: italic;">Premium-Features (Einblick/Tiefe) werden zu einem späteren Zeitpunkt freigeschaltet.</small>
+      </div>
+    </div>
+
+    <!-- REFERRAL -->
+    <div class="ref-section">
+      <h3>🔗 Dein Einladungslink</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Teile diesen Link und verdiene 0.005 KLRX pro Einladung!</p>
+      <div class="ref-link">
+        <input type="text" id="refLink" readonly style="font-family: monospace; font-size: 11px;">
+        <button onclick="copyLink()" style="width: 100px;">Kopieren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  let sbClient;
+  let currentWallet = null;
+
+  async function initSupabase() {
+    if (!sbClient) {
+      sbClient = window.supabase.createClient(
+        "https://wpxcgducfkbozecknfdw.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg"
+      );
+    }
+  }
+
+  const badges = {
+    'Free': { emoji: '🥉', name: '🥉 Bronze', minReferrals: 0, maxReferrals: 4, bonus: 0 },
+    'Bronze': { emoji: '🥉', name: '🥉 Bronze', minReferrals: 1, maxReferrals: 4, bonus: 0 },
+    'Silver': { emoji: '🥈', name: '🥈 Silber', minReferrals: 5, maxReferrals: 9, bonus: 0.05 },
+    'Gold': { emoji: '🥇', name: '🥇 Gold', minReferrals: 10, maxReferrals: 24, bonus: 0.15 },
+    'Platinum': { emoji: '💎', name: '💎 Platin', minReferrals: 25, maxReferrals: 49, bonus: 0.50 },
+    'Diamond': { emoji: '💠', name: '💠 Diamant', minReferrals: 50, maxReferrals: 99, bonus: 1.00 },
+    'Legend': { emoji: '👑', name: '👑 Legend', minReferrals: 100, maxReferrals: Infinity, bonus: 2.00 }
+  };
+
+  function calculateBadge(referrals) {
+    if (referrals >= 100) return 'Legend';
+    if (referrals >= 50) return 'Diamond';
+    if (referrals >= 25) return 'Platinum';
+    if (referrals >= 10) return 'Gold';
+    if (referrals >= 5) return 'Silver';
+    if (referrals >= 1) return 'Bronze';
+    return 'Free';
+  }
+
+  function getTier(referrals) {
+    if (referrals >= 50) return 'Tiefe';
+    if (referrals >= 25) return 'Einblick';
+    return 'Free';
+  }
+
+  async function loadWallet(wallet) {
+    try {
+      // Hole Wallet-Daten
+      const { data: walletData, error: walletError } = await sbClient
+        .from('wallets')
+        .select('*')
+        .eq('wallet_address', wallet)
+        .single();
+
+      if (walletError || !walletData) {
+        alert('Wallet nicht gefunden – möchtest du dich registrieren?');
+        return;
+      }
+
+      // Zähle Referrals
+      const { data: referrals, error: refError } = await sbClient
+        .from('referrals')
+        .select('*')
+        .eq('referrer_wallet', wallet);
+
+      const referralCount = referrals ? referrals.length : 0;
+      const currentBadge = calculateBadge(referralCount);
+      const badgeInfo = badges[currentBadge];
+      const tier = getTier(referralCount);
+
+      // Update UI
+      document.getElementById('displayWallet').textContent = wallet.slice(0, 6) + '...' + wallet.slice(-4);
+      document.getElementById('balanceDisplay').textContent = (walletData.klrx_balance || 0).toFixed(2);
+      document.getElementById('tierDisplay').textContent = tier;
+      document.getElementById('tierSub').textContent = walletData.og_status ? 'OG-Status aktiv' : 'Regulärer Holder';
+      document.getElementById('referralCount').textContent = referralCount;
+      document.getElementById('referralSub').textContent = referralCount === 1 ? 'Einladung' : 'Einladungen';
+      document.getElementById('statusDisplay').textContent = walletData.claim_status;
+
+      document.getElementById('badgeEmoji').textContent = badgeInfo.emoji;
+      document.getElementById('badgeName').textContent = badgeInfo.name;
+
+      // Calculate progress to next badge level
+      let nextThreshold = 5; // Default to Silver
+      const nextBadge = Object.entries(badges).find(([key, val]) => val.minReferrals > referralCount);
+      if (nextBadge) {
+        nextThreshold = nextBadge[1].minReferrals;
+      } else {
+        nextThreshold = 100; // Legend is the final level
+      }
+
+      const progressToNext = referralCount < nextThreshold ?
+        Math.min((referralCount / nextThreshold) * 100, 100) : 100;
+      document.getElementById('badgeBar').style.width = progressToNext + '%';
+      document.getElementById('badgeProgress').textContent = `${referralCount} von ${nextThreshold}`;
+
+      // Nächste Stufe Info
+      const nextBadges = Object.values(badges).find(b => b.minReferrals > referralCount);
+      if (nextBadges) {
+        document.getElementById('nextTierName').textContent = nextBadges.name + ':';
+        document.getElementById('nextTierDesc').textContent = `${nextBadges.minReferrals}+ Einladungen`;
+      }
+
+      // Referral Link
+      document.getElementById('refLink').value = window.location.origin + window.location.pathname + '?ref=' + wallet;
+
+      currentWallet = wallet;
+      document.getElementById('connectSection').style.display = 'none';
+      document.getElementById('portalScreen').style.display = 'block';
+
+    } catch (err) {
+      console.error('Fehler:', err);
+      alert('Fehler beim Laden: ' + err.message);
+    }
+  }
+
+  // Validate Solana address format (44 chars, base58)
+  function isValidSolanaAddress(addr) {
+    if (typeof addr !== 'string') return false;
+    if (addr.length !== 44) return false;
+    const base58 = /^[1-9A-HJ-NP-Z]+$/;
+    return base58.test(addr);
+  }
+
+  async function handleWallet() {
+    const wallet = document.getElementById('walletAddr').value.trim();
+
+    // Validate Solana address format (44 characters, base58)
+    if (!isValidSolanaAddress(wallet)) {
+      alert('Bitte eine gültige Solana Wallet-Adresse eingeben (44 Zeichen)');
+      return;
+    }
+
+    await initSupabase();
+
+    try {
+      const referrerWallet = window.referrerWallet || null;
+      const { data, error } = await sbClient
+        .from('wallets')
+        .insert([{
+          wallet_address: wallet,
+          registered_at: new Date().toISOString(),
+          klrx_balance: 0.01,
+          badge: 'Free',
+          tier: 'Free',
+          claim_status: 'Ausstehend',
+          og_status: false,
+          referrer_wallet: referrerWallet
+        }]);
+
+      if (error && error.code !== '23505') {
+        console.error('Fehler:', error);
+        alert('Fehler: ' + error.message);
+        return;
+      }
+
+      // Insert into referrals table if there's a referrer
+      if (referrerWallet && isValidSolanaAddress(referrerWallet)) {
+        const { error: refError } = await sbClient
+          .from('referrals')
+          .insert([{
+            referrer_wallet: referrerWallet,
+            referred_wallet: wallet,
+            created_at: new Date().toISOString()
+          }]);
+
+        if (refError) {
+          console.error('Referral insert error:', refError);
+        }
+      }
+
+      await loadWallet(wallet);
+    } catch (err) {
+      console.error('Error:', err);
+      alert('Fehler: ' + err.message);
+    }
+  }
+
+  function copyLink() {
+    const link = document.getElementById('refLink');
+    link.select();
+    document.execCommand('copy');
+    alert('Link kopiert!');
+  }
+
+  function disconnect() {
+    currentWallet = null;
+    document.getElementById('walletAddr').value = '';
+    window.referrerWallet = null;
+    document.getElementById('connectSection').style.display = 'block';
+    document.getElementById('portalScreen').style.display = 'none';
+  }
+
+  // Auto-load if ref param exists
+  window.addEventListener('load', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref && isValidSolanaAddress(ref)) {
+      document.getElementById('walletAddr').value = ref;
+      await initSupabase();
+      // Store referrer for later use during registration
+      window.referrerWallet = ref;
+    }
+  });
+</script>
+
+</body>
+</html>

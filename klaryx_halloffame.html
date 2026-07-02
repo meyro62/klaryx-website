@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hall of Fame – Klaryx</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #080b12;
+    --surface: #0f1420;
+    --border: #1a2236;
+    --text: #dde0eb;
+    --muted: #4e5870;
+    --accent: #5b7fff;
+    --accent2: #a78bfa;
+    --gold: #ffd700;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 15px; line-height: 1.7; min-height: 100vh; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    background: rgba(8,11,18,.95);
+  }
+  .nav-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+
+  .hero { text-align: center; padding: 80px 24px 48px; }
+  .hero-crown { font-size: 64px; margin-bottom: 20px; }
+  .hero-title { font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
+  .hero-title span { background: linear-gradient(135deg, var(--gold), #ff9900); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-sub { font-size: 15px; color: var(--muted); max-width: 480px; margin: 0 auto; }
+
+  .container { max-width: 760px; margin: 0 auto; padding: 48px 24px; }
+
+  .empty-state { text-align: center; padding: 80px 24px; }
+  .empty-icon { font-size: 48px; margin-bottom: 20px; opacity: .3; }
+  .empty-title { font-size: 20px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+  .empty-sub { font-size: 14px; color: var(--muted); max-width: 360px; margin: 0 auto; line-height: 1.7; }
+
+  .legend-card { background: linear-gradient(135deg, rgba(255,215,0,.05), rgba(255,153,0,.03)); border: 1px solid rgba(255,215,0,.2); border-radius: 14px; padding: 24px 28px; margin-bottom: 16px; display: flex; align-items: center; gap: 20px; }
+  .legend-rank { font-family: 'Space Mono', monospace; font-size: 24px; font-weight: 700; color: var(--gold); width: 40px; flex-shrink: 0; }
+  .legend-info { flex: 1; }
+  .legend-wallet { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .legend-invites { font-size: 22px; font-weight: 700; }
+  .legend-label { font-size: 11px; color: var(--muted); }
+  .legend-badge { font-size: 28px; }
+
+  .how-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-top: 48px; text-align: center; }
+  .how-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .how-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .how-steps { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .how-step { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: var(--muted); text-align: center; min-width: 140px; }
+  .how-step-num { font-size: 20px; margin-bottom: 6px; }
+  .how-step-text { line-height: 1.5; }
+
+  .btn-primary { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 10px; padding: 12px 28px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; margin-top: 16px; }
+
+  footer { text-align: center; padding: 32px 24px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); margin-top: 48px; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Klaryx</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-crown">👑</div>
+  <h1 class="hero-title">Klaryx <span>Hall of Fame</span></h1>
+  <p class="hero-sub">Die Community-Builder die Klaryx zu dem gemacht haben was es ist. Ewiger Eintrag für alle die 101+ Mitglieder eingeladen haben.</p>
+</div>
+
+<div class="container">
+
+  <!-- EMPTY STATE - wird ersetzt wenn erste Legends da sind -->
+  <div class="empty-state">
+    <div class="empty-icon">🏆</div>
+    <div class="empty-title">Noch keine Legends</div>
+    <div class="empty-sub">Die Hall of Fame wartet auf ihre ersten Einträge. Wer 101+ Mitglieder einlädt, wird hier für immer verewigt.</div>
+  </div>
+
+  <!-- BEISPIEL wie ein Eintrag aussieht (auskommentiert bis erste Legends da sind)
+  <div class="legend-card">
+    <div class="legend-rank">#1</div>
+    <div class="legend-info">
+      <div class="legend-wallet">9juC...yui1</div>
+      <div class="legend-invites">247 Einladungen</div>
+      <div class="legend-label">Legend seit 01.01.2027</div>
+    </div>
+    <div class="legend-badge">👑</div>
+  </div>
+  -->
+
+  <div class="how-section">
+    <div class="how-title">Wie komme ich in die Hall of Fame?</div>
+    <div class="how-sub">Lade 101+ Mitglieder über deinen persönlichen Einladungslink ein.</div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">1️⃣</div>
+        <div class="how-step-text">Portal öffnen & Wallet verbinden</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2️⃣</div>
+        <div class="how-step-text">Persönlichen Einladungslink kopieren</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3️⃣</div>
+        <div class="how-step-text">101+ Freunde einladen</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">👑</div>
+        <div class="how-step-text">Ewiger Eintrag in der Hall of Fame</div>
+      </div>
+    </div>
+    <a href="klaryx_portal.html" class="btn-primary">Zum Portal →</a>
+  </div>
+
+</div>
+
+<footer>
+  <a href="index.html">Startseite</a> ·
+  <a href="klaryx_portal.html">Portal</a> ·
+  <a href="klaryx_impressum.html">Impressum</a> ·
+  <a href="klaryx_datenschutz.html">Datenschutz</a> ·
+  <a href="klaryx_disclaimer.html">Disclaimer</a><br><br>
+  klaryx.de · © 2026 Meyro
+</footer>
+
+</body>
+</html>

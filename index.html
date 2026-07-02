@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klaryx – KI-gestützte Marktintelligenz auf Solana</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #080b12;
+    --surface: #0f1420;
+    --surface2: #141926;
+    --border: #1a2236;
+    --text: #dde0eb;
+    --muted: #4e5870;
+    --accent: #5b7fff;
+    --accent2: #a78bfa;
+    --green: #22d3a0;
+    --yellow: #f5c542;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 15px; line-height: 1.7; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    background: rgba(8,11,18,.95); backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .btn-nav { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+
+  /* HERO */
+  .hero {
+    min-height: 92vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 80px 24px 64px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 800px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(91,127,255,.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(34,211,160,.08); border: 1px solid rgba(34,211,160,.25);
+    border-radius: 20px; padding: 5px 16px; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 28px;
+  }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 68px); font-weight: 700;
+    letter-spacing: -2px; line-height: 1.1; margin-bottom: 20px; max-width: 780px;
+  }
+  .hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-sub { font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto 40px; line-height: 1.8; }
+
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 10px; padding: 14px 32px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: opacity .2s, transform .15s;
+  }
+  .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 32px; font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px; font-weight: 500; cursor: pointer; text-decoration: none;
+    display: inline-block; transition: border-color .2s;
+  }
+  .btn-secondary:hover { border-color: var(--muted); }
+
+  /* MINT ADDRESS */
+  .mint-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px; margin-top: 36px;
+    font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted);
+    max-width: 520px; width: 100%;
+  }
+  .mint-label { color: var(--accent); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+  .mint-address { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mint-copy { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 4px; transition: color .2s; }
+  .mint-copy:hover { color: var(--text); }
+
+  /* STATS */
+  .stats {
+    display: flex; gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; max-width: 680px; margin: 64px auto 0; width: calc(100% - 48px);
+  }
+  .stat { flex: 1; background: var(--surface); padding: 20px 24px; text-align: center; }
+  .stat-value { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-value.green { color: var(--green); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: .5px; }
+
+  /* SECTION */
+  section { max-width: 960px; margin: 0 auto; padding: 80px 24px; }
+  .section-eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  .section-title { font-size: clamp(24px, 4vw, 38px); font-weight: 700; letter-spacing: -1px; line-height: 1.2; margin-bottom: 14px; }
+  .section-sub { font-size: 15px; color: var(--muted); max-width: 520px; line-height: 1.8; }
+
+  /* HOW IT WORKS */
+  .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 48px; }
+  .how-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .how-card:hover { border-color: rgba(91,127,255,.3); }
+  .how-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 12px; letter-spacing: 1px; }
+  .how-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .how-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  /* TIERS */
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 48px; }
+  .tier-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; }
+  .tier-card.featured { border-color: rgba(91,127,255,.4); background: rgba(91,127,255,.04); }
+  .tier-badge { position: absolute; top: -10px; right: 16px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; }
+  .tier-name { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 6px; }
+  .tier-amount { font-size: 28px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+  .tier-unit { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .tier-features { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .tier-features li { font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: flex-start; }
+  .tier-features li::before { content: '✓'; color: var(--green); flex-shrink: 0; }
+
+  /* TOKENOMICS */
+  .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 48px; }
+  @media (max-width: 600px) { .token-grid { grid-template-columns: 1fr; } }
+  .token-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+  .token-card-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .token-card-value { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; }
+  .token-card-value.green { color: var(--green); }
+  .token-card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .distribution { margin-top: 32px; display: flex; flex-direction: column; gap: 10px; }
+  .dist-row { display: flex; align-items: center; gap: 12px; }
+  .dist-label { font-size: 13px; color: var(--muted); width: 120px; flex-shrink: 0; }
+  .dist-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .dist-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .dist-pct { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text); width: 40px; text-align: right; flex-shrink: 0; }
+
+  /* TRUST */
+  .trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 48px; }
+  .trust-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+  .trust-icon { font-size: 28px; margin-bottom: 10px; }
+  .trust-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .trust-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* CTA */
+  .cta-section { text-align: center; padding: 80px 24px; border-top: 1px solid var(--border); }
+  .cta-title { font-size: clamp(24px, 4vw, 40px); font-weight: 700; letter-spacing: -1px; margin-bottom: 14px; }
+  .cta-sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; }
+
+  /* FOOTER */
+  footer { text-align: center; padding: 32px 24px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    nav { padding: 12px 16px; }
+    .nav-links { display: none; }
+    .stats { flex-direction: column; }
+    .token-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Klaryx</div>
+  <div class="nav-links">
+    <a href="#wie-es-funktioniert">Wie es funktioniert</a>
+    <a href="#zugang">Zugang</a>
+    <a href="#token">Token</a>
+  </div>
+  <a href="portal.html" class="btn-nav">Free Claim →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Jetzt live auf Solana</div>
+  <h1>KI-gestützte<br>Marktintelligenz.<br><em>Zugänglich für alle.</em></h1>
+  <p class="hero-sub">Klaryx ist ein KI-gestütztes Marktanalyse-Tool auf Solana. Zugang über $KLRX – kostenlos durch Community-Arbeit verdienen. Kein Investment, kein Versprechen. Nur ein Werkzeug.</p>
+  <div class="hero-actions">
+    <a href="portal.html" class="btn-primary">Free Claim beantragen →</a>
+    <a href="#wie-es-funktioniert" class="btn-secondary">Wie es funktioniert</a>
+  </div>
+  <div class="mint-bar">
+    <span class="mint-label">$KLRX</span>
+    <span class="mint-address" id="mintAddr">2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD</span>
+    <button class="mint-copy" onclick="navigator.clipboard.writeText('2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD').then(()=>{this.textContent='✓';setTimeout(()=>this.textContent='⎘',1500)})">⎘</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-value">100M</div>
+    <div class="stat-label">Gesamtsupply KLRX</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value green">Disabled</div>
+    <div class="stat-label">Mint Authority</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">Solana</div>
+    <div class="stat-label">Blockchain</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">Milestone</div>
+    <div class="stat-label">Meilensteinbasiert</div>
+  </div>
+</div>
+
+<!-- WIE ES FUNKTIONIERT -->
+<section id="wie-es-funktioniert">
+  <div class="section-eyebrow">Das Konzept</div>
+  <h2 class="section-title">Kein Abo. Kein Login.<br>Token als Schlüssel.</h2>
+  <p class="section-sub">Zugang wird nicht gekauft – er wird verdient. Lade Freunde ein, steige auf und erhalte Zugang zu mehr Features. Alles kostenlos durch Community-Arbeit.</p>
+
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-title">Free Claim beantragen</div>
+      <div class="how-desc">Verbinde deine Wallet im Portal und beantrage deinen kostenlosen Free Claim. 0.01 KLRX landet innerhalb von 24 Stunden in deiner Wallet.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-title">Einladungslink teilen</div>
+      <div class="how-desc">Jeder Holder bekommt einen persönlichen Einladungslink. Pro Einladung erhältst du 0.005 KLRX – dein Freund bekommt 0.01 KLRX.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-title">Badge verdienen</div>
+      <div class="how-desc">Je mehr Freunde du einlädst, desto höher steigst du auf. Ab Platin (25 Einladungen, 0.84 KLRX) wird Einblick später freigeschaltet.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">04</div>
+      <div class="how-title">Analysen nutzen</div>
+      <div class="how-desc">Ab Tiefe (50 Einladungen, 1.965 KLRX) wird vollständiger Zugang später freigeschaltet. Weitere Features coming soon.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ZUGANG / TIERS -->
+<section id="zugang" style="border-top: 1px solid var(--border);">
+  <div class="section-eyebrow">Zugangsstufen</div>
+  <h2 class="section-title">Drei Stufen.<br>Ein Token.</h2>
+  <p class="section-sub">Alle Tiers sind kostenlos durch Einladungen erreichbar. Starte mit dem Free Claim und steige durch Community-Arbeit auf.</p>
+
+  <div class="tiers">
+    <div class="tier-card">
+      <div class="tier-name">Free</div>
+      <div class="tier-amount">0.01</div>
+      <div class="tier-unit">KLRX · Kostenlos per Claim</div>
+      <ul class="tier-features">
+        <li>OG-Status gesichert</li>
+        <li>Persönlicher Einladungslink</li>
+        <li>Badge-Programm</li>
+        <li>Community-Zugang</li>
+      </ul>
+    </div>
+    <div class="tier-card featured">
+      <div class="tier-badge">Platin Badge</div>
+      <div class="tier-name">Einblick</div>
+      <div class="tier-amount">0.84</div>
+      <div class="tier-unit">KLRX · Coming Soon</div>
+      <ul class="tier-features">
+        <li>Alles aus Free</li>
+        <li>Premium Features</li>
+        <li>Exklusiver Zugang</li>
+        <li>Weitere Details folgen</li>
+      </ul>
+    </div>
+    <div class="tier-card">
+      <div class="tier-name">Tiefe</div>
+      <div class="tier-amount">1.965</div>
+      <div class="tier-unit">KLRX · Coming Soon</div>
+      <ul class="tier-features">
+        <li>Alles aus Einblick</li>
+        <li>Premium Features</li>
+        <li>Exklusiver Zugang</li>
+        <li>Weitere Details folgen</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- REFERRAL / BADGE SYSTEM -->
+<section id="referral" style="border-top: 1px solid var(--border);">
+  <div class="section-eyebrow">Community-Programm</div>
+  <h2 class="section-title">Lade Freunde ein.<br>Werde zur Legende.</h2>
+  <p class="section-sub">Jeder Holder bekommt einen persönlichen Einladungslink im Portal. Wer Klaryx weiterträgt, wird belohnt – mit Badges, KLRX-Boni und exklusivem Tier-Zugang.</p>
+
+  <div class="how-grid" style="margin-top:48px;">
+    <div class="how-card">
+      <div class="how-num">🥉 BRONZE</div>
+      <div class="how-title">1–4 Einladungen</div>
+      <div class="how-desc">Dein erster Schritt als Community-Mitglied. Badge wird automatisch vergeben.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">🥈 SILBER</div>
+      <div class="how-title">5–9 Einladungen</div>
+      <div class="how-desc">Badge + 0.05 KLRX Bonus für aktive Unterstützer der Community.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">🥇 GOLD</div>
+      <div class="how-title">10–24 Einladungen</div>
+      <div class="how-desc">Badge + 0.15 KLRX Bonus. Du gehörst zu den engagiertesten Mitgliedern.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">💎 PLATIN</div>
+      <div class="how-title">25–49 Einladungen</div>
+      <div class="how-desc">Badge + 0.50 KLRX Bonus. Einblick-Tier wird später freigeschaltet.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">💠 DIAMANT</div>
+      <div class="how-title">50–99 Einladungen</div>
+      <div class="how-desc">Badge + 1.00 KLRX Bonus. Tiefe-Tier wird später freigeschaltet.</div>
+    </div>
+    <div class="how-card" style="border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.03);">
+      <div class="how-num" style="color:#ffd700;">👑 LEGEND</div>
+      <div class="how-title">100+ Einladungen</div>
+      <div class="how-desc">Badge + 2.00 KLRX Bonus + Eintrag in der Klaryx Hall of Fame. Tiefe-Tier wird später freigeschaltet.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOKENOMICS -->
+<section id="token" style="border-top: 1px solid var(--border);">
+  <div class="section-eyebrow">Tokenomics</div>
+  <h2 class="section-title">Fixe Supply.<br>Keine Überraschungen.</h2>
+  <p class="section-sub">100 Millionen KLRX – einmalig geminted, Mint Authority dauerhaft deaktiviert. Was du siehst ist alles was es je geben wird.</p>
+
+  <div class="token-grid">
+    <div class="token-card">
+      <div class="token-card-label">Gesamtsupply</div>
+      <div class="token-card-value">100,000,000</div>
+      <div class="token-card-sub">KLRX · unveränderlich</div>
+    </div>
+    <div class="token-card">
+      <div class="token-card-label">Mint Authority</div>
+      <div class="token-card-value green">Disabled</div>
+      <div class="token-card-sub">On-Chain verifizierbar</div>
+    </div>
+    <div class="token-card">
+      <div class="token-card-label">Blockchain</div>
+      <div class="token-card-value">Solana</div>
+      <div class="token-card-sub">SPL Token · 9 Decimals</div>
+    </div>
+    <div class="token-card">
+      <div class="token-card-label">Mint Address</div>
+      <div class="token-card-value" style="font-size:12px;word-break:break-all;">2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD</div>
+      <div class="token-card-sub">Solscan verifiziert</div>
+    </div>
+  </div>
+
+  <div class="distribution">
+    <div class="dist-row">
+      <div class="dist-label">Community</div>
+      <div class="dist-bar-wrap"><div class="dist-bar" style="width:40%"></div></div>
+      <div class="dist-pct">40%</div>
+    </div>
+    <div class="dist-row">
+      <div class="dist-label">Liquidity</div>
+      <div class="dist-bar-wrap"><div class="dist-bar" style="width:35%"></div></div>
+      <div class="dist-pct">35%</div>
+    </div>
+    <div class="dist-row">
+      <div class="dist-label">Founder</div>
+      <div class="dist-bar-wrap"><div class="dist-bar" style="width:25%"></div></div>
+      <div class="dist-pct">25%</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-eyebrow">Vertrauen</div>
+  <h2 class="section-title">Überprüfbar.<br>Nicht versprochen.</h2>
+  <p class="section-sub">Jede Behauptung auf dieser Seite ist on-chain verifizierbar. Wir sagen dir wo du nachschauen kannst.</p>
+
+  <div class="trust-grid">
+    <div class="trust-card">
+      <div class="trust-icon">🔒</div>
+      <div class="trust-title">Mint deaktiviert</div>
+      <div class="trust-desc">Niemand kann je wieder KLRX minten – auch der Gründer nicht. Prüfbar auf Solscan.</div>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">📊</div>
+      <div class="trust-title">Transparente Verteilung</div>
+      <div class="trust-desc">35% Liquidity, 40% Community, 25% Founder mit Vesting. Alle Wallets öffentlich.</div>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">⏳</div>
+      <div class="trust-title">Founder Vesting</div>
+      <div class="trust-desc">6 Monate Cliff, 18 Monate Vesting. Kein Dump am Launch-Tag möglich.</div>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">🚫</div>
+      <div class="trust-title">Kein Investment</div>
+      <div class="trust-desc">$KLRX ist ein Utility-Token. Kein Gewinnversprechen, keine Renditeerwartung.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MEILENSTEINE -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-eyebrow">Meilensteine</div>
+  <h2 class="section-title">Wir wachsen gemeinsam.<br>Schritt für Schritt.</h2>
+  <p class="section-sub">Klaryx ist meilensteinbasiert. Kein festes Datum – wir schalten Features frei wenn die Community bereit ist.</p>
+
+  <div class="how-grid" style="margin-top:48px;">
+    <div class="how-card">
+      <div class="how-num" style="color:var(--green);">🌱 JETZT</div>
+      <div class="how-title">Phase 1 · Start</div>
+      <div class="how-desc">Free Claim aktiv. Einladungslinks verfügbar. OG-Badges werden vergeben. Einblick & Tiefe durch Referrals verdienbar.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num" style="color:var(--accent);">🌿 500 Holder</div>
+      <div class="how-title">Phase 2 · Wachstum</div>
+      <div class="how-desc">Erste öffentliche Ankündigung. Social Media Push. Community-Events. Klaryx wird sichtbar.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num" style="color:var(--accent2);">🌳 1.000 Holder</div>
+      <div class="how-title">Phase 3 · Etabliert</div>
+      <div class="how-desc">Whitepaper veröffentlicht. Investor-Gespräche möglich. Plattform wird weiterentwickelt.</div>
+    </div>
+    <div class="how-card" style="border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.03);">
+      <div class="how-num" style="color:#ffd700;">🚀 5.000 Holder</div>
+      <div class="how-title">Phase 4 · Launch</div>
+      <div class="how-desc">DEX-Listing vorbereitung. Vollständige Plattform. Offizielle Markteinführung von $KLRX.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2 class="cta-title">Bereit für den Free Claim?</h2>
+  <p class="cta-sub">In 15 Minuten eingerichtet. Kein Krypto-Wissen nötig.</p>
+  <a href="portal.html" class="btn-primary">Jetzt starten →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
+  <a href="klaryx_onboarding.html">Anleitung</a> ·
+  <a href="portal.html">Portal</a> ·
+  <a href="klaryx_halloffame.html">Hall of Fame</a> ·
+  <a href="https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD" target="_blank">Solscan</a> ·
+  <a href="mailto:info@klaryx.de">Kontakt</a> ·
+  <a href="klaryx_legal.html">Rechtliche Hinweise</a> ·
+  <a href="klaryx_impressum.html">Impressum</a> ·
+  <a href="klaryx_datenschutz.html">Datenschutz</a><br><br>
+  klaryx.de · © 2026 Meyro
+</footer>
+
+</body>
+</html>
