@@ -36,6 +36,13 @@
   .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color .2s; }
   .nav-links a:hover { color: var(--text); }
   .btn-nav { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 0; }
+
+  /* MOBILE MENU */
+  .mobile-menu { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); flex-direction: column; gap: 0; z-index: 99; }
+  .mobile-menu a { color: var(--muted); text-decoration: none; padding: 12px 24px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .mobile-menu a:hover { color: var(--text); }
+  .mobile-menu.active { display: flex; }
 
   /* HERO */
   .hero {
@@ -169,6 +176,7 @@
   @media (max-width: 640px) {
     nav { padding: 12px 16px; }
     .nav-links { display: none; }
+    .menu-toggle { display: block; }
     .stats { flex-direction: column; }
     .token-grid { grid-template-columns: 1fr; }
   }
@@ -184,8 +192,17 @@
     <a href="#token">Token</a>
     <a href="klaryx_milestones.html">Meilensteine</a>
   </div>
+  <button class="menu-toggle" id="menu-toggle">☰</button>
   <a href="portal.html" class="btn-nav">Portal →</a>
 </nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#wie-es-funktioniert">Wie es funktioniert</a>
+  <a href="#zugang">Zugang</a>
+  <a href="#token">Token</a>
+  <a href="klaryx_milestones.html">Meilensteine</a>
+  <a href="portal.html" style="background:rgba(91,127,255,.1);">Portal →</a>
+</div>
 
 <!-- HERO -->
 <div class="hero">
@@ -462,7 +479,7 @@
 <!-- FOOTER -->
 <footer>
   $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
-  <a href="klaryx_onboarding.html">Anleitung</a> ·
+  <a href="klaryx_wallet_setup.html">Wallet Setup</a> ·
   <a href="portal.html">Portal</a> ·
   <a href="klaryx_halloffame.html">Hall of Fame</a> ·
   <a href="https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD" target="_blank">Solscan</a> ·
@@ -522,6 +539,21 @@ function cacheHolderCount(count) {
   localStorage.setItem('klaryx_holder_cache', count.toLocaleString('de-DE'));
   localStorage.setItem('klaryx_holder_timestamp', Date.now().toString());
 }
+
+// Mobile menu toggle
+const menuToggle = document.getElementById('menu-toggle');
+const mobileMenu = document.getElementById('mobile-menu');
+
+menuToggle.addEventListener('click', () => {
+  mobileMenu.classList.toggle('active');
+});
+
+// Close menu when clicking a link
+document.querySelectorAll('.mobile-menu a').forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('active');
+  });
+});
 </script>
 
 </body>

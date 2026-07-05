@@ -140,7 +140,6 @@ select cron.schedule('send-klrx-daily', '0 10 * * *',
 ```
 ├── portal.html                # User-Portal mit Badges & Referrals
 ├── index.html                 # Marketing-Website
-├── klaryx_onboarding.html     # Onboarding-Guide
 ├── klaryx_legal.html          # Rechtliche Hinweise (WICHTIG!)
 ├── klaryx_datenschutz.html    # Datenschutzerklärung
 ├── klaryx_disclaimer.html     # Disclaimer
