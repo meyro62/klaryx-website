@@ -182,6 +182,7 @@
     <a href="#wie-es-funktioniert">Wie es funktioniert</a>
     <a href="#zugang">Zugang</a>
     <a href="#token">Token</a>
+    <a href="klaryx_milestones.html">Meilensteine</a>
   </div>
   <a href="portal.html" class="btn-nav">Portal →</a>
 </nav>
@@ -415,10 +416,17 @@
 </section>
 
 <!-- MEILENSTEINE -->
-<section style="border-top: 1px solid var(--border);">
+<section id="meilensteine" style="border-top: 1px solid var(--border);">
   <div class="section-eyebrow">Meilensteine</div>
   <h2 class="section-title">Wir wachsen gemeinsam.<br>Schritt für Schritt.</h2>
   <p class="section-sub">Klaryx ist meilensteinbasiert. Kein festes Datum – wir schalten Features frei wenn die Community bereit ist.</p>
+
+  <!-- LIVE STATUS -->
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; margin: 32px 0;">
+    <div style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px;">📊 Live Community Status</div>
+    <div style="font-size: 32px; font-weight: 700; color: var(--green); margin-bottom: 8px;" id="holder-count">-</div>
+    <div style="font-size: 13px; color: var(--muted);">Holder registriert</div>
+  </div>
 
   <div class="how-grid" style="margin-top:48px;">
     <div class="how-card">
@@ -465,6 +473,56 @@
   <a href="klaryx_datenschutz.html">Datenschutz</a><br><br>
   klaryx.de · © 2026 Meyro
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Lade Live Holder Count
+async function loadHolderCount() {
+  try {
+    const supabase = window.supabase.createClient(
+      "https://wpxcgducfkbozecknfdw.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg"
+    );
+
+    const { count, error } = await supabase
+      .from('wallets')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) throw error;
+
+    const holderCount = count || 0;
+    const displayCount = holderCount.toLocaleString('de-DE');
+    document.getElementById('holder-count').textContent = displayCount;
+    cacheHolderCount(holderCount);
+  } catch (err) {
+    console.error('Error loading holder count:', err);
+    document.getElementById('holder-count').textContent = '0';
+  }
+}
+
+// Load on page load
+window.addEventListener('load', () => {
+  const cached = localStorage.getItem('klaryx_holder_cache');
+  const timestamp = localStorage.getItem('klaryx_holder_timestamp');
+  const now = Date.now();
+
+  // Use cache if less than 1 hour old
+  if (cached && timestamp && (now - parseInt(timestamp)) < 3600000) {
+    document.getElementById('holder-count').textContent = cached;
+  } else {
+    loadHolderCount();
+  }
+});
+
+// Refresh every 1 hour (3600000ms)
+setInterval(loadHolderCount, 3600000);
+
+// Cache the result
+function cacheHolderCount(count) {
+  localStorage.setItem('klaryx_holder_cache', count.toLocaleString('de-DE'));
+  localStorage.setItem('klaryx_holder_timestamp', Date.now().toString());
+}
+</script>
 
 </body>
 </html>
