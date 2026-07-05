@@ -96,8 +96,17 @@
     </div>
   </div>
 
+  <!-- PLATTFORM SELECTOR -->
+  <div style="text-align:center;margin:32px 0;">
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="showPlatform('desktop')" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;" id="btn-desktop">💻 Desktop</button>
+      <button onclick="showPlatform('ios')" style="padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-weight:600;" id="btn-ios">🍎 iOS</button>
+      <button onclick="showPlatform('android')" style="padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-weight:600;" id="btn-android">🤖 Android</button>
+    </div>
+  </div>
+
   <!-- WALLET AUSWAHL -->
-  <div style="margin:48px 0;">
+  <div style="margin:48px 0;" id="desktop-section">
     <h2 style="font-size:18px;color:var(--accent);margin-bottom:24px;text-align:center;">Wähle deine Wallet</h2>
     <div class="wallet-grid">
       <div class="wallet-card">
@@ -121,6 +130,62 @@
     </div>
     <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">
       ✅ Empfehlung für Anfänger: <strong>Phantom</strong>
+    </p>
+  </div>
+
+  <!-- iOS SECTION -->
+  <div style="margin:48px 0;display:none;" id="ios-section">
+    <h2 style="font-size:18px;color:var(--accent);margin-bottom:24px;text-align:center;">iPhone / iPad Setup</h2>
+    <div class="wallet-grid">
+      <div class="wallet-card">
+        <div class="wallet-icon">👻</div>
+        <div class="wallet-name">Phantom iOS</div>
+        <div class="wallet-desc">Die beste Wallet für iPhone. Einfach, sicher, populär.</div>
+        <a href="https://apps.apple.com/app/phantom-solana-wallet/id1594754945" target="_blank" class="wallet-link">App Store →</a>
+      </div>
+      <div class="wallet-card">
+        <div class="wallet-icon">🔥</div>
+        <div class="wallet-name">Solflare iOS</div>
+        <div class="wallet-desc">Sichere Alternative für Apple Geräte.</div>
+        <a href="https://apps.apple.com/app/solflare-solana-wallet/id1579550221" target="_blank" class="wallet-link">App Store →</a>
+      </div>
+      <div class="wallet-card">
+        <div class="wallet-icon">🎒</div>
+        <div class="wallet-name">Backpack iOS</div>
+        <div class="wallet-desc">Modern mit integriertem DEX.</div>
+        <a href="https://apps.apple.com/app/backpack-crypto-wallet/id6502480756" target="_blank" class="wallet-link">App Store →</a>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">
+      ✅ Empfehlung für iPhone: <strong>Phantom</strong>
+    </p>
+  </div>
+
+  <!-- ANDROID SECTION -->
+  <div style="margin:48px 0;display:none;" id="android-section">
+    <h2 style="font-size:18px;color:var(--accent);margin-bottom:24px;text-align:center;">Android Setup</h2>
+    <div class="wallet-grid">
+      <div class="wallet-card">
+        <div class="wallet-icon">👻</div>
+        <div class="wallet-name">Phantom Android</div>
+        <div class="wallet-desc">Die beste Wallet für Android. Einfach, sicher, populär.</div>
+        <a href="https://play.google.com/store/apps/details?id=app.phantom" target="_blank" class="wallet-link">Google Play →</a>
+      </div>
+      <div class="wallet-card">
+        <div class="wallet-icon">🔥</div>
+        <div class="wallet-name">Solflare Android</div>
+        <div class="wallet-desc">Sichere Alternative für Android Geräte.</div>
+        <a href="https://play.google.com/store/apps/details?id=com.solflare.mobile" target="_blank" class="wallet-link">Google Play →</a>
+      </div>
+      <div class="wallet-card">
+        <div class="wallet-icon">🎒</div>
+        <div class="wallet-name">Backpack Android</div>
+        <div class="wallet-desc">Modern mit integriertem DEX.</div>
+        <a href="https://play.google.com/store/apps/details?id=app.backpack.mobile" target="_blank" class="wallet-link">Google Play →</a>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">
+      ✅ Empfehlung für Android: <strong>Phantom</strong>
     </p>
   </div>
 
@@ -301,6 +366,46 @@
   <a href="https://x.com/klaryxhq" target="_blank">X</a><br><br>
   klaryx.de · © 2026 Meyro
 </footer>
+
+<script>
+function showPlatform(platform) {
+  // Hide all sections
+  document.getElementById('desktop-section').style.display = 'none';
+  document.getElementById('ios-section').style.display = 'none';
+  document.getElementById('android-section').style.display = 'none';
+
+  // Reset all buttons
+  document.getElementById('btn-desktop').style.background = 'var(--surface)';
+  document.getElementById('btn-desktop').style.color = 'var(--text)';
+  document.getElementById('btn-desktop').style.border = '1px solid var(--border)';
+
+  document.getElementById('btn-ios').style.background = 'var(--surface)';
+  document.getElementById('btn-ios').style.color = 'var(--text)';
+  document.getElementById('btn-ios').style.border = '1px solid var(--border)';
+
+  document.getElementById('btn-android').style.background = 'var(--surface)';
+  document.getElementById('btn-android').style.color = 'var(--text)';
+  document.getElementById('btn-android').style.border = '1px solid var(--border)';
+
+  // Show selected section and highlight button
+  if (platform === 'desktop') {
+    document.getElementById('desktop-section').style.display = 'block';
+    document.getElementById('btn-desktop').style.background = 'var(--accent)';
+    document.getElementById('btn-desktop').style.color = '#fff';
+    document.getElementById('btn-desktop').style.border = 'none';
+  } else if (platform === 'ios') {
+    document.getElementById('ios-section').style.display = 'block';
+    document.getElementById('btn-ios').style.background = 'var(--accent)';
+    document.getElementById('btn-ios').style.color = '#fff';
+    document.getElementById('btn-ios').style.border = 'none';
+  } else if (platform === 'android') {
+    document.getElementById('android-section').style.display = 'block';
+    document.getElementById('btn-android').style.background = 'var(--accent)';
+    document.getElementById('btn-android').style.color = '#fff';
+    document.getElementById('btn-android').style.border = 'none';
+  }
+}
+</script>
 
 </body>
 </html>
