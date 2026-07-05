@@ -2,7 +2,7 @@
 
 Klaryx ist ein **kostenloses, token-basiertes Community-Projekt** auf Solana. Verdiene KLRX durch Einladungen und steige in Badges auf. 
 
-⚠️ **Wichtig:** Dies ist ein privates Projekt, **kein Finanzprodukt** und kein Investment. Siehe [Rechtliche Hinweise](klaryx_legal.html).
+⚠️ **Wichtig:** Dies ist ein privates Projekt, **kein Finanzprodukt** und kein Investment. Siehe [Rechtliche Hinweise](blob/main/klaryx_legal.html).
 
 ## 🎯 Features
 
@@ -160,7 +160,7 @@ select cron.schedule('send-klrx-daily', '0 10 * * *',
 - ❌ Kein Gewinn- oder Renditeversprechen
 - ❌ Kein Investmentprodukt
 - ❌ Keine regulatorische Lizenz
-- ✅ Siehe [klaryx_legal.html](klaryx_legal.html) für vollständige Hinweise
+- ✅ Siehe [klaryx_legal.html](blob/main/klaryx_legal.html) für vollständige Hinweise
 
 **Nutzer sind verantwortlich für:**
 - Wallet-Sicherheit
