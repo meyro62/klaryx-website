@@ -146,7 +146,12 @@ select cron.schedule('send-klrx-daily', '0 10 * * *',
 ├── klaryx_disclaimer.html     # Disclaimer
 ├── klaryx_impressum.html      # Impressum
 ├── klaryx_halloffame.html     # Hall of Fame (Top Referrer)
-└── README.md                  # Diese Datei
+├── .gitignore                 # Git-Ignorierungen
+├── CNAME                      # Domain: klaryx.de
+└── docs/                      # Dokumentation
+    ├── CHANGELOG.md           # Entwicklungshistorie
+    ├── STRATEGIE_LONGTERM.md  # Langfrist-Plan
+    └── CONTENT_SYSTEM_ARCHITEKTUR.md  # Phase 1 Tech-Spec
 ```
 
 ## ⚖️ Rechtliches & Disclaimer

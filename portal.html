@@ -66,7 +66,6 @@
     <div style="font-size: 12px; color: var(--muted);">Beta</div>
   </nav>
 
-  <!-- CONNECT SCREEN -->
   <div class="connect-section" id="connectSection">
     <h2>🔐 Portal betreten</h2>
     <p style="color: var(--muted); margin-bottom: 20px;">Gib deine Solana Wallet-Adresse ein um dein Klaryx Profil zu laden.</p>
@@ -75,7 +74,6 @@
     <p style="font-size: 11px; color: var(--muted); margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;"><strong>Disclaimer:</strong> $KLRX ist kein Finanzprodukt. Dies ist ein privates Community-Projekt ohne Gewinn- oder Renditeversprechen. Teilnahme auf eigenes Risiko.</p>
   </div>
 
-  <!-- PORTAL SCREEN -->
   <div class="portal-screen" id="portalScreen">
     <div class="wallet-header">
       <div class="wallet-info">
@@ -87,7 +85,6 @@
       </div>
     </div>
 
-    <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Tier</div>
@@ -111,7 +108,6 @@
       </div>
     </div>
 
-    <!-- BADGE -->
     <div class="badge-section">
       <div class="badge-name" id="badgeName">🥉 Bronze</div>
       <div class="badge-display" id="badgeEmoji">🥉</div>
@@ -128,7 +124,6 @@
       </div>
     </div>
 
-    <!-- REFERRAL -->
     <div class="ref-section">
       <h3>🔗 Dein Einladungslink</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Teile diesen Link und verdiene 0.005 KLRX pro Einladung!</p>
@@ -182,7 +177,6 @@
 
   async function loadWallet(wallet) {
     try {
-      // Hole Wallet-Daten
       const { data: walletData, error: walletError } = await sbClient
         .from('wallets')
         .select('*')
@@ -190,12 +184,11 @@
         .single();
 
       if (walletError || !walletData) {
-        alert('Wallet nicht gefunden – möchtest du dich registrieren?');
+        alert('Wallet nicht gefunden');
         return;
       }
 
-      // Zähle Referrals
-      const { data: referrals, error: refError } = await sbClient
+      const { data: referrals } = await sbClient
         .from('referrals')
         .select('*')
         .eq('referrer_wallet', wallet);
@@ -205,7 +198,6 @@
       const badgeInfo = badges[currentBadge];
       const tier = getTier(referralCount);
 
-      // Update UI
       document.getElementById('displayWallet').textContent = wallet.slice(0, 6) + '...' + wallet.slice(-4);
       document.getElementById('balanceDisplay').textContent = (walletData.klrx_balance || 0).toFixed(2);
       document.getElementById('tierDisplay').textContent = tier;
@@ -217,13 +209,12 @@
       document.getElementById('badgeEmoji').textContent = badgeInfo.emoji;
       document.getElementById('badgeName').textContent = badgeInfo.name;
 
-      // Calculate progress to next badge level
-      let nextThreshold = 5; // Default to Silver
+      let nextThreshold = 5;
       const nextBadge = Object.entries(badges).find(([key, val]) => val.minReferrals > referralCount);
       if (nextBadge) {
         nextThreshold = nextBadge[1].minReferrals;
       } else {
-        nextThreshold = 100; // Legend is the final level
+        nextThreshold = 100;
       }
 
       const progressToNext = referralCount < nextThreshold ?
@@ -231,14 +222,12 @@
       document.getElementById('badgeBar').style.width = progressToNext + '%';
       document.getElementById('badgeProgress').textContent = `${referralCount} von ${nextThreshold}`;
 
-      // Nächste Stufe Info
       const nextBadges = Object.values(badges).find(b => b.minReferrals > referralCount);
       if (nextBadges) {
         document.getElementById('nextTierName').textContent = nextBadges.name + ':';
         document.getElementById('nextTierDesc').textContent = `${nextBadges.minReferrals}+ Einladungen`;
       }
 
-      // Referral Link
       document.getElementById('refLink').value = window.location.origin + window.location.pathname + '?ref=' + wallet;
 
       currentWallet = wallet;
@@ -251,7 +240,6 @@
     }
   }
 
-  // Validate Solana address format (44 chars, base58)
   function isValidSolanaAddress(addr) {
     if (typeof addr !== 'string') return false;
     if (addr.length !== 44) return false;
@@ -262,7 +250,6 @@
   async function handleWallet() {
     const wallet = document.getElementById('walletAddr').value.trim();
 
-    // Validate Solana address format (44 characters, base58)
     if (!isValidSolanaAddress(wallet)) {
       alert('Bitte eine gültige Solana Wallet-Adresse eingeben (44 Zeichen)');
       return;
@@ -291,7 +278,6 @@
         return;
       }
 
-      // Insert into referrals table if there's a referrer
       if (referrerWallet && isValidSolanaAddress(referrerWallet)) {
         const { error: refError } = await sbClient
           .from('referrals')
@@ -328,14 +314,12 @@
     document.getElementById('portalScreen').style.display = 'none';
   }
 
-  // Auto-load if ref param exists
   window.addEventListener('load', async () => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref && isValidSolanaAddress(ref)) {
       document.getElementById('walletAddr').value = ref;
       await initSupabase();
-      // Store referrer for later use during registration
       window.referrerWallet = ref;
     }
   });
