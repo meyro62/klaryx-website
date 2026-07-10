@@ -357,7 +357,7 @@
         .eq('week_number', weekNum)
         .eq('year', year)
         .eq('tier', tier.toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (reportError) {
         console.log('⚠️ Report nicht verfügbar für diese Woche:', reportError.message);
