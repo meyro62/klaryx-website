@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdn.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;">
 <title>Klaryx Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -147,6 +148,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script>
   let sbClient;
   let currentWallet = null;
@@ -439,7 +441,17 @@
   }
 
   async function handleWallet() {
-    const wallet = document.getElementById('walletAddr').value.trim();
+    // SECURITY: Sanitize and validate all inputs
+    let wallet = document.getElementById('walletAddr').value.trim();
+
+    // Remove any potentially dangerous characters
+    wallet = DOMPurify.sanitize(wallet, { ALLOWED_TAGS: [] });
+
+    // Whitelist: Only allow Base58 characters (Solana address format)
+    if (!/^[1-9A-HJ-NP-Z]{44}$/.test(wallet)) {
+      alert('Bitte eine gültige Solana Wallet-Adresse eingeben (44 Zeichen, Base58)');
+      return;
+    }
 
     if (!isValidSolanaAddress(wallet)) {
       alert('Bitte eine gültige Solana Wallet-Adresse eingeben (44 Zeichen)');
