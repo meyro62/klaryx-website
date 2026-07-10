@@ -302,30 +302,39 @@
     try {
       const referrerWallet = window.referrerWallet || null;
 
-      // Call Edge Function for wallet registration
-      const response = await fetch(
-        'https://wpxcgducfkbozecknfdw.supabase.co/functions/v1/register-wallet',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            wallet_address: wallet,
-            referrer_wallet: referrerWallet
-          })
-        }
-      );
+      // Register wallet directly via Supabase API
+      const { data, error } = await sbClient
+        .from('wallets')
+        .insert([{
+          wallet_address: wallet,
+          registered_at: new Date().toISOString(),
+          klrx_balance: 0.01,
+          badge: 'Free',
+          tier: 'Free',
+          claim_status: 'Pending',
+          og_status: true,
+          referrer_wallet: referrerWallet
+        }]);
 
-      const result = await response.json();
+      if (error && error.code !== '23505') {
+        // 23505 = duplicate key (wallet exists)
+        console.error('Wallet insert error:', error);
+        alert('Fehler: ' + error.message);
+        return;
+      }
 
-      if (!response.ok) {
-        if (result.error && result.error.includes('duplicate')) {
-          // Wallet already exists - that's okay
-          console.log('Wallet already registered');
-        } else {
-          alert('Fehler: ' + (result.error || 'Registration failed'));
-          return;
+      // Track referral if referrer exists
+      if (referrerWallet && isValidSolanaAddress(referrerWallet)) {
+        const { error: refError } = await sbClient
+          .from('referrals')
+          .insert([{
+            referrer_wallet: referrerWallet,
+            referred_wallet: wallet,
+            created_at: new Date().toISOString()
+          }]);
+
+        if (refError) {
+          console.error('Referral insert error:', refError);
         }
       }
 
