@@ -16,11 +16,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
       - name: Export Database via Supabase REST API
         env:
           SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
@@ -29,20 +24,33 @@ jobs:
           # Create backup directory
           mkdir -p backups
 
-          # Export all tables as JSON
-          TABLES=("wallets" "referrals" "reports" "badges" "referral_payouts" "csrf_tokens" "rate_limits")
+          # Export wallets table
+          echo "Backing up wallets..."
+          curl -s -X GET "$SUPABASE_URL/rest/v1/wallets?limit=10000" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+            > backups/wallets-$(date +%Y-%m-%d).json
 
-          for TABLE in "${TABLES[@]}"; do
-            echo "Backing up table: $TABLE"
-            curl -s -X GET \
-              "$SUPABASE_URL/rest/v1/$TABLE?limit=10000" \
-              -H "apikey: $SUPABASE_SERVICE_KEY" \
-              -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
-              > "backups/${TABLE}-$(date +%Y-%m-%d).json"
-          done
+          # Export referrals table
+          echo "Backing up referrals..."
+          curl -s -X GET "$SUPABASE_URL/rest/v1/referrals?limit=10000" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+            > backups/referrals-$(date +%Y-%m-%d).json
 
-          # Create metadata file
-          echo "{\"backup_date\": \"$(date -u +'%Y-%m-%d %H:%M:%S UTC')\", \"tables\": $(echo $TABLES | jq -R 'split(" ")')}" > backups/backup-metadata.json
+          # Export reports table
+          echo "Backing up reports..."
+          curl -s -X GET "$SUPABASE_URL/rest/v1/reports?limit=10000" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+            > backups/reports-$(date +%Y-%m-%d).json
+
+          # Export referral_payouts table
+          echo "Backing up referral_payouts..."
+          curl -s -X GET "$SUPABASE_URL/rest/v1/referral_payouts?limit=10000" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+            > backups/referral_payouts-$(date +%Y-%m-%d).json
 
           echo "✅ Database backup created"
           ls -lh backups/
@@ -55,10 +63,9 @@ jobs:
           git commit -m "Backup: Database export $(date +%Y-%m-%d)" || echo "No changes"
           git push origin main
 
-      - name: Clean old backups (keep only last 7 days)
+      - name: Clean old backups
         run: |
-          # Delete backups older than 7 days
-          find backups -name "*.json" -type f -mtime +7 -delete
+          find backups -name "*.json" -type f -mtime +7 -delete || true
           git add -A
-          git commit -m "Cleanup: Remove old backups" || echo "No old backups"
+          git commit -m "Cleanup: Remove old backups" || echo "No old backups to clean"
           git push origin main || echo "Nothing to push"
