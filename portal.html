@@ -473,11 +473,12 @@
     // SECURITY: Sanitize and validate all inputs
     let wallet = document.getElementById('walletAddr').value.trim();
 
-    // Remove any potentially dangerous characters
+    // Remove any potentially dangerous characters (but keep Base58 chars)
     wallet = DOMPurify.sanitize(wallet, { ALLOWED_TAGS: [] });
 
     // Whitelist: Only allow Base58 characters (Solana address format)
-    if (!/^[1-9A-HJ-NP-Z]{44}$/.test(wallet)) {
+    // Base58 includes: 1-9, A-Z (except I,O,l,o), a-z
+    if (!/^[1-9A-HJ-NP-Za-km-z]{44}$/.test(wallet)) {
       alert('Bitte eine gültige Solana Wallet-Adresse eingeben (44 Zeichen, Base58)');
       return;
     }
