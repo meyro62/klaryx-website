@@ -134,6 +134,14 @@
         <button onclick="copyLink()" style="width: 100px;">Kopieren</button>
       </div>
     </div>
+
+    <!-- REPORTS SECTION -->
+    <div class="report-section" id="reportSection" style="display: none; background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px;">
+      <h3 style="color: var(--accent2); margin-bottom: 15px;">📊 Diese Woche's Marktbericht</h3>
+      <div id="reportContent" style="font-size: 13px; color: var(--muted); line-height: 1.6;">
+        <p>Laden...</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -175,6 +183,34 @@
     if (referrals >= 50) return 'Tiefe';
     if (referrals >= 25) return 'Einblick';
     return 'Free';
+  }
+
+  async function loadWeeklyReport(tier) {
+    try {
+      const today = new Date();
+      const weekNum = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / 86400000 + new Date(today.getFullYear(), 0, 1).getDay() + 1) / 7);
+      const year = today.getFullYear();
+
+      const { data: reportData, error: reportError } = await sbClient
+        .from('reports')
+        .select('content_html, content_json')
+        .eq('week_number', weekNum)
+        .eq('year', year)
+        .eq('tier', tier.toLowerCase())
+        .single();
+
+      if (reportError || !reportData) {
+        console.log('Kein Report für diese Woche verfügbar');
+        document.getElementById('reportSection').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('reportContent').innerHTML = reportData.content_html;
+      document.getElementById('reportSection').style.display = 'block';
+    } catch (err) {
+      console.error('Error loading report:', err);
+      document.getElementById('reportSection').style.display = 'none';
+    }
   }
 
   async function loadWallet(wallet) {
@@ -235,6 +271,9 @@
       currentWallet = wallet;
       document.getElementById('connectSection').style.display = 'none';
       document.getElementById('portalScreen').style.display = 'block';
+
+      // Load weekly report for user's tier
+      await loadWeeklyReport(tier);
 
     } catch (err) {
       console.error('Fehler:', err);
