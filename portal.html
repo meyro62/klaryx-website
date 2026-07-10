@@ -308,8 +308,7 @@
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + (new URL(window.location).searchParams.get('token') || '')
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             wallet_address: wallet,
