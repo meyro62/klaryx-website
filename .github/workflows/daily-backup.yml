@@ -1,0 +1,53 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    # Täglich um 2:00 UTC (nachts)
+    - cron: '0 2 * * *'
+  # Manueller Trigger für Testing
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    name: Export Database to SQL
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Export Database via pg_dump
+        env:
+          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          # Install pg_dump
+          sudo apt-get install -y postgresql-client
+
+          # Export database
+          pg_dump \
+            --host=db.wpxcgducfkbozecknfdw.supabase.co \
+            --port=5432 \
+            --username=postgres \
+            --password \
+            --clean \
+            --if-exists \
+            postgres > backup-$(date +%Y-%m-%d).sql
+
+          echo "✅ Database backup created"
+          ls -lh backup-*.sql
+
+      - name: Commit and push backup
+        run: |
+          git config --global user.email "backup@klaryx.de"
+          git config --global user.name "Backup Bot"
+          git add backup-*.sql
+          git commit -m "Backup: Database export $(date +%Y-%m-%d)" || echo "No changes"
+          git push origin main
+
+      - name: Clean old backups (keep only last 7 days)
+        run: |
+          # Delete backups older than 7 days
+          find . -name "backup-*.sql" -mtime +7 -delete
+          git add -A
+          git commit -m "Cleanup: Remove old backups" || echo "No old backups"
+          git push origin main || echo "Nothing to push"
