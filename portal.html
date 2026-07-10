@@ -227,19 +227,13 @@
         return;
       }
 
-      let referralCount = 0;
-      try {
-        const { data: referrals, error: refError } = await sbClient
-          .from('referrals')
-          .select('*')
-          .eq('referrer_wallet', wallet);
+      // Count referrals: how many wallets have THIS wallet as referrer
+      const { data: referredUsers, error: refError } = await sbClient
+        .from('wallets')
+        .select('wallet_address')
+        .eq('referrer_wallet', wallet);
 
-        if (!refError && referrals) {
-          referralCount = referrals.length;
-        }
-      } catch (e) {
-        console.warn('Referrals loading failed, defaulting to 0:', e);
-      }
+      const referralCount = (referredUsers && !refError) ? referredUsers.length : 0;
       const currentBadge = calculateBadge(referralCount);
       const badgeInfo = badges[currentBadge];
       const tier = getTier(referralCount);
