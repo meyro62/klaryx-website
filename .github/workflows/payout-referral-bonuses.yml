@@ -1,0 +1,50 @@
+name: Weekly Referral Payout
+
+# Trigger: Jeden Sonntag 10:00 UTC
+on:
+  schedule:
+    - cron: '0 10 * * 0'
+  # Manueller Trigger für Testing
+  workflow_dispatch:
+
+jobs:
+  payout:
+    runs-on: ubuntu-latest
+    name: Process Referral Bonuses
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trigger Referral Payout Edge Function
+        run: |
+          echo "🚀 Starting referral payout process..."
+
+          RESPONSE=$(curl -s -X POST \
+            'https://wpxcgducfkbozecknfdw.supabase.co/functions/v1/payout-referral-bonuses' \
+            -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkyNzg4NSwiZXhwIjoyMDk4NTAzODg1fQ.NhLM4fqHY-0-5Yk_m6rRiE95nPE6jNZ3OkV6Rkp2z-8' \
+            -H 'Content-Type: application/json' \
+            -d '{}')
+
+          echo "Response: $RESPONSE"
+
+          # Check if successful
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Referral payout completed successfully"
+            exit 0
+          else
+            echo "❌ Referral payout failed"
+            echo "Full response: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Log payout status
+        if: success()
+        run: |
+          echo "✅ Payout job completed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Payout job failed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          exit 1
