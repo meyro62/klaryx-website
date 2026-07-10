@@ -160,6 +160,57 @@
     }
   }
 
+  // SECURITY: Wallet Ownership Verification via Message Signing
+  // Prevents Solscan spoofing (user can't use someone else's wallet)
+  async function verifyWalletOwnership(walletAddress) {
+    try {
+      // Check if Phantom wallet is available
+      const { solana } = window;
+      if (!solana) {
+        alert('⚠️ Phantom Wallet nicht gefunden. Bitte installiere die Phantom Wallet Extension.');
+        return false;
+      }
+
+      // Connect to Phantom wallet first
+      const { publicKey } = await solana.connect();
+      if (!publicKey) {
+        alert('⚠️ Wallet-Verbindung fehlgeschlagen');
+        return false;
+      }
+
+      // Verify connected wallet matches input wallet
+      if (publicKey.toString() !== walletAddress) {
+        alert('⚠️ Die verbundene Wallet stimmt nicht mit der eingegebenen Adresse überein. Bitte überprüfe deine Phantom Wallet.');
+        return false;
+      }
+
+      // Create message to sign
+      const message = new TextEncoder().encode(
+        `Klaryx Wallet Verification\n${walletAddress}\n${new Date().toISOString()}`
+      );
+
+      // Request signature from wallet
+      const signature = await solana.signMessage(message, 'utf8');
+
+      if (signature && signature.signature && signature.signature.length > 0) {
+        console.log('✅ Wallet-Ownership verified via Phantom signature');
+        return true;
+      }
+
+      alert('⚠️ Signature-Verifikation fehlgeschlagen');
+      return false;
+    } catch (err) {
+      console.error('❌ Wallet-Signatur Fehler:', err);
+      // Provide helpful error message
+      if (err.message && err.message.includes('User rejected')) {
+        alert('⚠️ Du hast die Wallet-Verifizierung abgelehnt. Bitte versuche es erneut und bestätige die Signatur in Phantom.');
+      } else {
+        alert('⚠️ Wallet-Verifizierung fehlgeschlagen. Bitte stelle sicher, dass Phantom installiert ist und probiere es erneut.');
+      }
+      return false;
+    }
+  }
+
   const badges = {
     'Free': { emoji: '🥉', name: '🥉 Bronze', minReferrals: 0, maxReferrals: 4, bonus: 0 },
     'Bronze': { emoji: '🥉', name: '🥉 Bronze', minReferrals: 1, maxReferrals: 4, bonus: 0 },
@@ -210,29 +261,57 @@
 
   async function loadWeeklyReport(tier) {
     try {
+      // SECURITY C6: Verify user has access to this tier's report
+      const referralCount = parseInt(document.getElementById('referralCount').textContent) || 0;
+      const userTier = getTier(referralCount);
+
+      // Check if user tier matches or exceeds requested report tier
+      const tierHierarchy = { 'Free': 0, 'Einblick': 1, 'Tiefe': 2 };
+      if (tierHierarchy[userTier] < tierHierarchy[tier]) {
+        console.warn(`⚠️ Access denied: User tier ${userTier} cannot access ${tier} reports`);
+        document.getElementById('reportContent').innerHTML = `<p style="color: var(--muted);">🔒 Diesen Report kannst du freischalten durch ${tier === 'Einblick' ? '25+ Einladungen' : '50+ Einladungen'}.</p>`;
+        document.getElementById('reportSection').style.display = 'block';
+        return;
+      }
+
       const today = new Date();
       const weekNum = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / 86400000 + new Date(today.getFullYear(), 0, 1).getDay() + 1) / 7);
       const year = today.getFullYear();
 
+      console.log(`📊 Loading report: tier=${tier}, week=${weekNum}, year=${year}`);
+
       const { data: reportData, error: reportError } = await sbClient
         .from('reports')
-        .select('content_html, content_json')
+        .select('content_html, content_json, title')
         .eq('week_number', weekNum)
         .eq('year', year)
         .eq('tier', tier.toLowerCase())
         .single();
 
-      if (reportError || !reportData) {
-        console.log('Kein Report für diese Woche verfügbar');
-        document.getElementById('reportSection').style.display = 'none';
+      if (reportError) {
+        console.log('⚠️ Report nicht verfügbar für diese Woche:', reportError.message);
+        // Show "Report coming soon" message instead of hiding
+        document.getElementById('reportContent').innerHTML = '<p style="color: var(--muted);">📊 Wöchentliche Marktberichte werden jeden Sonntag um 10:00 Uhr aktualisiert. Komm später zurück!</p>';
+        document.getElementById('reportSection').style.display = 'block';
         return;
       }
 
-      document.getElementById('reportContent').innerHTML = reportData.content_html;
+      if (!reportData) {
+        console.log('⚠️ Kein Report-Daten');
+        document.getElementById('reportContent').innerHTML = '<p style="color: var(--muted);">📊 Report wird gerade generiert...</p>';
+        document.getElementById('reportSection').style.display = 'block';
+        return;
+      }
+
+      // Display report with title
+      const reportHTML = `<h4 style="color: var(--accent); margin-bottom: 10px;">${reportData.title || 'Marktbericht'}</h4>${reportData.content_html}`;
+      document.getElementById('reportContent').innerHTML = reportHTML;
       document.getElementById('reportSection').style.display = 'block';
+      console.log('✅ Report geladen erfolgreich');
     } catch (err) {
-      console.error('Error loading report:', err);
-      document.getElementById('reportSection').style.display = 'none';
+      console.error('❌ Error loading report:', err);
+      document.getElementById('reportContent').innerHTML = '<p style="color: var(--muted);">⚠️ Fehler beim Laden des Reports. Versuche später erneut.</p>';
+      document.getElementById('reportSection').style.display = 'block';
     }
   }
 
@@ -257,12 +336,16 @@
         .eq('referrer_wallet', wallet);
 
       const referralCount = (referredUsers && !refError) ? referredUsers.length : 0;
+
+      // ALWAYS calculate balance from referral count (not from DB)
+      // This ensures Balance & Badge are always in sync (C4 fix)
       const calculatedBalance = calculateKLRXBalance(referralCount);
       const currentBadge = calculateBadge(referralCount);
       const badgeInfo = badges[currentBadge];
       const tier = getTier(referralCount);
 
       document.getElementById('displayWallet').textContent = wallet.slice(0, 6) + '...' + wallet.slice(-4);
+      // Display calculated balance, not stored balance (ensures consistency)
       document.getElementById('balanceDisplay').textContent = calculatedBalance.toFixed(3);
       document.getElementById('tierDisplay').textContent = tier;
       document.getElementById('tierSub').textContent = walletData.og_status ? 'OG-Status aktiv' : 'Regulärer Holder';
@@ -323,10 +406,39 @@
       return;
     }
 
+    // SECURITY: Verify wallet ownership before proceeding
+    const isOwner = await verifyWalletOwnership(wallet);
+    if (!isOwner) {
+      return; // Verification failed
+    }
+
     await initSupabase();
 
     try {
-      const referrerWallet = window.referrerWallet || null;
+      let referrerWallet = window.referrerWallet || null;
+
+      // SECURITY C1: Prevent Self-Referral Exploit
+      if (referrerWallet && referrerWallet === wallet) {
+        console.warn('⚠️ Self-referral attempt blocked');
+        referrerWallet = null; // Discard self-referral
+      }
+
+      // Validate referrer exists and is not same as registering wallet
+      if (referrerWallet && isValidSolanaAddress(referrerWallet)) {
+        const { data: referrerExists } = await sbClient
+          .from('wallets')
+          .select('wallet_address')
+          .eq('wallet_address', referrerWallet)
+          .single();
+
+        if (!referrerExists) {
+          console.warn('⚠️ Referrer wallet does not exist');
+          referrerWallet = null; // Invalid referrer
+        }
+      }
+
+      // Calculate initial balance based on referrals (new wallets start with 0 referrals = 0.1 KLRX)
+      const initialBalance = calculateKLRXBalance(0); // 0 referrals = 0.1 KLRX
 
       // Register wallet directly via Supabase API
       const { data, error } = await sbClient
@@ -334,7 +446,7 @@
         .insert([{
           wallet_address: wallet,
           registered_at: new Date().toISOString(),
-          klrx_balance: 0.01,
+          klrx_balance: initialBalance,
           badge: 'Free',
           tier: 'Free',
           claim_status: 'Pending',
@@ -342,11 +454,16 @@
           referrer_wallet: referrerWallet
         }]);
 
-      if (error && error.code !== '23505') {
-        // 23505 = duplicate key (wallet exists)
-        console.error('Wallet insert error:', error);
-        alert('Fehler: ' + error.message);
-        return;
+      if (error) {
+        // 23505 = duplicate key (wallet exists) - this is OK, load existing wallet
+        if (error.code === '23505') {
+          console.log('✓ Wallet existiert bereits, lade Daten...');
+          // Continue to loadWallet below
+        } else {
+          console.error('❌ Wallet insert error:', error);
+          alert('⚠️ Registrierungsfehler: ' + (error.message || 'Bitte versuche es erneut'));
+          return;
+        }
       }
 
       // Track referral if referrer exists
