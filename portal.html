@@ -454,6 +454,30 @@
 
     await initSupabase();
 
+    // SECURITY: Get CSRF Token to prevent Cross-Site Request Forgery
+    let csrfToken = null;
+    try {
+      const csrfResponse = await fetch('https://wpxcgducfkbozecknfdw.supabase.co/functions/v1/csrf-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg`
+        },
+        body: JSON.stringify({ wallet_address: wallet })
+      });
+
+      if (!csrfResponse.ok) {
+        throw new Error('CSRF token generation failed');
+      }
+
+      const csrfData = await csrfResponse.json();
+      csrfToken = csrfData.token;
+    } catch (err) {
+      console.error('CSRF token error:', err);
+      alert('⚠️ Sicherheitstoken konnte nicht generiert werden. Bitte versuche es erneut.');
+      return;
+    }
+
     try {
       let referrerWallet = window.referrerWallet || null;
 
@@ -481,6 +505,7 @@
       const initialBalance = calculateKLRXBalance(0); // 0 referrals = 0.1 KLRX
 
       // Register wallet directly via Supabase API
+      // SECURITY: Include CSRF Token to prevent CSRF attacks
       const { data, error } = await sbClient
         .from('wallets')
         .insert([{
@@ -491,7 +516,8 @@
           tier: 'Free',
           claim_status: 'Pending',
           og_status: true, // Phase 1: All early adopters get OG-Status. Will change in Phase 2.
-          referrer_wallet: referrerWallet
+          referrer_wallet: referrerWallet,
+          csrf_token: csrfToken // SECURITY: CSRF protection
         }]);
 
       if (error) {
