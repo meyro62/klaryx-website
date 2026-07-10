@@ -153,6 +153,35 @@
   let sbClient;
   let currentWallet = null;
 
+  // SECURITY: Safe Error Message Handler
+  // Maps internal errors to user-friendly messages
+  function getSafeErrorMessage(error) {
+    const errorMap = {
+      '23505': '⚠️ Diese Wallet existiert bereits.',
+      'PGRST116': '⚠️ Zugriff verweigert. Bitte versuche es erneut.',
+      'auth_invalid_grant': '⚠️ Authentifizierung fehlgeschlagen.',
+      'duplicate_key': '⚠️ Diese Wallet existiert bereits.',
+      'network': '⚠️ Netzwerkfehler. Bitte überprüfe deine Internetverbindung.',
+      'timeout': '⚠️ Anfrage hat zu lange gedauert. Bitte versuche es erneut.',
+      'CSRF': '⚠️ Sicherheitstoken ungültig. Bitte versuche es erneut.',
+      'rate_limit': '⚠️ Zu viele Versuche. Bitte warte 1 Stunde.'
+    };
+
+    const errorMsg = error?.message || error?.toString() || 'Unbekannter Fehler';
+    const errorCode = error?.code || '';
+
+    // Check for specific error codes first
+    for (const [code, message] of Object.entries(errorMap)) {
+      if (errorCode.includes(code) || errorMsg.includes(code)) {
+        return message;
+      }
+    }
+
+    // Fallback: Generic message
+    console.error('Detailed error:', error); // Log full error for debugging
+    return '⚠️ Fehler bei der Verarbeitung. Bitte versuche es später erneut.';
+  }
+
   async function initSupabase() {
     if (!sbClient) {
       sbClient = window.supabase.createClient(
@@ -428,7 +457,7 @@
 
     } catch (err) {
       console.error('Fehler:', err);
-      alert('Fehler beim Laden: ' + err.message);
+      alert(getSafeErrorMessage(err));
     }
   }
 
@@ -572,7 +601,7 @@
           // Continue to loadWallet below
         } else {
           console.error('❌ Wallet insert error:', error);
-          alert('⚠️ Registrierungsfehler: ' + (error.message || 'Bitte versuche es erneut'));
+          alert(getSafeErrorMessage(error));
           return;
         }
       }
@@ -595,7 +624,7 @@
       await loadWallet(wallet);
     } catch (err) {
       console.error('Error:', err);
-      alert('Fehler: ' + err.message);
+      alert(getSafeErrorMessage(err));
     }
   }
 
