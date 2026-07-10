@@ -56,16 +56,20 @@ jobs:
           ls -lh backups/
 
       - name: Commit and push backup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_BACKUP }}
         run: |
           git config --global user.email "backup@klaryx.de"
           git config --global user.name "Backup Bot"
           git add backups/
-          git commit -m "Backup: Database export $(date +%Y-%m-%d)" || echo "No changes"
-          git push origin main
+          git commit -m "Backup: Database export $(date +%Y-%m-%d)" || echo "No changes to commit"
+          git push https://${{ github.actor }}:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git main || echo "Push failed or no changes"
 
       - name: Clean old backups
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_BACKUP }}
         run: |
           find backups -name "*.json" -type f -mtime +7 -delete || true
           git add -A
           git commit -m "Cleanup: Remove old backups" || echo "No old backups to clean"
-          git push origin main || echo "Nothing to push"
+          git push https://${{ github.actor }}:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git main || echo "Nothing to push"
