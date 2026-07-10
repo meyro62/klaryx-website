@@ -283,9 +283,10 @@
 
   function isValidSolanaAddress(addr) {
     if (typeof addr !== 'string') return false;
+    // Solana Adressen sind genau 44 Zeichen lang
     if (addr.length !== 44) return false;
-    const base58 = /^[1-9A-HJ-NP-Z]+$/;
-    return base58.test(addr);
+    // Einfache Base58-Check: nur alphanumerisch
+    return /^[1-9A-Za-z]{44}$/.test(addr);
   }
 
   async function handleWallet() {
