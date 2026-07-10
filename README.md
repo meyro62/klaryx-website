@@ -6,13 +6,13 @@ Klaryx ist ein **kostenloses, token-basiertes Community-Projekt** auf Solana. Ve
 
 ## 🎯 Features
 
-- **Free Claim**: Kostenlos 0.01 KLRX erhalten
-- **Referral-System**: Verdiene 0.005 KLRX pro Einladung
+- **Free Claim**: Kostenlos 0.1 KLRX erhalten
+- **Referral-System**: Verdiene KLRX basierend auf Referral-Count (0.036 bis 0.04 pro Ref)
 - **Badge-Programm**: Bronze → Silver → Gold → Platinum → Diamond → Legend
 - **Tier-System**: 
-  - Free: OG-Status + Einladungslinks (kostenlos)
-  - Einblick: Premium Features (25+ Einladungen) – **Coming Soon**
-  - Tiefe: Advanced Features (50+ Einladungen) – **Coming Soon**
+  - Free: OG-Status + Einladungslinks (0.1 KLRX)
+  - Einblick: Wöchentliche Marktberichte (25+ Einladungen, 1.0 KLRX) – **LIVE**
+  - Tiefe: Raw-Daten & JSON-Export (50+ Einladungen, 2.0 KLRX) – **LIVE**
 - **On-Chain Verified**: 100M KLRX fixed supply, Mint Authority disabled
 
 ## 🚀 Tech Stack

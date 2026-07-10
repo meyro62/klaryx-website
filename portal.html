@@ -186,6 +186,28 @@
     return 'Free';
   }
 
+  function calculateKLRXBalance(referrals) {
+    // TIER-BASED REWARD CALCULATION
+    // Base: 0.1 KLRX für Free Tier (0 Refs)
+    let balance = 0.1;
+
+    // Refs 1-25: 0.036 KLRX pro Referral → Unlocks Einblick at 25 Refs (1.0 KLRX total)
+    if (referrals > 0 && referrals <= 25) {
+      balance += referrals * 0.036;
+    }
+    // Refs 26-50: 0.04 KLRX pro Referral → Unlocks Tiefe at 50 Refs (2.0 KLRX total)
+    else if (referrals > 25) {
+      balance += 25 * 0.036; // erste 25 Refs
+      balance += Math.min(referrals - 25, 25) * 0.04; // Refs 26-50
+    }
+    // Refs 51+: Weiterer Bonus 0.04 KLRX pro Referral über 50
+    if (referrals > 50) {
+      balance += (referrals - 50) * 0.04;
+    }
+
+    return parseFloat(balance.toFixed(3));
+  }
+
   async function loadWeeklyReport(tier) {
     try {
       const today = new Date();
@@ -228,18 +250,20 @@
       }
 
       // Count referrals: how many wallets have THIS wallet as referrer
+      // Note: Counts all registered wallets with referrer_wallet = wallet (including inactive/dead wallets in future)
       const { data: referredUsers, error: refError } = await sbClient
         .from('wallets')
         .select('wallet_address')
         .eq('referrer_wallet', wallet);
 
       const referralCount = (referredUsers && !refError) ? referredUsers.length : 0;
+      const calculatedBalance = calculateKLRXBalance(referralCount);
       const currentBadge = calculateBadge(referralCount);
       const badgeInfo = badges[currentBadge];
       const tier = getTier(referralCount);
 
       document.getElementById('displayWallet').textContent = wallet.slice(0, 6) + '...' + wallet.slice(-4);
-      document.getElementById('balanceDisplay').textContent = (walletData.klrx_balance || 0).toFixed(2);
+      document.getElementById('balanceDisplay').textContent = calculatedBalance.toFixed(3);
       document.getElementById('tierDisplay').textContent = tier;
       document.getElementById('tierSub').textContent = walletData.og_status ? 'OG-Status aktiv' : 'Regulärer Holder';
       document.getElementById('referralCount').textContent = referralCount;
@@ -314,7 +338,7 @@
           badge: 'Free',
           tier: 'Free',
           claim_status: 'Pending',
-          og_status: true,
+          og_status: true, // Phase 1: All early adopters get OG-Status. Will change in Phase 2.
           referrer_wallet: referrerWallet
         }]);
 

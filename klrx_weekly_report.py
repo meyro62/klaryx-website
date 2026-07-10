@@ -258,8 +258,8 @@ def save_reports_to_supabase(free_html, einblick_html, tiefe_html, json_data):
     week_num, year = get_week_info()
 
     try:
-        # Free Report
-        supabase.table('reports').insert({
+        # Free Report - Use upsert to handle re-runs (update if already exists)
+        supabase.table('reports').upsert({
             'week_number': week_num,
             'year': year,
             'tier': 'free',
@@ -270,8 +270,8 @@ def save_reports_to_supabase(free_html, einblick_html, tiefe_html, json_data):
         }).execute()
         print('✅ Free Report gespeichert')
 
-        # Einblick Report
-        supabase.table('reports').insert({
+        # Einblick Report - Use upsert to handle re-runs (update if already exists)
+        supabase.table('reports').upsert({
             'week_number': week_num,
             'year': year,
             'tier': 'einblick',
@@ -282,8 +282,8 @@ def save_reports_to_supabase(free_html, einblick_html, tiefe_html, json_data):
         }).execute()
         print('✅ Einblick Report gespeichert')
 
-        # Tiefe Report
-        supabase.table('reports').insert({
+        # Tiefe Report - Use upsert to handle re-runs (update if already exists)
+        supabase.table('reports').upsert({
             'week_number': week_num,
             'year': year,
             'tier': 'tiefe',
