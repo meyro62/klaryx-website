@@ -454,6 +454,39 @@
 
     await initSupabase();
 
+    // SECURITY: Check Rate Limit (max 5 attempts per wallet per hour)
+    try {
+      const { data: rateLimitData, error: rateLimitError } = await sbClient
+        .from('rate_limits')
+        .select('attempt_count, window_start')
+        .eq('wallet_address', wallet)
+        .single();
+
+      if (rateLimitData) {
+        const hourAgo = new Date(Date.now() - 3600000);
+        const windowStart = new Date(rateLimitData.window_start);
+
+        if (windowStart > hourAgo && rateLimitData.attempt_count >= 5) {
+          alert('⚠️ Zu viele Versuche. Bitte versuche es in 1 Stunde erneut.');
+          return;
+        }
+
+        // Update attempt count
+        await sbClient
+          .from('rate_limits')
+          .update({ attempt_count: rateLimitData.attempt_count + 1 })
+          .eq('wallet_address', wallet);
+      } else {
+        // First attempt - insert new record
+        await sbClient
+          .from('rate_limits')
+          .insert([{ wallet_address: wallet, attempt_count: 1 }]);
+      }
+    } catch (err) {
+      console.warn('Rate limit check failed:', err);
+      // Continue anyway - rate limiting is secondary
+    }
+
     // SECURITY: Get CSRF Token to prevent Cross-Site Request Forgery
     let csrfToken = null;
     try {
