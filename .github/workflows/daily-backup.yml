@@ -10,44 +10,55 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
-    name: Export Database to SQL
+    name: Export Database Tables to JSON
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Export Database via pg_dump
-        env:
-          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: |
-          # Install pg_dump
-          sudo apt-get install -y postgresql-client
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-          # Export database
-          pg_dump \
-            --host=db.wpxcgducfkbozecknfdw.supabase.co \
-            --port=5432 \
-            --username=postgres \
-            --password \
-            --clean \
-            --if-exists \
-            postgres > backup-$(date +%Y-%m-%d).sql
+      - name: Export Database via Supabase REST API
+        env:
+          SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          # Create backup directory
+          mkdir -p backups
+
+          # Export all tables as JSON
+          TABLES=("wallets" "referrals" "reports" "badges" "referral_payouts" "csrf_tokens" "rate_limits")
+
+          for TABLE in "${TABLES[@]}"; do
+            echo "Backing up table: $TABLE"
+            curl -s -X GET \
+              "$SUPABASE_URL/rest/v1/$TABLE?limit=10000" \
+              -H "apikey: $SUPABASE_SERVICE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+              > "backups/${TABLE}-$(date +%Y-%m-%d).json"
+          done
+
+          # Create metadata file
+          echo "{\"backup_date\": \"$(date -u +'%Y-%m-%d %H:%M:%S UTC')\", \"tables\": $(echo $TABLES | jq -R 'split(" ")')}" > backups/backup-metadata.json
 
           echo "✅ Database backup created"
-          ls -lh backup-*.sql
+          ls -lh backups/
 
       - name: Commit and push backup
         run: |
           git config --global user.email "backup@klaryx.de"
           git config --global user.name "Backup Bot"
-          git add backup-*.sql
+          git add backups/
           git commit -m "Backup: Database export $(date +%Y-%m-%d)" || echo "No changes"
           git push origin main
 
       - name: Clean old backups (keep only last 7 days)
         run: |
           # Delete backups older than 7 days
-          find . -name "backup-*.sql" -mtime +7 -delete
+          find backups -name "*.json" -type f -mtime +7 -delete
           git add -A
           git commit -m "Cleanup: Remove old backups" || echo "No old backups"
           git push origin main || echo "Nothing to push"
