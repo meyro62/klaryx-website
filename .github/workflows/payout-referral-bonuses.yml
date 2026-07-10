@@ -17,12 +17,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Trigger Referral Payout Edge Function
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           echo "🚀 Starting referral payout process..."
 
           RESPONSE=$(curl -s -X POST \
             'https://wpxcgducfkbozecknfdw.supabase.co/functions/v1/payout-referral-bonuses' \
-            -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkyNzg4NSwiZXhwIjoyMDk4NTAzODg1fQ.NhLM4fqHY-0-5Yk_m6rRiE95nPE6jNZ3OkV6Rkp2z-8' \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             -H 'Content-Type: application/json' \
             -d '{}')
 

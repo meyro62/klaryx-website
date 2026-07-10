@@ -157,6 +157,13 @@
         "https://wpxcgducfkbozecknfdw.supabase.co",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg"
       );
+
+      // Required with RLS: Sign in anonymously to get auth context
+      try {
+        await sbClient.auth.signInAnonymously();
+      } catch (err) {
+        console.warn('Anonymous auth failed:', err);
+      }
     }
   }
 

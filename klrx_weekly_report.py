@@ -11,10 +11,13 @@ from datetime import datetime, timedelta
 from supabase import create_client
 import os
 
-# Supabase Credentials (aus Umgebungsvariablen oder direkt eintragen)
-SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://wpxcgducfkbozecknfdw.supabase.co')
-# ⚠️ Trag hier deinen Service Role Key ein (nur für lokales Testen!)
-SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg')
+# Supabase Credentials (aus Umgebungsvariablen)
+SUPABASE_URL = os.environ.get('VITE_SUPABASE_URL', 'https://wpxcgducfkbozecknfdw.supabase.co')
+# SECURITY: Service Role Key muss in Environment Variablen gespeichert sein!
+# NIEMALS hardcoded in Python/YAML Dateien!
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+if not SUPABASE_SERVICE_KEY:
+    raise ValueError('SUPABASE_SERVICE_ROLE_KEY Environment Variable not set!')
 
 # CoinGecko API (kostenlos, kein Key)
 COINGECKO_API = 'https://api.coingecko.com/api/v3'
