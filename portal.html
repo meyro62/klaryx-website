@@ -161,51 +161,84 @@
   }
 
   // SECURITY: Wallet Ownership Verification via Message Signing
+  // Supports: Phantom, Solflare, Backpack, and all Solana wallets
   // Prevents Solscan spoofing (user can't use someone else's wallet)
   async function verifyWalletOwnership(walletAddress) {
     try {
-      // Check if Phantom wallet is available
-      const { solana } = window;
-      if (!solana) {
-        alert('⚠️ Phantom Wallet nicht gefunden. Bitte installiere die Phantom Wallet Extension.');
+      let wallet = null;
+      let connectedPublicKey = null;
+
+      // Try all common Solana wallets (Phantom, Solflare, Backpack, etc.)
+      // Each wallet exposes a window object with signMessage capability
+      const walletProviders = [
+        window.phantom?.solana,     // Phantom
+        window.solflare?.solana,    // Solflare
+        window.backpack,            // Backpack
+        window.solana               // Generic Solana provider
+      ].filter(Boolean);
+
+      if (walletProviders.length === 0) {
+        alert('⚠️ Keine Solana Wallet gefunden.\nBitte installiere: Phantom, Solflare, oder Backpack');
         return false;
       }
 
-      // Connect to Phantom wallet first
-      const { publicKey } = await solana.connect();
-      if (!publicKey) {
-        alert('⚠️ Wallet-Verbindung fehlgeschlagen');
+      // Try each provider
+      for (const provider of walletProviders) {
+        try {
+          // Attempt connection
+          if (provider.connect && typeof provider.connect === 'function') {
+            const response = await provider.connect();
+            connectedPublicKey = response.publicKey;
+            wallet = provider;
+            break;
+          }
+        } catch (e) {
+          continue; // Try next provider
+        }
+      }
+
+      if (!connectedPublicKey || !wallet) {
+        alert('⚠️ Wallet-Verbindung fehlgeschlagen. Bitte stelle sicher, dass deine Wallet entsperrt ist.');
         return false;
       }
 
       // Verify connected wallet matches input wallet
-      if (publicKey.toString() !== walletAddress) {
-        alert('⚠️ Die verbundene Wallet stimmt nicht mit der eingegebenen Adresse überein. Bitte überprüfe deine Phantom Wallet.');
+      if (connectedPublicKey.toString() !== walletAddress) {
+        alert(`⚠️ Wallet Mismatch!\nEingegeben: ${walletAddress}\nVerbunden: ${connectedPublicKey.toString()}\n\nBitte verwende die richtige Wallet.`);
         return false;
       }
 
       // Create message to sign
-      const message = new TextEncoder().encode(
-        `Klaryx Wallet Verification\n${walletAddress}\n${new Date().toISOString()}`
-      );
+      const messageText = `Klaryx Wallet Verification\nWallet: ${walletAddress}\nTime: ${new Date().toISOString()}`;
+      const message = new TextEncoder().encode(messageText);
 
       // Request signature from wallet
-      const signature = await solana.signMessage(message, 'utf8');
+      let signature = null;
+      if (wallet.signMessage) {
+        const result = await wallet.signMessage(message, 'utf8');
+        signature = result.signature || result;
+      } else {
+        alert('⚠️ Diese Wallet unterstützt Message Signing nicht.');
+        return false;
+      }
 
-      if (signature && signature.signature && signature.signature.length > 0) {
-        console.log('✅ Wallet-Ownership verified via Phantom signature');
+      if (signature && signature.length > 0) {
+        console.log('✅ Wallet-Ownership verified via signature');
         return true;
       }
 
-      alert('⚠️ Signature-Verifikation fehlgeschlagen');
+      alert('⚠️ Signatur-Verifikation fehlgeschlagen');
       return false;
     } catch (err) {
       console.error('❌ Wallet-Signatur Fehler:', err);
-      // Provide helpful error message
+
+      // Provide helpful error messages based on error type
       if (err.message && err.message.includes('User rejected')) {
-        alert('⚠️ Du hast die Wallet-Verifizierung abgelehnt. Bitte versuche es erneut und bestätige die Signatur in Phantom.');
+        alert('⚠️ Du hast die Signatur abgelehnt.\nBitte versuche es erneut und bestätige in deiner Wallet.');
+      } else if (err.message && err.message.includes('not installed')) {
+        alert('⚠️ Wallet nicht installiert.\nBitte installiere: Phantom, Solflare, oder Backpack');
       } else {
-        alert('⚠️ Wallet-Verifizierung fehlgeschlagen. Bitte stelle sicher, dass Phantom installiert ist und probiere es erneut.');
+        alert('⚠️ Wallet-Verifizierung fehlgeschlagen.\nBitte stelle sicher, dass deine Wallet entsperrt ist und probiere es erneut.');
       }
       return false;
     }
