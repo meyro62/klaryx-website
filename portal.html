@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://*.solana.com https://api.coingecko.com; font-src 'self' data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://*.solana.com https://api.coingecko.com https://*.sentry.io; font-src 'self' data:;">
 <title>Klaryx Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -149,7 +149,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script src="https://browser.sentry-cdn.com/7.80.0/bundle.min.js"></script>
 <script>
+  // MONITORING: Initialize Sentry Error Tracking
+  // Captures errors, performance metrics, and breadcrumbs for Production debugging
+  Sentry.init({
+    dsn: "https://examplePublicKey@o0.ingest.sentry.io/0", // Replace with actual Sentry DSN
+    environment: "production",
+    tracesSampleRate: 0.1, // 10% of transactions for performance monitoring
+    attachStacktrace: true,
+    beforeSend(event, hint) {
+      // Filter out non-critical errors to stay within free tier quota
+      if (event.level === 'info' || event.level === 'debug') {
+        return null; // Don't send debug/info logs to Sentry
+      }
+      return event;
+    }
+  });
+
   let sbClient;
   let currentWallet = null;
 
@@ -269,6 +286,11 @@
       return false;
     } catch (err) {
       console.error('❌ Wallet-Signatur Fehler:', err);
+      Sentry.captureException(err, {
+        level: 'warning',
+        tags: { component: 'wallet_verification', walletAddress: walletAddress },
+        extra: { errorMessage: err.message }
+      });
 
       // Provide helpful error messages based on error type
       if (err.message && err.message.includes('User rejected')) {
@@ -381,6 +403,10 @@
       console.log('✅ Report geladen erfolgreich');
     } catch (err) {
       console.error('❌ Error loading report:', err);
+      Sentry.captureException(err, {
+        level: 'warning',
+        tags: { component: 'report_loader', tier: tier }
+      });
       document.getElementById('reportContent').innerHTML = '<p style="color: var(--muted);">⚠️ Fehler beim Laden des Reports. Versuche später erneut.</p>';
       document.getElementById('reportSection').style.display = 'block';
     }
@@ -457,6 +483,10 @@
 
     } catch (err) {
       console.error('Fehler:', err);
+      Sentry.captureException(err, {
+        level: 'error',
+        tags: { component: 'wallet_loader', wallet: wallet }
+      });
       alert(getSafeErrorMessage(err));
     }
   }
@@ -603,6 +633,11 @@
           // Continue to loadWallet below
         } else {
           console.error('❌ Wallet insert error:', error);
+          Sentry.captureException(error, {
+            level: 'error',
+            tags: { component: 'wallet_registration', errorCode: error.code },
+            extra: { wallet: wallet, errorMessage: error.message }
+          });
           alert(getSafeErrorMessage(error));
           return;
         }
@@ -626,6 +661,11 @@
       await loadWallet(wallet);
     } catch (err) {
       console.error('Error:', err);
+      Sentry.captureException(err, {
+        level: 'error',
+        tags: { component: 'handleWallet', wallet: wallet },
+        extra: { errorMessage: err.message }
+      });
       alert(getSafeErrorMessage(err));
     }
   }
