@@ -1,0 +1,38 @@
+name: Weekly Market Reports
+
+# Trigger: Jeden Sonntag 10:00 UTC
+on:
+  schedule:
+    - cron: '0 10 * * 0'
+  # Manueller Trigger für Testing
+  workflow_dispatch:
+
+jobs:
+  generate_reports:
+    runs-on: ubuntu-latest
+    name: Generate Weekly CoinGecko Market Reports
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Generate Weekly Reports
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "📊 Generating weekly market reports from CoinGecko..."
+          python klrx_weekly_report.py
+
+      - name: Report generation complete
+        run: |
+          echo "✅ Weekly reports generated at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
