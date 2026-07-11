@@ -519,11 +519,11 @@
     }
 
     // SECURITY: Verify wallet ownership before proceeding
-    // TEMPORARILY DISABLED FOR TESTING - Uncomment for production
-    // const isOwner = await verifyWalletOwnership(wallet);
-    // if (!isOwner) {
-    //   return; // Verification failed
-    // }
+    // Production-Ready: User must sign a message with their wallet to prove ownership
+    const isOwner = await verifyWalletOwnership(wallet);
+    if (!isOwner) {
+      return; // Verification failed - error already shown to user
+    }
 
     await initSupabase();
 
