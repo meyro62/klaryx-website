@@ -8,8 +8,14 @@ Speichert in Supabase reports Tabelle
 import requests
 import json
 from datetime import datetime, timedelta
-from supabase import create_client
 import os
+
+try:
+    from supabase import create_client
+except ImportError:
+    # Fallback für alte supabase versions
+    import supabase
+    create_client = supabase.create_client
 
 # Supabase Credentials (aus Umgebungsvariablen)
 SUPABASE_URL = os.environ.get('VITE_SUPABASE_URL', 'https://wpxcgducfkbozecknfdw.supabase.co')
