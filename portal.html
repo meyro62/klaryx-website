@@ -128,8 +128,7 @@
       </div>
       <div class="tier-info">
         <strong id="nextTierName">🥈 Silber:</strong> <span id="nextTierDesc">5–9 Einladungen</span>
-        <br><small style="color: var(--muted); margin-top: 8px; display: block;">Bonus: +0.05 KLRX + Badge</small>
-        <br><small style="color: #888; margin-top: 8px; display: block; font-style: italic;">Premium-Features (Einblick/Tiefe) werden zu einem späteren Zeitpunkt freigeschaltet.</small>
+        <br><small style="color: var(--muted); margin-top: 8px; display: block;">Bonus: +0.05 KLRX + Badge + Zugang zu Community Intelligence Reports</small>
       </div>
     </div>
 
@@ -367,7 +366,7 @@
       const tierHierarchy = { 'Free': 0, 'Einblick': 1, 'Tiefe': 2 };
       if (tierHierarchy[userTier] < tierHierarchy[tier]) {
         console.warn(`⚠️ Access denied: User tier ${userTier} cannot access ${tier} reports`);
-        document.getElementById('reportContent').innerHTML = `<p style="color: var(--muted);">🔒 Diesen Report kannst du freischalten durch ${tier === 'Einblick' ? '25+ Einladungen' : '50+ Einladungen'}.</p>`;
+        document.getElementById('reportContent').innerHTML = `<p style="color: var(--muted);">🔒 Du brauchst ${tier === 'Einblick' ? '25+ Einladungen' : '50+ Einladungen'} um auf diesen Report zuzugreifen. Hole dir mehr Referrals!</p>`;
         document.getElementById('reportSection').style.display = 'block';
         return;
       }
