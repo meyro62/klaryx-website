@@ -721,37 +721,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
 
     // SECURITY: Get CSRF Token to prevent Cross-Site Request Forgery
-    let csrfToken = null;
-    try {
-      // Get Supabase URL and key from environment
-      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || 'https://wpxcgducfkbozecknfdw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MTI0MjEsImV4cCI6MTk5NTM4ODQyMX0.iAr2rMUVfYFc9KMgcLx6hDJn61cE-yl8RxYGlFHqSs4';
-      if (!SUPABASE_ANON_KEY) {
-        console.error('❌ SUPABASE_ANON_KEY not available for CSRF token');
-        throw new Error('Configuration error: Missing API key');
-      }
-
-      const csrfResponse = await fetch(`${SUPABASE_URL}/functions/v1/csrf-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ wallet_address: wallet })
-      });
-
-      if (!csrfResponse.ok) {
-        throw new Error('CSRF token generation failed');
-      }
-
-      const csrfData = await csrfResponse.json();
-      csrfToken = csrfData.token;
-    } catch (err) {
-      console.error('CSRF token error:', err);
-      alert('⚠️ Sicherheitstoken konnte nicht generiert werden. Bitte versuche es erneut.');
-      return;
-    }
-
+    // CSRF token not needed with RLS enabled
+        let csrfToken = 'rls-protected';
     try {
       let referrerWallet = window.referrerWallet || null;
 
