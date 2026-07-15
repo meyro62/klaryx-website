@@ -141,6 +141,22 @@
       </div>
     </div>
 
+    <!-- LEADERBOARD SECTION -->
+    <div class="leaderboard-section" style="background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px;">
+      <h3 style="color: var(--accent2); margin-bottom: 15px;">🏆 Top Referrer (Diese Woche)</h3>
+      <div id="leaderboard" style="font-size: 13px;">
+        <p style="color: var(--muted);">Lade Leaderboard...</p>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS SECTION -->
+    <div class="achievements-section" style="background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+      <h3 style="color: var(--accent2); margin-bottom: 15px;">🎯 Achievements & Milestones</h3>
+      <div id="achievements" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+        <!-- Dynamisch gefüllt von JavaScript -->
+      </div>
+    </div>
+
     <!-- REPORTS SECTION -->
     <div class="report-section" id="reportSection" style="display: none; background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px;">
       <h3 style="color: var(--accent2); margin-bottom: 15px;">📊 Diese Woche's Marktbericht</h3>
@@ -241,12 +257,22 @@
         return false;
       }
 
+      // Helper: Promise with timeout
+      const promiseWithTimeout = (promise, timeoutMs = 5000) => {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Wallet-Verbindung Timeout')), timeoutMs)
+          )
+        ]);
+      };
+
       // Try each provider
       for (const provider of walletProviders) {
         try {
-          // Attempt connection
+          // Attempt connection with 5-second timeout
           if (provider.connect && typeof provider.connect === 'function') {
-            const response = await provider.connect();
+            const response = await promiseWithTimeout(provider.connect(), 5000);
             connectedPublicKey = response.publicKey;
             wallet = provider;
             break;
@@ -332,6 +358,121 @@
     if (referrals >= 50) return 'Tiefe';
     if (referrals >= 25) return 'Einblick';
     return 'Free';
+  }
+
+  function updateAchievements(referralCount) {
+    const achievements = [
+      { name: 'Starter', emoji: '🎖️', threshold: 5, bonus: '+0.05 KLRX' },
+      { name: 'Bronze', emoji: '🥉', threshold: 1, bonus: '+0.005 KLRX' },
+      { name: 'Silver', emoji: '🥈', threshold: 5, bonus: '+0.01 KLRX' },
+      { name: 'Gold', emoji: '🥇', threshold: 10, bonus: '+0.02 KLRX' },
+      { name: 'Influencer', emoji: '⭐', threshold: 25, bonus: 'Einblick Tier' },
+      { name: 'Legend', emoji: '👑', threshold: 50, bonus: 'Tiefe Tier' },
+      { name: 'Diamond', emoji: '💎', threshold: 100, bonus: '👑 Legend' }
+    ];
+
+    let html = '';
+    achievements.forEach(achievement => {
+      const unlocked = referralCount >= achievement.threshold;
+      const borderColor = unlocked ? 'rgba(34,211,160,0.5)' : 'rgba(34,211,160,0.1)';
+      const opacity = unlocked ? '1' : '0.5';
+
+      html += `
+        <div style="background: var(--surface2); padding: 15px; border-radius: 8px; text-align: center; border: 2px solid ${borderColor}; opacity: ${opacity}; transition: opacity 0.3s;">
+          <div style="font-size: 32px; margin-bottom: 5px;">${achievement.emoji}</div>
+          <div style="font-size: 11px; color: var(--muted);">${achievement.threshold} Refs</div>
+          <div style="font-size: 12px; margin-top: 3px; color: ${unlocked ? 'var(--green)' : 'var(--muted)'};">${achievement.name}</div>
+          <div style="font-size: 10px; color: var(--muted); margin-top: 5px;">${achievement.bonus}</div>
+        </div>
+      `;
+    });
+
+    document.getElementById('achievements').innerHTML = html;
+  }
+
+  async function loadLeaderboard() {
+    try {
+      // Get all wallets with their referrer info
+      const { data: wallets, error: walletsError } = await sbClient
+        .from('wallets')
+        .select('wallet_address');
+
+      if (walletsError || !wallets || wallets.length === 0) {
+        console.warn('Leaderboard: No wallets found');
+        document.getElementById('leaderboard').innerHTML =
+          '<p style="color: var(--muted);">🌱 Noch keine Referrer vorhanden. Sei der erste!</p>';
+        return;
+      }
+
+      // Calculate referral counts efficiently
+      const referralCounts = {};
+
+      // Initialize all wallets with 0 refs
+      wallets.forEach(w => {
+        referralCounts[w.wallet_address] = 0;
+      });
+
+      // Get all wallets that HAVE referrers (these are the referred wallets)
+      const { data: referredWallets, error: refError } = await sbClient
+        .from('wallets')
+        .select('referrer_wallet')
+        .not('referrer_wallet', 'is', null);
+
+      if (!refError && referredWallets) {
+        // Count referrals for each referrer
+        referredWallets.forEach(w => {
+          if (w.referrer_wallet && referralCounts.hasOwnProperty(w.referrer_wallet)) {
+            referralCounts[w.referrer_wallet]++;
+          }
+        });
+      }
+
+      // Get top 10 by referral count
+      const sorted = Object.entries(referralCounts)
+        .sort((a, b) => b[1] - a[1])
+        .filter(([, count]) => count > 0)
+        .slice(0, 10);
+
+      if (sorted.length === 0) {
+        document.getElementById('leaderboard').innerHTML =
+          '<p style="color: var(--muted);">🌱 Noch keine Referrer vorhanden. Sei der erste! Teile deinen Link!</p>';
+        return;
+      }
+
+      let html = '<div style="list-style: none; padding: 0;">';
+      sorted.forEach((entry, index) => {
+        const [wallet, count] = entry;
+        const badge = calculateBadge(count);
+        const badgeInfo = badges[badge];
+        const isCurrentWallet = wallet === currentWallet;
+
+        html += `
+          <div style="display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; ${isCurrentWallet ? 'background: rgba(34,211,160,0.05); border-left: 3px solid var(--green);' : ''}">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+              <span style="font-weight: bold; color: var(--accent); min-width: 25px;">#${index + 1}</span>
+              <span style="font-family: monospace; font-size: 11px; color: var(--muted);">${wallet.slice(0, 6)}...${wallet.slice(-4)}</span>
+              <span style="font-size: 18px; margin-left: 10px;">${badgeInfo.emoji}</span>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: bold; color: var(--green);">${count} Refs</div>
+              <div style="font-size: 11px; color: var(--muted);">+${(count * 0.005).toFixed(3)} KLRX</div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+
+      document.getElementById('leaderboard').innerHTML = html;
+      logger.info('✅ Leaderboard loaded: ' + sorted.length + ' referrers');
+    } catch (err) {
+      console.error('❌ Error loading leaderboard:', err);
+      Sentry.captureException(err, {
+        level: 'warning',
+        tags: { component: 'leaderboard_loader' }
+      });
+      document.getElementById('leaderboard').innerHTML =
+        '<p style="color: var(--muted);">⚠️ Leaderboard konnte nicht geladen werden</p>';
+    }
   }
 
   function calculateKLRXBalance(referrals) {
@@ -445,6 +586,9 @@
       const badgeInfo = badges[currentBadge];
       const tier = getTier(referralCount);
 
+      // Update achievements based on referral count
+      updateAchievements(referralCount);
+
       document.getElementById('displayWallet').textContent = wallet.slice(0, 6) + '...' + wallet.slice(-4);
       // Display calculated balance, not stored balance (ensures consistency)
       document.getElementById('balanceDisplay').textContent = calculatedBalance.toFixed(3);
@@ -482,8 +626,14 @@
       document.getElementById('connectSection').style.display = 'none';
       document.getElementById('portalScreen').style.display = 'block';
 
+      // Update achievements display based on referral count
+      updateAchievements(referralCount);
+
       // Load weekly report for user's tier
       await loadWeeklyReport(tier);
+
+      // Load leaderboard
+      await loadLeaderboard();
 
     } catch (err) {
       console.error('Fehler:', err);
