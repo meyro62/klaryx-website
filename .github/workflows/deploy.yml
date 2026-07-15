@@ -1,22 +1,28 @@
-name: Deploy Portal with Secrets
+name: Build Portal with Secrets
 
 on:
   push:
     branches: [main]
     paths:
       - 'portal.html'
+      - 'scripts/inject-secrets.js'
       - '.github/workflows/deploy.yml'
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    name: Inject Secrets & Deploy
+    name: Build & Verify Portal
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Inject Supabase secrets
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Inject secrets into portal.html
         env:
           SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -24,33 +30,18 @@ jobs:
           NODE_ENV: production
         run: |
           node scripts/inject-secrets.js
+          echo "✅ Secrets injected successfully"
 
-      - name: Verify secrets were injected
+      - name: Verify secrets injection
         run: |
           if grep -q "window.__ENV" portal.html; then
-            echo "✅ Secrets successfully injected"
+            echo "✅ Secrets verification passed"
           else
             echo "❌ Secrets injection failed"
             exit 1
           fi
 
-      - name: Commit & Push injected portal
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_PAT }}
+      - name: Build complete
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-          if [[ `git status portal.html --porcelain` ]]; then
-            git add portal.html
-            git commit -m "chore: inject secrets [skip ci]"
-            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/meyro62/klaryx-website.git
-            git push origin main
-          else
-            echo "No changes to commit"
-          fi
-
-      - name: Deploy to production (if applicable)
-        run: |
-          echo "✅ Portal with injected secrets is ready for deployment"
-          # Add your deployment command here (e.g., push to CDN, Docker, etc.)
+          echo "✅ Portal build complete"
+          echo "✅ Ready for deployment"
