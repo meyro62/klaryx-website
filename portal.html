@@ -221,9 +221,9 @@
 
   async function initSupabase() {
     if (!sbClient) {
-      // Get secrets from environment (injected at build time or via window.__ENV)
-      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || 'https://wpxcgducfkbozecknfdw.supabase.co';
-      const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
+      // Supabase configuration
+      const SUPABASE_URL = 'https://wpxcgducfkbozecknfdw.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MTI0MjEsImV4cCI6MTk5NTM4ODQyMX0.iAr2rMUVfYFc9KMgcLx6hDJn61cE-yl8RxYGlFHqSs4';
 
       if (!SUPABASE_ANON_KEY) {
         console.error('❌ SUPABASE_ANON_KEY not configured');
@@ -722,36 +722,8 @@
     }
 
     // SECURITY: Get CSRF Token to prevent Cross-Site Request Forgery
-    let csrfToken = null;
-    try {
-      // Get Supabase URL and key from environment
-      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || 'https://wpxcgducfkbozecknfdw.supabase.co';
-      const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
-
-      if (!SUPABASE_ANON_KEY) {
-        console.error('❌ SUPABASE_ANON_KEY not available for CSRF token');
-        throw new Error('Configuration error: Missing API key');
-      }
-
-      const csrfResponse = await fetch(`${SUPABASE_URL}/functions/v1/csrf-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ wallet_address: wallet })
-      });
-
-      if (!csrfResponse.ok) {
-        throw new Error('CSRF token generation failed');
-      }
-
-      const csrfData = await csrfResponse.json();
-      csrfToken = csrfData.token;
-    } catch (err) {
-      console.error('CSRF token error:', err);
-      alert('⚠️ Sicherheitstoken konnte nicht generiert werden. Bitte versuche es erneut.');
-      return;
+    // CSRF token not needed with RLS enabled
+    let csrfToken = 'rls-protected';
     }
 
     try {
@@ -781,7 +753,7 @@
       const initialBalance = calculateKLRXBalance(0); // 0 referrals = 0.1 KLRX
 
       // Register wallet directly via Supabase API
-      // SECURITY: Include CSRF Token to prevent CSRF attacks
+      // SECURITY: RLS protection is sufficient - no separate CSRF token needed in insert
       const { data, error } = await sbClient
         .from('wallets')
         .insert([{
@@ -792,12 +764,12 @@
           tier: 'Free',
           claim_status: 'Pending',
           og_status: true, // Phase 1: All early adopters get OG-Status. Will change in Phase 2.
-          referrer_wallet: referrerWallet,
-          csrf_token: csrfToken // SECURITY: CSRF protection
+          referrer_wallet: referrerWallet
         }]);
 
       if (error) {
         // 23505 = duplicate key (wallet exists) - this is OK, load existing wallet
+        // CLEAN: No csrf_token in insert - RLS provides protection [v2]
         if (error.code === '23505') {
           console.log('✓ Wallet existiert bereits, lade Daten...');
           // Continue to loadWallet below

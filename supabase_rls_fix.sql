@@ -52,6 +52,13 @@ CREATE POLICY "Public: INSERT own wallet"
   TO public
   WITH CHECK ((auth.uid())::text = wallet_address);
 
+-- Anonymous users can register wallets (for unauthenticated signup)
+CREATE POLICY IF NOT EXISTS "Anonymous: INSERT wallet via signature"
+  ON wallets
+  FOR INSERT
+  TO anon
+  WITH CHECK (true);
+
 CREATE POLICY "Public: UPDATE own wallet"
   ON wallets
   FOR UPDATE

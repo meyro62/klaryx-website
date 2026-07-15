@@ -36,6 +36,7 @@ jobs:
         run: |
           if grep -q "window.__ENV" portal.html; then
             echo "✅ Secrets verification passed"
+            echo "✅ window.__ENV successfully injected into portal.html"
           else
             echo "❌ Secrets injection failed"
             exit 1
