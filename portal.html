@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://*.solana.com https://api.coingecko.com https://*.sentry.io; font-src 'self' data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://*.supabase.co https://*.solana.com https://api.coingecko.com https://*.sentry.io; font-src 'self' data:;">
 <title>Klaryx Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -221,10 +221,17 @@
 
   async function initSupabase() {
     if (!sbClient) {
-      sbClient = window.supabase.createClient(
-        "https://wpxcgducfkbozecknfdw.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg"
-      );
+      // Get secrets from environment (injected at build time or via window.__ENV)
+      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || 'https://wpxcgducfkbozecknfdw.supabase.co';
+      const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
+
+      if (!SUPABASE_ANON_KEY) {
+        console.error('❌ SUPABASE_ANON_KEY not configured');
+        alert('Konfigurationsfehler: Supabase Key fehlt');
+        return;
+      }
+
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // Required with RLS: Sign in anonymously to get auth context
       try {
@@ -717,11 +724,20 @@
     // SECURITY: Get CSRF Token to prevent Cross-Site Request Forgery
     let csrfToken = null;
     try {
-      const csrfResponse = await fetch('https://wpxcgducfkbozecknfdw.supabase.co/functions/v1/csrf-token', {
+      // Get Supabase URL and key from environment
+      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || 'https://wpxcgducfkbozecknfdw.supabase.co';
+      const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
+
+      if (!SUPABASE_ANON_KEY) {
+        console.error('❌ SUPABASE_ANON_KEY not available for CSRF token');
+        throw new Error('Configuration error: Missing API key');
+      }
+
+      const csrfResponse = await fetch(`${SUPABASE_URL}/functions/v1/csrf-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Mjc4ODUsImV4cCI6MjA5ODUwMzg4NX0.y72FT56n_vQzjNRpvFRdx31Cz2LHbFkgfRaMU54Qoyg`
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({ wallet_address: wallet })
       });

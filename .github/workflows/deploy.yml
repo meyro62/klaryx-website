@@ -1,0 +1,53 @@
+name: Deploy Portal with Secrets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'portal.html'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Inject Secrets & Deploy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Inject Supabase secrets
+        env:
+          SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          NODE_ENV: production
+        run: |
+          node scripts/inject-secrets.js
+
+      - name: Verify secrets were injected
+        run: |
+          if grep -q "window.__ENV" portal.html; then
+            echo "✅ Secrets successfully injected"
+          else
+            echo "❌ Secrets injection failed"
+            exit 1
+          fi
+
+      - name: Commit & Push injected portal
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          if [[ `git status portal.html --porcelain` ]]; then
+            git add portal.html
+            git commit -m "chore: inject secrets [skip ci]"
+            git push origin main
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Deploy to production (if applicable)
+        run: |
+          echo "✅ Portal with injected secrets is ready for deployment"
+          # Add your deployment command here (e.g., push to CDN, Docker, etc.)

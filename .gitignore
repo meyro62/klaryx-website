@@ -1,8 +1,18 @@
 *.json
 !backups/*.json
 .env
+.env.*
+!.env.example
 *.pyc
 __pycache__/
 node_modules/
 .DS_Store
 *.log
+
+# SECURITY: Never commit secrets or sensitive files
+*.key
+*.pem
+*.p8
+secrets/
+.env.local
+.env.*.local

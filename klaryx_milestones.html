@@ -203,6 +203,24 @@
       </div>
     </div>
 
+    <!-- Phase 5 -->
+    <div class="milestone" id="milestone-5">
+      <div class="milestone-icon">🏢</div>
+      <div class="milestone-content">
+        <div class="milestone-header">
+          <div class="milestone-phase">Phase 5</div>
+          <div class="milestone-title">Company Launch – 10.000 Holder</div>
+        </div>
+        <div class="milestone-desc">
+          GmbH/UG Gründung. $KLRX wird DEX-tradbar. Revenue Sharing aktiviert. Governance für Community. Das Projekt wird zur richtigen Firma.
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-5" style="width: 0%;"></div>
+        </div>
+        <div class="progress-label" id="label-5">Noch <span id="remaining-5">10.000</span> Holder</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- CTA -->
@@ -249,7 +267,8 @@ async function updateMilestones() {
       { target: 1, active: true },
       { target: 500, active: holderCount >= 500 },
       { target: 1000, active: holderCount >= 1000 },
-      { target: 5000, active: holderCount >= 5000 }
+      { target: 5000, active: holderCount >= 5000 },
+      { target: 10000, active: holderCount >= 10000 }
     ];
 
     // Update progress bars and labels
