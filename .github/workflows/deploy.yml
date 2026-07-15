@@ -35,6 +35,8 @@ jobs:
           fi
 
       - name: Commit & Push injected portal
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_PAT }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
@@ -42,6 +44,7 @@ jobs:
           if [[ `git status portal.html --porcelain` ]]; then
             git add portal.html
             git commit -m "chore: inject secrets [skip ci]"
+            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/meyro62/klaryx-website.git
             git push origin main
           else
             echo "No changes to commit"
