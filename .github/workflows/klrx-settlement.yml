@@ -1,0 +1,67 @@
+name: KLRX Settlement (On-Chain)
+
+# Täglich 10:00 UTC (erfüllt "Free Claim innerhalb 24h") + manueller Start.
+# Manueller Start ist standardmäßig ein TROCKENLAUF (sendet nichts).
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Trockenlauf (nichts senden)?'
+        type: choice
+        default: 'true'
+        options: ['true', 'false']
+
+concurrency:
+  group: klrx-settlement
+  cancel-in-progress: false   # niemals einen laufenden Versand abbrechen
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    name: Settle KLRX balances on-chain
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache spl-token CLI
+        id: cache-spl
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/spl-token
+          key: spl-token-cli-v1
+
+      - name: Install spl-token CLI
+        if: steps.cache-spl.outputs.cache-hit != 'true'
+        run: cargo install spl-token-cli --locked
+
+      - name: Distributor-Keypair aus Secret schreiben
+        env:
+          KLRX_DISTRIBUTOR_KEY: ${{ secrets.KLRX_DISTRIBUTOR_KEY }}
+        run: |
+          if [ -z "$KLRX_DISTRIBUTOR_KEY" ]; then
+            echo "::error::Secret KLRX_DISTRIBUTOR_KEY fehlt."
+            exit 1
+          fi
+          echo "$KLRX_DISTRIBUTOR_KEY" > /tmp/klrx-distributor.json
+          chmod 600 /tmp/klrx-distributor.json
+
+      - name: Settlement ausführen
+        env:
+          SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          KLRX_KEYPAIR_PATH: /tmp/klrx-distributor.json
+          SOLANA_RPC: ${{ secrets.SOLANA_RPC || 'https://api.mainnet-beta.solana.com' }}
+          # Geplanter Lauf = echt; manueller Lauf = Wert aus dem Dropdown (Default true)
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || '' }}
+        run: python .github/scripts/klrx_sender.py
+
+      - name: Keypair löschen
+        if: always()
+        run: rm -f /tmp/klrx-distributor.json

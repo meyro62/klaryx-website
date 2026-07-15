@@ -1,87 +1,21 @@
-name: Weekly Referral Payout
+# ============================================================
+# VERALTET – ersetzt durch klrx-settlement.yml
+# ------------------------------------------------------------
+# Dieser Workflow war ein Mock (sendete nie echtes KLRX).
+# Die echte, idempotente On-Chain-Auszahlung übernimmt jetzt
+# .github/workflows/klrx-settlement.yml
+#
+# Kein Zeitplan mehr -> läuft nicht mehr automatisch.
+# Du kannst diese Datei in GitHub gefahrlos löschen.
+# ============================================================
+name: DEPRECATED - Weekly Referral Payout (Mock)
 
-# Trigger: Jeden Sonntag 10:00 UTC
 on:
-  schedule:
-    - cron: '0 10 * * 0'
-  # Manueller Trigger für Testing
   workflow_dispatch:
 
 jobs:
-  payout:
+  noop:
     runs-on: ubuntu-latest
-    name: Process Referral Bonuses
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Process Referral Payouts via REST API
-        env:
-          SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          echo "🚀 Starting referral payout process..."
-
-          # Get current week info
-          WEEK_NUM=$(date -u +%V)
-          YEAR=$(date -u +%Y)
-          echo "Processing payouts for week $WEEK_NUM/$YEAR"
-
-          # Step 1: Get all wallets
-          echo "📊 Fetching wallets..."
-          WALLETS=$(curl -s -X GET \
-            "$SUPABASE_URL/rest/v1/wallets?select=wallet_address" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Content-Type: application/json")
-
-          echo "Wallets: $WALLETS"
-
-          # Step 2: Calculate payouts for each wallet (simple mock for now)
-          echo "💰 Calculating payouts..."
-
-          # For now, just mark completion - Phase 2 will add actual calculations
-          PAYOUT_DATA='[{"wallet_address":"test","amount":0.1,"week_number":'$WEEK_NUM',"year":'$YEAR',"status":"completed"}]'
-
-          # Step 3: Check for existing payouts (prevent double-payout)
-          echo "🔍 Checking for existing payouts..."
-          EXISTING=$(curl -s -X GET \
-            "$SUPABASE_URL/rest/v1/referral_payouts?week_number=eq.$WEEK_NUM&year=eq.$YEAR&status=eq.completed" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Content-Type: application/json")
-
-          echo "Existing payouts: $EXISTING"
-
-          # Step 4: Insert new payouts
-          echo "💾 Inserting payouts..."
-          INSERT_RESPONSE=$(curl -s -X POST \
-            "$SUPABASE_URL/rest/v1/referral_payouts" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Content-Type: application/json" \
-            -d '[{"wallet_address":"test_wallet","amount":0.1,"week_number":'$WEEK_NUM',"year":'$YEAR',"status":"completed","completed_at":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","tx_hash":"mock_tx_'$WEEK_NUM'_'$YEAR'"}]')
-
-          echo "Insert response: $INSERT_RESPONSE"
-
-          # Check if successful (no error in response)
-          if echo "$INSERT_RESPONSE" | grep -q "error"; then
-            echo "❌ Payout insertion failed"
-            echo "Response: $INSERT_RESPONSE"
-            exit 1
-          else
-            echo "✅ Referral payout completed successfully"
-            exit 0
-          fi
-
-      - name: Log payout status
-        if: success()
-        run: |
-          echo "✅ Payout job completed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-      - name: Notify on failure
-        if: failure()
-        run: |
-          echo "❌ Payout job failed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          exit 1
+      - name: Hinweis
+        run: echo "Veraltet. Nutze klrx-settlement.yml. Diese Datei kann geloescht werden."
