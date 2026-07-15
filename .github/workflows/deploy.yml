@@ -40,6 +40,7 @@ jobs:
             echo "❌ Secrets injection failed"
             exit 1
           fi
+                      echo "✅ window.__ENV successfully injected into portal.html"
 
       - name: Build complete
         run: |
