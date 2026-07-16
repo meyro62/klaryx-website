@@ -126,18 +126,28 @@ def log_payout(addr, amount, reason, signature):
 
 # ---------------------------------------------------------- Solana-Transfer
 def send_klrx(wallet_address: str, amount: Decimal):
-    """Sendet <amount> KLRX on-chain. Gibt (ok, signatur_oder_fehler) zurück."""
+    """Sendet <amount> KLRX on-chain. Gibt (status, info) zurück.
+       status: 'ok' | 'no_account' | 'error'.
+       Bewusst OHNE --fund-recipient: der User legt (und bezahlt) sein eigenes
+       KLRX-Token-Konto selbst an (siehe Wallet-Setup-Guide, ~0,01 SOL). Hat er
+       das noch nicht, schlaegt der Transfer fehl -> 'no_account' -> naechster
+       Lauf zahlt automatisch nach, sobald das Konto existiert."""
     amt = format(amount.normalize(), "f")
     cmd = [
         SPL_TOKEN, "transfer", MINT_ADDRESS, amt, wallet_address,
-        "--fund-recipient", "--allow-unfunded-recipient",
         "--owner", KEYPAIR_PATH, "--url", SOLANA_RPC,
         "--output", "json",
     ]
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if res.returncode != 0:
-            return False, (res.stderr or res.stdout).strip()[:300]
+            err = (res.stderr or res.stdout).strip()
+            low = err.lower()
+            if any(k in low for k in ("could not find", "no associated", "associated token account",
+                                      "recipient", "account not found", "uninitialized",
+                                      "unfunded", "no account", "not have")):
+                return "no_account", err[:200]
+            return "error", err[:300]
         sig = ""
         try:
             sig = json.loads(res.stdout).get("signature", "")
@@ -145,9 +155,9 @@ def send_klrx(wallet_address: str, amount: Decimal):
             for line in res.stdout.splitlines():
                 if "signature" in line.lower():
                     sig = line.split(":")[-1].strip()
-        return True, sig
+        return "ok", sig
     except Exception as e:
-        return False, str(e)
+        return "error", str(e)
 
 
 # ---------------------------------------------------------- Hauptlauf
@@ -197,8 +207,8 @@ def main():
             ok += 1
             continue
 
-        success, info = send_klrx(addr, delta)
-        if success:
+        status, info = send_klrx(addr, delta)
+        if status == "ok":
             new_sent = (already + delta)
             update_wallet(addr, {
                 "klrx_sent_onchain": str(new_sent),
@@ -217,6 +227,9 @@ def main():
             print(f"✅ {info[:24]}")
             sent_total += delta
             ok += 1
+        elif status == "no_account":
+            print("⏳ noch kein KLRX-Konto – wird beim nächsten Lauf nachgezahlt")
+            skip += 1
         else:
             print(f"❌ {info}")
             fail += 1
