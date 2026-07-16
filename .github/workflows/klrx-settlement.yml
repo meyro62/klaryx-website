@@ -37,6 +37,10 @@ jobs:
           path: ~/.cargo/bin/spl-token
           key: spl-token-cli-v1
 
+      - name: System-Abhängigkeiten (libudev für spl-token-Build)
+        if: steps.cache-spl.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config
+
       - name: Install spl-token CLI
         if: steps.cache-spl.outputs.cache-hit != 'true'
         run: cargo install spl-token-cli --locked
