@@ -128,13 +128,13 @@
       </div>
       <div class="tier-info">
         <strong id="nextTierName">🥈 Silber:</strong> <span id="nextTierDesc">5–9 Einladungen</span>
-        <br><small style="color: var(--muted); margin-top: 8px; display: block;">Bonus: +0.05 KLRX + Badge + Zugang zu Community Intelligence Reports</small>
+        <br><small style="color: var(--muted); margin-top: 8px; display: block;">Ab Platin (25 Einladungen): Einblick-Tier + Community Intelligence Reports</small>
       </div>
     </div>
 
     <div class="ref-section">
       <h3>🔗 Dein Einladungslink</h3>
-      <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Teile diesen Link und verdiene 0.005 KLRX pro Einladung!</p>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Teile diesen Link und steige mit jeder Einladung auf – bis 1 KLRX (Platin) und 2 KLRX (Diamant).</p>
       <div class="ref-link">
         <input type="text" id="refLink" readonly style="font-family: monospace; font-size: 11px;">
         <button onclick="copyLink()" style="width: 100px;">Kopieren</button>
@@ -368,13 +368,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   function updateAchievements(referralCount) {
     const achievements = [
-      { name: 'Starter', emoji: '🎖️', threshold: 5, bonus: '+0.05 KLRX' },
-      { name: 'Bronze', emoji: '🥉', threshold: 1, bonus: '+0.005 KLRX' },
-      { name: 'Silver', emoji: '🥈', threshold: 5, bonus: '+0.01 KLRX' },
-      { name: 'Gold', emoji: '🥇', threshold: 10, bonus: '+0.02 KLRX' },
-      { name: 'Influencer', emoji: '⭐', threshold: 25, bonus: 'Einblick Tier' },
-      { name: 'Legend', emoji: '👑', threshold: 50, bonus: 'Tiefe Tier' },
-      { name: 'Diamond', emoji: '💎', threshold: 100, bonus: '👑 Legend' }
+      { name: 'Bronze', emoji: '🥉', threshold: 1, bonus: 'Badge' },
+      { name: 'Silber', emoji: '🥈', threshold: 5, bonus: 'Badge' },
+      { name: 'Gold', emoji: '🥇', threshold: 10, bonus: 'Badge' },
+      { name: 'Platin', emoji: '💎', threshold: 25, bonus: 'Einblick · 1 KLRX' },
+      { name: 'Diamant', emoji: '💠', threshold: 50, bonus: 'Tiefe · 2 KLRX' },
+      { name: 'Legend', emoji: '👑', threshold: 100, bonus: 'Hall of Fame' }
     ];
 
     let html = '';
@@ -461,7 +460,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             </div>
             <div style="text-align: right;">
               <div style="font-weight: bold; color: var(--green);">${count} Refs</div>
-              <div style="font-size: 11px; color: var(--muted);">+${(count * 0.005).toFixed(3)} KLRX</div>
+              <div style="font-size: 11px; color: var(--muted);">${calculateKLRXBalance(count)} KLRX</div>
             </div>
           </div>
         `;
@@ -759,7 +758,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           klrx_balance: initialBalance,
           badge: 'Free',
           tier: 'Free',
-          claim_status: 'Pending',
+          claim_status: 'Ausstehend',
           og_status: true, // Phase 1: All early adopters get OG-Status. Will change in Phase 2.
           referrer_wallet: referrerWallet,
           csrf_token: csrfToken // SECURITY: CSRF protection
@@ -788,7 +787,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           .from('referrals')
           .insert([{
             referrer_wallet: referrerWallet,
-            referred_wallet: wallet,
+            invited_wallet: wallet,
             created_at: new Date().toISOString()
           }]);
 
