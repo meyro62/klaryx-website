@@ -210,7 +210,10 @@ def main():
                 "claim_sent_at": datetime.now(timezone.utc).isoformat(),
             })
             reason = "free_claim" if already == 0 else "referral"
-            log_payout(addr, delta, reason, info)
+            try:
+                log_payout(addr, delta, reason, info)
+            except Exception as e:
+                print(f"(Audit-Log übersprungen: {str(e)[:70]}) ", end="")
             print(f"✅ {info[:24]}")
             sent_total += delta
             ok += 1
