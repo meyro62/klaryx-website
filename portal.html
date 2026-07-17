@@ -223,7 +223,7 @@
     if (!sbClient) {
       // Get secrets from environment (injected at build time or via window.__ENV)
       const SUPABASE_URL = window.__ENV?.SUPABASE_URL || 'https://wpxcgducfkbozecknfdw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweGNnZHVjZmtib3plY2tuZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MTI0MjEsImV4cCI6MTk5NTM4ODQyMX0.iAr2rMUVfYFc9KMgcLx6hDJn61cE-yl8RxYGlFHqSs4';
+const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       if (!SUPABASE_ANON_KEY) {
         console.error('❌ SUPABASE_ANON_KEY not configured');
         alert('Konfigurationsfehler: Supabase Key fehlt');
