@@ -45,15 +45,15 @@ DUST           = Decimal("0.000001")   # kleinere Differenzen ignorieren
 # ---------------------------------------------------------- Belohnungs-Modell
 def owed_balance(referrals: int) -> Decimal:
     """Soll-Guthaben – EXAKT wie portal.html calculateKLRXBalance().
-       0 Refs -> 0,1  |  25 Refs -> 1,0  |  50 Refs -> 2,0"""
+       0 Refs -> 0,1  |  25 Refs -> 1,0  |  50+ Refs -> 2,0 (Deckel)"""
     bal = Decimal("0.1")
     if 0 < referrals <= 25:
         bal += Decimal(referrals) * Decimal("0.036")
     elif referrals > 25:
         bal += Decimal(25) * Decimal("0.036")
         bal += Decimal(min(referrals - 25, 25)) * Decimal("0.04")
-    if referrals > 50:
-        bal += Decimal(referrals - 50) * Decimal("0.04")
+    # Deckel bei 2,0 KLRX: ab 50 Einladungen (Tiefe) gibt es kein weiteres KLRX,
+    # nur noch Status (Legend + Hall of Fame). KLRX ist an die Utility gekoppelt.
     return bal.quantize(Decimal("0.001"), rounding=ROUND_DOWN)
 
 

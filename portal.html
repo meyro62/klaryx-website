@@ -489,10 +489,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       balance += 25 * 0.036; // erste 25 Refs
       balance += Math.min(referrals - 25, 25) * 0.04; // Refs 26-50
     }
-    // Refs 51+: Weiterer Bonus 0.04 KLRX pro Referral über 50
-    if (referrals > 50) {
-      balance += (referrals - 50) * 0.04;
-    }
+    // Deckel bei 2,0 KLRX: ab 50 Einladungen (Tiefe) kein weiteres KLRX, nur Status (Legend + Hall of Fame).
 
     return parseFloat(balance.toFixed(3));
   }
