@@ -248,7 +248,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       // Each wallet exposes a window object with signMessage capability
       const walletProviders = [
         window.phantom?.solana,     // Phantom
-        window.solflare?.solana,    // Solflare
+        window.solflare,            // Solflare (window.solflare direkt, nicht .solana)
         window.backpack,            // Backpack
         window.solana               // Generic Solana provider
       ].filter(Boolean);
@@ -274,7 +274,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
           // Attempt connection with 5-second timeout
           if (provider.connect && typeof provider.connect === 'function') {
             const response = await promiseWithTimeout(provider.connect(), 5000);
-            connectedPublicKey = response.publicKey;
+            connectedPublicKey = response?.publicKey || provider.publicKey;
             wallet = provider;
             break;
           }
