@@ -1,169 +1,28 @@
-name: Discord Weekly Announcements
+name: Community Announcements (Discord + Telegram)
 
+# Sonntags 10:30 UTC (nach den Reports) + manueller Start
 on:
   schedule:
-    - cron: '30 10 * * 0'  # Every Sunday 10:30 UTC (after reports generation)
-  workflow_dispatch:  # Manual trigger for testing
+    - cron: '30 10 * * 0'
+  workflow_dispatch:
 
 jobs:
   announce:
     runs-on: ubuntu-latest
-    name: Post Weekly Community Announcements
-
+    name: Weekly community announcement
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Discord.py
-        run: |
-          python -m pip install --upgrade pip
-          pip install discord.py --break-system-packages
-
-      - name: Get Weekly Stats
-        id: stats
+      - name: Ankuendigung posten (Discord + Telegram, beide optional)
         env:
-          SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          python << 'EOF'
-          import requests
-          import json
-          from datetime import datetime, timedelta
-
-          supabase_url = "${{ env.SUPABASE_URL }}"
-          supabase_key = "${{ env.SUPABASE_SERVICE_ROLE_KEY }}"
-
-          headers = {
-              "apikey": supabase_key,
-              "Authorization": f"Bearer {supabase_key}",
-              "Content-Type": "application/json"
-          }
-
-          # Get wallet stats
-          wallets_response = requests.get(
-              f"{supabase_url}/rest/v1/wallets?select=count()",
-              headers=headers
-          )
-
-          total_wallets = wallets_response.json()[0]['count'] if wallets_response.ok else 0
-
-          # Get this week's new wallets
-          today = datetime.now()
-          week_start = today - timedelta(days=today.weekday())
-          new_this_week = 0
-
-          try:
-              wallets_detail_response = requests.get(
-                  f"{supabase_url}/rest/v1/wallets?select=registered_at",
-                  headers=headers
-              )
-              if wallets_detail_response.ok:
-                  wallets = wallets_detail_response.json()
-                  for wallet in wallets:
-                      if wallet.get('registered_at'):
-                          registered_date = datetime.fromisoformat(wallet['registered_at'].replace('Z', '+00:00'))
-                          if registered_date.date() >= week_start.date():
-                              new_this_week += 1
-          except:
-              new_this_week = 0
-
-          # Write output
-          with open('stats.json', 'w') as f:
-              json.dump({
-                  'total_wallets': total_wallets,
-                  'new_this_week': new_this_week,
-                  'week': datetime.now().isocalendar()[1],
-                  'year': datetime.now().isocalendar()[0]
-              }, f)
-
-          print(f"📊 Total Wallets: {total_wallets}")
-          print(f"✨ New This Week: {new_this_week}")
-          EOF
-
-      - name: Post Discord Announcement
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_ANNOUNCEMENTS_WEBHOOK }}
-          SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
-        run: |
-          python << 'EOF'
-          import requests
-          import json
-          from datetime import datetime
-
-          webhook_url = "${{ env.DISCORD_WEBHOOK_URL }}"
-
-          if not webhook_url:
-              print("⚠️ DISCORD_ANNOUNCEMENTS_WEBHOOK not configured")
-              exit(0)
-
-          # Load stats
-          try:
-              with open('stats.json', 'r') as f:
-                  stats = json.load(f)
-          except:
-              stats = {'total_wallets': 0, 'new_this_week': 0, 'week': 0, 'year': 0}
-
-          # Create embed
-          embed = {
-              "title": f"📊 Weekly Community Update - Week {stats['week']}/{stats['year']}",
-              "description": "Klaryx Community Statistiken",
-              "color": 0x5B7FFF,
-              "fields": [
-                  {
-                      "name": "👥 Community Größe",
-                      "value": f"**{stats['total_wallets']}** Holder insgesamt",
-                      "inline": False
-                  },
-                  {
-                      "name": "✨ Neues diese Woche",
-                      "value": f"**{stats['new_this_week']}** neue Wallets registriert",
-                      "inline": False
-                  },
-                  {
-                      "name": "🎯 Nächste Milestone",
-                      "value": "🟢 Phase 1: LIVE\n🔵 Phase 2: 500 Holder\n🟣 Phase 3: 1.000 Holder",
-                      "inline": False
-                  },
-                  {
-                      "name": "📈 Aktuelle Aktivität",
-                      "value": "✅ Wöchentliche Reports\n✅ Referral System aktiv\n✅ Community Intelligence verfügbar",
-                      "inline": False
-                  },
-                  {
-                      "name": "🔗 Links",
-                      "value": "[Portal](https://klaryx.de/portal.html) · [Milestones](https://klaryx.de/klaryx_milestones.html) · [Hall of Fame](https://klaryx.de/klaryx_halloffame.html)",
-                      "inline": False
-                  }
-              ],
-              "footer": {
-                  "text": "Klaryx Community Update | Jeden Sonntag 10:30 UTC"
-              },
-              "timestamp": datetime.now().isoformat()
-          }
-
-          # Send webhook
-          try:
-              response = requests.post(
-                  webhook_url,
-                  json={"embeds": [embed]},
-                  headers={"Content-Type": "application/json"}
-              )
-              if response.status_code == 204:
-                  print("✅ Discord announcement posted successfully")
-              else:
-                  print(f"⚠️ Discord webhook returned {response.status_code}: {response.text}")
-          except Exception as e:
-              print(f"❌ Error posting to Discord: {e}")
-
-          EOF
-
-      - name: Log completion
-        run: |
-          echo "✅ Discord announcements workflow completed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python .github/scripts/community_announce.py
