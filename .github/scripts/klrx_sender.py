@@ -40,6 +40,8 @@ DRY_RUN        = os.environ.get("DRY_RUN", "").strip() in ("1", "true", "yes")
 MINT_ADDRESS   = "2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD"
 SPL_TOKEN      = os.environ.get("SPL_TOKEN_BIN", "spl-token")
 DUST           = Decimal("0.000001")   # kleinere Differenzen ignorieren
+SOL_WARN_THRESHOLD = Decimal("0.05")   # Warnung wenn Distributor-SOL darunter
+DISTRIBUTOR_PUBKEY = "GNF8nZvh3uHXYzes5rYfGY8Gi2Q1gaS6FwBLtBooxy2E"
 
 
 # ---------------------------------------------------------- Belohnungs-Modell
@@ -160,6 +162,25 @@ def send_klrx(wallet_address: str, amount: Decimal):
         return "error", str(e)
 
 
+def check_sol_balance():
+    """Warnt, wenn die Distributor-Wallet zu wenig SOL fuer Gebuehren/Konto-Miete hat."""
+    try:
+        body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "getBalance",
+                           "params": [DISTRIBUTOR_PUBKEY]}).encode()
+        req = urllib.request.Request(SOLANA_RPC, data=body,
+                                     headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            lamports = json.loads(resp.read().decode())["result"]["value"]
+        sol = Decimal(lamports) / Decimal(1000000000)
+        if sol < SOL_WARN_THRESHOLD:
+            print(f"::warning::Distributor-SOL niedrig: {sol} SOL (unter {SOL_WARN_THRESHOLD}). "
+                  f"Bitte nachfuellen, sonst schlagen kuenftige Transfers fehl.")
+        else:
+            print(f"Distributor-SOL: {sol} SOL (ok)")
+    except Exception as e:
+        print(f"WARN SOL-Check fehlgeschlagen: {e}")
+
+
 # ---------------------------------------------------------- Hauptlauf
 def main():
     if not (SUPABASE_URL and SERVICE_KEY):
@@ -173,6 +194,8 @@ def main():
     print(f"KLARYX Settlement  |  {datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}")
     print(f"Modus: {'TROCKENLAUF (kein Versand)' if DRY_RUN else 'ECHT – sendet on-chain'}")
     print("=" * 60)
+
+    check_sol_balance()
 
     wallets = fetch_wallets()
     ref_counts = fetch_referral_counts()
