@@ -77,7 +77,7 @@
 
   <div class="connect-section" id="connectSection">
     <h2>🔐 Portal betreten</h2>
-    <p style="color: var(--muted); margin-bottom: 20px;">Gib deine Solana Wallet-Adresse ein um dein Klaryx Profil zu laden.</p>
+    <p style="color: var(--muted); margin-bottom: 20px;">Gib deine Solana-Wallet-Adresse ein, um dein Klaryx-Profil zu laden.</p>
     <input type="text" id="walletAddr" placeholder="z.B. DYw8jCTfwc8LU7tVo5DryXjJ2eUbRD2mk5udAGdPJzb">
     <button onclick="handleWallet()">Portal laden</button>
     <p style="font-size: 11px; color: var(--muted); margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;"><strong>Disclaimer:</strong> $KLRX ist kein Finanzprodukt. Dies ist ein privates Community-Projekt ohne Gewinn- oder Renditeversprechen. Teilnahme auf eigenes Risiko.</p>
@@ -159,7 +159,7 @@
 
     <!-- REPORTS SECTION -->
     <div class="report-section" id="reportSection" style="display: none; background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px;">
-      <h3 style="color: var(--accent2); margin-bottom: 15px;">📊 Diese Woche's Marktbericht</h3>
+      <h3 style="color: var(--accent2); margin-bottom: 15px;">📊 Marktbericht dieser Woche</h3>
       <div id="reportContent" style="font-size: 13px; color: var(--muted); line-height: 1.6;">
         <p>Laden...</p>
       </div>
@@ -504,7 +504,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       const tierHierarchy = { 'Free': 0, 'Einblick': 1, 'Tiefe': 2 };
       if (tierHierarchy[userTier] < tierHierarchy[tier]) {
         console.warn(`⚠️ Access denied: User tier ${userTier} cannot access ${tier} reports`);
-        document.getElementById('reportContent').innerHTML = `<p style="color: var(--muted);">🔒 Du brauchst ${tier === 'Einblick' ? '25+ Einladungen' : '50+ Einladungen'} um auf diesen Report zuzugreifen. Hole dir mehr Referrals!</p>`;
+        document.getElementById('reportContent').innerHTML = `<p style="color: var(--muted);">🔒 Du brauchst ${tier === 'Einblick' ? '25+ Einladungen' : '50+ Einladungen'}, um auf diesen Report zuzugreifen. Hole dir mehr Referrals!</p>`;
         document.getElementById('reportSection').style.display = 'block';
         return;
       }
