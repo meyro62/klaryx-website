@@ -509,18 +509,14 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
         return;
       }
 
-      const today = new Date();
-      const weekNum = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / 86400000 + new Date(today.getFullYear(), 0, 1).getDay() + 1) / 7);
-      const year = today.getFullYear();
-
-      console.log(`📊 Loading report: tier=${tier}, week=${weekNum}, year=${year}`);
+      console.log(`Loading latest report: tier=${tier}`);
 
       const { data: reportData, error: reportError } = await sbClient
         .from('reports')
         .select('content_html, content_json, title')
-        .eq('week_number', weekNum)
-        .eq('year', year)
         .eq('tier', tier.toLowerCase())
+        .order('generated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (reportError) {
