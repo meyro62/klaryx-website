@@ -66,7 +66,7 @@ def post_discord(msg):
     try:
         data = json.dumps({"content": msg}).encode()
         req = urllib.request.Request(DISCORD_WEBHOOK_URL, data=data,
-                                     headers={"Content-Type": "application/json"}, method="POST")
+                                     headers={"Content-Type": "application/json", "User-Agent": "Klaryx-Announce/1.0"}, method="POST")
         urllib.request.urlopen(req, timeout=20)
         print("Discord: gepostet ✅")
     except Exception as e:
@@ -82,7 +82,7 @@ def post_telegram(msg):
                            "disable_web_page_preview": True}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            data=data, headers={"Content-Type": "application/json"}, method="POST")
+            data=data, headers={"Content-Type": "application/json", "User-Agent": "Klaryx-Announce/1.0"}, method="POST")
         urllib.request.urlopen(req, timeout=20)
         print("Telegram: gepostet ✅")
     except Exception as e:
