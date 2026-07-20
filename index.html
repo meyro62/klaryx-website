@@ -539,3 +539,10 @@ menuToggle.addEventListener('click', () => {
 
 // Close menu when clicking a link
 document.querySelectorAll('.mobile-menu a').forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('active');
+  });
+});
+</script>
+</body>
+</html>
