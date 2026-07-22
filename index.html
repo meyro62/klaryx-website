@@ -184,30 +184,23 @@
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">Klaryx</div>
-  <div class="nav-links">
-    <a href="#wie-es-funktioniert">Wie es funktioniert</a>
-    <a href="#zugang">Zugang</a>
-    <a href="#token">Token</a>
-    <a href="klaryx_milestones.html">Meilensteine</a>
-    <a href="check.html">Klartext-Check</a>
-    <a href="sicherheit.html">Sicherheit</a>
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
+  <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
+    <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Meilensteine</a>
+    <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
   </div>
-  <button class="menu-toggle" id="menu-toggle">☰</button>
-  <a href="portal.html" class="btn-nav">Portal →</a>
-</nav>
-
-<div class="mobile-menu" id="mobile-menu">
-  <a href="#wie-es-funktioniert">Wie es funktioniert</a>
-  <a href="#zugang">Zugang</a>
-  <a href="#token">Token</a>
-  <a href="klaryx_milestones.html">Meilensteine</a>
-  <a href="check.html">Klartext-Check</a>
-  <a href="sicherheit.html">Sicherheit</a>
-  <a href="lernpfad.html">Lernpfad</a>
-  <a href="portal.html" style="background:rgba(91,127,255,.1);">Portal →</a>
+  <button class="khdr-b" onclick="var m=document.getElementById('khdrM');m.style.display=m.style.display==='flex'?'none':'flex';" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:0;">&#9776;</button>
+</header>
+<div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">
+  <a href="check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Klartext-Check</a>
+  <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Lernpfad</a>
+  <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Meilensteine</a>
+  <a href="portal.html" style="color:var(--accent);text-decoration:none;padding:12px 24px;font-size:14px;">Portal &#8594;</a>
 </div>
+<style>@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}</style>
 
 <!-- HERO -->
 <div class="hero">
@@ -493,7 +486,7 @@
   $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
   <a href="index.html" style="color:var(--muted);text-decoration:none;">Startseite</a> ·
   <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
-  <a href="sicherheit.html" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
+  <a href="check.html#warnzeichen" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
   <a href="portal.html" style="color:var(--muted);text-decoration:none;">Portal</a> ·
   <a href="klaryx_wallet_setup.html" style="color:var(--muted);text-decoration:none;">Wallet Setup</a> ·
@@ -560,20 +553,7 @@ function cacheHolderCount(count) {
   localStorage.setItem('klaryx_holder_timestamp', Date.now().toString());
 }
 
-// Mobile menu toggle
-const menuToggle = document.getElementById('menu-toggle');
-const mobileMenu = document.getElementById('mobile-menu');
-
-menuToggle.addEventListener('click', () => {
-  mobileMenu.classList.toggle('active');
-});
-
-// Close menu when clicking a link
-document.querySelectorAll('.mobile-menu a').forEach(link => {
-  link.addEventListener('click', () => {
-    mobileMenu.classList.remove('active');
-  });
-});
+// (alte Hamburger-Logik entfernt – Header ist jetzt selbst-gestylt)
 </script>
 </body>
 </html>

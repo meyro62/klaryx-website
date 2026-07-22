@@ -52,13 +52,38 @@
   .load{color:var(--muted);margin-top:18px}
   footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
   footer a{color:var(--muted);text-decoration:none}
+  #warnzeichen{max-width:720px;margin:0 auto;padding:0 24px 40px}
+  #warnzeichen .wztitle{font-size:24px;font-weight:700;letter-spacing:-.5px;margin:8px 0 6px}
+  #warnzeichen .wzintro{color:var(--muted);font-size:14px;margin-bottom:20px}
+  #warnzeichen h3{font-size:18px;font-weight:700;margin:30px 0 8px}
+  #warnzeichen h3 .n{font-family:'Space Mono',monospace;color:var(--accent);margin-right:8px}
+  .wzflag{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0}
+  .wzflag .w{font-size:14px;margin-bottom:8px}
+  .wzflag .w b{color:var(--rot)}
+  .wzflag .c{font-size:13px;color:var(--muted);line-height:1.7}
+  .wzflag .c b{color:var(--gruen)}
+  .wzlist{list-style:none;padding:0;margin:12px 0}
+  .wzlist li{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 15px;margin-bottom:8px;font-size:14px}
 </style>
 </head>
 <body>
-<nav>
-  <span class="logo">Klaryx</span>
-  <a href="index.html">← Zur Startseite</a>
-</nav>
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
+  <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
+    <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Meilensteine</a>
+    <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
+  </div>
+  <button class="khdr-b" onclick="var m=document.getElementById('khdrM');m.style.display=m.style.display==='flex'?'none':'flex';" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:0;">&#9776;</button>
+</header>
+<div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">
+  <a href="check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Klartext-Check</a>
+  <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Lernpfad</a>
+  <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Meilensteine</a>
+  <a href="portal.html" style="color:var(--accent);text-decoration:none;padding:12px 24px;font-size:14px;">Portal &#8594;</a>
+</div>
+<style>@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}</style>
 
 <div class="wrap">
   <div class="eyebrow">Klartext-Check</div>
@@ -75,11 +100,51 @@
   <div id="result"></div>
 </div>
 
+<div id="warnzeichen">
+  <div class="wztitle">Warnzeichen erkennen</div>
+  <p class="wzintro">Was die Werte oben bedeuten – und die häufigsten Muster bei unsicheren Token. Rein informativ, keine Anlageberatung.</p>
+
+  <h3><span class="n">1</span>Mint Authority aktiv</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> Der Ersteller kann jederzeit neue Token nachdrucken und deinen Anteil verwässern.</div><div class="c">Oben unter „Mint Authority". <b>Gut = deaktiviert.</b></div></div>
+
+  <h3><span class="n">2</span>Freeze Authority aktiv</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> Der Ersteller kann Wallets „einfrieren" – dann kommst du nicht mehr an deine Token.</div><div class="c">Oben unter „Freeze Authority". <b>Gut = deaktiviert.</b></div></div>
+
+  <h3><span class="n">3</span>Wenig oder keine Liquidität</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> Ohne genug Liquidität kannst du kaum verkaufen – und der Ersteller kann die Liquidität „ziehen" (Rug Pull).</div><div class="c">Oben unter „Liquidität". <b>Höher = leichter handelbar.</b></div></div>
+
+  <h3><span class="n">4</span>Wenige halten fast alles</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> Halten wenige Wallets sehr viel, können sie den Preis crashen.</div><div class="c">Oben unter „Top-10-Holder". <b>Breiter verteilt = besser.</b> Über ~50 % ist ein rotes Tuch (Ausnahme: ganz junge/nicht gelistete Projekte).</div></div>
+
+  <h3><span class="n">5</span>Brandneu und ohne Historie</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> Sehr junge Token sind besonders riskant – viele existieren nur Stunden.</div><div class="c">Oben unter „Alter". Auch die Wallet des Erstellers: frisch und ohne Historie ist ein Warnsignal.</div></div>
+
+  <h3><span class="n">6</span>Anonymes Team + große Versprechen</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> „100× garantiert", „risikofrei" – seriöse Projekte versprechen keine Gewinne.</div><div class="c">Gibt es ehrliche, überprüfbare Angaben? Ein Impressum? Realistische Ziele? Wer nichts verspricht, muss nichts brechen.</div></div>
+
+  <h3><span class="n">7</span>Druck und FOMO</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> „Nur noch heute", „schnell rein" – künstlicher Zeitdruck soll dich am Nachdenken hindern.</div><div class="c">Bei Druck einen Schritt zurücktreten. Ein gutes Projekt läuft dir nicht weg.</div></div>
+
+  <h3><span class="n">8</span>Gefälschte Community-Zahlen</h3>
+  <div class="wzflag"><div class="w"><b>Warnzeichen:</b> Viele Follower, aber kaum echte Interaktion? Zahlen lassen sich kaufen.</div><div class="c">Auf echte Gespräche schauen statt reine Follower. Werden kritische Fragen gelöscht? On-Chain: echte Holder auf Solscan prüfen.</div></div>
+
+  <h3>Gesündere Zeichen</h3>
+  <ul class="wzlist">
+    <li>🟢 Mint- und Freeze-Authority deaktiviert</li>
+    <li>🟢 Solide, gesperrte Liquidität</li>
+    <li>🟢 Token breit verteilt</li>
+    <li>🟢 Nachvollziehbare Historie, etwas Alter</li>
+    <li>🟢 Ehrliche Kommunikation ohne Gewinnversprechen, mit Impressum</li>
+  </ul>
+
+  <div class="disc" style="margin-top:24px;"><strong>Hinweis:</strong> Rein informativ, keine Anlageberatung, keine Empfehlung. Auch ein Token ohne Warnzeichen kann an Wert verlieren. Prüfe alles selbst.</div>
+</div>
+
 <footer style="text-align:center;padding:36px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2;">
   $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
   <a href="index.html" style="color:var(--muted);text-decoration:none;">Startseite</a> ·
   <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
-  <a href="sicherheit.html" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
+  <a href="check.html#warnzeichen" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
   <a href="portal.html" style="color:var(--muted);text-decoration:none;">Portal</a> ·
   <a href="klaryx_wallet_setup.html" style="color:var(--muted);text-decoration:none;">Wallet Setup</a> ·
