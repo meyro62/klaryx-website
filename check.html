@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klartext-Check – Klaryx</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236;
+    --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa;
+    --gruen:#22d3a0; --gelb:#f5c542; --rot:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border)}
+  .logo{font-family:'Space Mono',monospace;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  nav a{color:var(--muted);text-decoration:none;font-size:13px}
+  nav a:hover{color:var(--text)}
+  .wrap{max-width:720px;margin:0 auto;padding:48px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:12px}
+  .sub{color:var(--muted);max-width:520px;margin-bottom:28px}
+  .inrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  input{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px}
+  input:focus{outline:none;border-color:var(--accent)}
+  button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:14px 28px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.6;cursor:default}
+  .hint{font-size:12px;color:var(--muted)}
+  #result{margin-top:28px;display:none}
+  .ampel{border-radius:14px;padding:22px 24px;margin-bottom:20px;border:1px solid var(--border)}
+  .ampel h2{font-size:22px;font-weight:700;margin-bottom:4px}
+  .ampel .tok{font-size:13px;color:var(--muted);font-family:'Space Mono',monospace;word-break:break-all}
+  .a-gruen{background:rgba(34,211,160,.08);border-color:rgba(34,211,160,.35)}
+  .a-gruen h2{color:var(--gruen)}
+  .a-gelb{background:rgba(245,197,66,.08);border-color:rgba(245,197,66,.35)}
+  .a-gelb h2{color:var(--gelb)}
+  .a-rot{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.35)}
+  .a-rot h2{color:var(--rot)}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+  .fact{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+  .fact .top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .d-gruen{background:var(--gruen)} .d-gelb{background:var(--gelb)} .d-rot{background:var(--rot)}
+  .fact .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .fact .val{font-size:18px;font-weight:600;font-family:'Space Mono',monospace}
+  .fact .hin{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .erkl{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:18px}
+  .erkl h3{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .disc{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:14px;line-height:1.6}
+  .err{color:var(--rot);margin-top:18px}
+  .load{color:var(--muted);margin-top:18px}
+  footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+  footer a{color:var(--muted);text-decoration:none}
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo">Klaryx</span>
+  <a href="index.html">← Zur Startseite</a>
+</nav>
+
+<div class="wrap">
+  <div class="eyebrow">Klartext-Check</div>
+  <h1>Verstehe einen Solana-Token,<br>bevor du reingehst.</h1>
+  <p class="sub">Adresse einfügen → ehrliche Erklärung auf Deutsch + Auffälligkeits-Ampel aus öffentlichen Daten. Kein Finanzprodukt, keine Kaufempfehlung.</p>
+
+  <div class="inrow">
+    <input id="tok" placeholder="Solana Token-Adresse (Mint) einfügen…" autocomplete="off" spellcheck="false">
+    <button id="btn" onclick="check()">Prüfen</button>
+  </div>
+  <div class="hint">Beispiel: die Mint-Adresse eines Tokens (44 Zeichen, Base58).</div>
+
+  <div id="msg"></div>
+  <div id="result"></div>
+</div>
+
+<footer>
+  Klaryx Klartext-Check · rein informativ, keine Anlageberatung ·
+  <a href="index.html">klaryx.de</a>
+</footer>
+
+<script>
+  const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/check";
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const AMPEL = { gruen: ["a-gruen","🟢 Grün – keine großen Auffälligkeiten"], gelb: ["a-gelb","🟡 Gelb – ein paar Punkte beachten"], rot: ["a-rot","🔴 Rot – deutliche Auffälligkeiten"] };
+
+  async function check(){
+    const token = document.getElementById('tok').value.trim();
+    const msg = document.getElementById('msg');
+    const result = document.getElementById('result');
+    const btn = document.getElementById('btn');
+    result.style.display='none'; result.innerHTML=''; msg.innerHTML='';
+    if(!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(token)){
+      msg.innerHTML='<div class="err">Bitte eine gültige Solana-Token-Adresse einfügen (Base58).</div>'; return;
+    }
+    btn.disabled=true; msg.innerHTML='<div class="load">Prüfe Token… (öffentliche Daten + Erklärung)</div>';
+    try{
+      const r = await fetch(WORKER + "?token=" + encodeURIComponent(token));
+      const d = await r.json();
+      if(!r.ok || d.error){ msg.innerHTML='<div class="err">'+esc(d.error||('Fehler '+r.status))+'</div>'; btn.disabled=false; return; }
+      msg.innerHTML='';
+      const [cls,label] = AMPEL[d.ampel] || AMPEL.gelb;
+      const titel = d.name ? (esc(d.name) + (d.symbol?' ('+esc(d.symbol)+')':'')) : 'Unbekannter Token';
+      let html = '<div class="ampel '+cls+'"><h2>'+label+'</h2><div class="tok">'+esc(titel)+' · '+esc(d.token)+'</div></div>';
+      html += '<div class="facts">';
+      for(const f of d.facts){
+        html += '<div class="fact"><div class="top"><span class="dot d-'+f.status+'"></span><span class="lbl">'+esc(f.label)+'</span></div>'
+             +  '<div class="val">'+esc(f.wert)+'</div><div class="hin">'+esc(f.hinweis)+'</div></div>';
+      }
+      html += '</div>';
+      html += '<div class="erkl"><h3>Klartext</h3><div>'+esc(d.erklaerung).replace(/\n/g,'<br>')+'</div></div>';
+      html += '<div class="disc"><strong>Hinweis:</strong> Rein informativ, aus öffentlichen Quellen ('+esc(d.quelle)+'), ohne Gewähr. '
+           +  'Keine Anlageberatung, keine Kaufempfehlung, keine Prognose. Die Ampel ist eine Auffälligkeits-Einordnung, kein „sicher/unsicher"-Urteil.</div>';
+      result.innerHTML = html; result.style.display='block';
+    }catch(e){
+      msg.innerHTML='<div class="err">Verbindung fehlgeschlagen. Bitte später erneut versuchen.</div>';
+    }
+    btn.disabled=false;
+  }
+  document.getElementById('tok').addEventListener('keydown',(e)=>{ if(e.key==='Enter') check(); });
+</script>
+</body>
+</html>
