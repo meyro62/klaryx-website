@@ -97,9 +97,9 @@
     <div class="bar"><div class="fill" id="pfill"></div></div>
   </div>
 
-  <p style="font-size:13px;color:var(--muted);margin:-12px 0 18px;">👉 Tippe auf eine Lektion, um sie zu öffnen und die Frage zu beantworten. Die erste ist schon offen.</p>
+  <p style="font-size:13px;color:var(--muted);margin:-12px 0 18px;">👉 Lies die Lektion, beantworte die Frage richtig – dann erscheint automatisch die nächste.</p>
 
-  <div id="lessons"></div>
+  <div id="lessonArea"></div>
 
   <div class="done-box" id="doneBox">
     <div class="medal">🎓</div>
@@ -189,75 +189,61 @@ const KEY = "klaryx_lernpfad_v1";
 let done = {};
 try { done = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e){ done = {}; }
 
-const cont = document.getElementById("lessons");
-LESSONS.forEach((L, i) => {
-  const el = document.createElement("div");
-  el.className = "lesson" + (done[i] ? " done" : "");
-  el.innerHTML =
-    '<div class="lhead"><span class="lnum">'+(i+1)+'</span><span class="ltitle">'+L.t+'</span><span class="lstate" id="st'+i+'">'+(done[i]?"✅":"▢")+'</span><span class="lchev">▾</span></div>'+
-    '<div class="lbody" id="body'+i+'">'+
-      '<p>'+L.c+'</p>'+
-      '<div class="quiz"><div class="q">'+L.q+'</div>'+
-        L.o.map((opt,j)=>'<button class="opt" data-l="'+i+'" data-o="'+j+'">'+opt+'</button>').join('')+
-        '<div class="feedback" id="fb'+i+'"></div>'+
-      '</div>'+
-    '</div>';
-  cont.appendChild(el);
-});
-
-function refresh(){
+function lpProgress(){
   const n = Object.keys(done).filter(k=>done[k]).length;
   document.getElementById("pcount").textContent = n;
   document.getElementById("pfill").style.width = Math.round(n/LESSONS.length*100)+"%";
-  document.getElementById("doneBox").classList.toggle("show", n===LESSONS.length);
-}
-refresh();
-
-document.querySelectorAll(".lhead").forEach((h,i)=>{
-  h.addEventListener("click", ()=>{
-    const open = document.getElementById("body"+i).classList.toggle("open");
-    const chev = h.querySelector(".lchev"); if (chev) chev.style.transform = open ? "rotate(180deg)" : "";
-  });
-});
-// Erste noch nicht abgeschlossene Lektion automatisch öffnen, damit klar ist, wie man startet
-const firstOpen = LESSONS.findIndex((_, i) => !done[i]);
-if (firstOpen >= 0) {
-  document.getElementById("body"+firstOpen).classList.add("open");
-  const chev0 = document.querySelectorAll(".lhead")[firstOpen].querySelector(".lchev");
-  if (chev0) chev0.style.transform = "rotate(180deg)";
+  return n;
 }
 
-document.querySelectorAll(".opt").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    const i = +btn.dataset.l, j = +btn.dataset.o, L = LESSONS[i];
-    const fb = document.getElementById("fb"+i);
-    const opts = document.querySelectorAll('.opt[data-l="'+i+'"]');
-    if (j === L.a){
-      btn.classList.add("correct");
-      fb.className = "feedback ok"; fb.textContent = "Richtig! " + L.e;
-      done[i] = true; localStorage.setItem(KEY, JSON.stringify(done));
-      document.getElementById("st"+i).textContent = "✅";
-      btn.closest(".lesson").classList.add("done");
-      opts.forEach(o=>o.disabled=true);
-      refresh();
-      // Nächste Lektion automatisch aufklappen
-      const next = i + 1;
-      if (next < LESSONS.length && !done[next]) {
-        const nb = document.getElementById("body"+next);
-        if (nb && !nb.classList.contains("open")) {
-          nb.classList.add("open");
-          const nh = document.querySelectorAll(".lhead")[next];
-          const nc = nh && nh.querySelector(".lchev");
-          if (nc) nc.style.transform = "rotate(180deg)";
-          setTimeout(()=>{ if (nh) nh.scrollIntoView({behavior:"smooth", block:"nearest"}); }, 500);
-        }
-      }
-    } else {
-      btn.classList.add("wrong");
-      fb.className = "feedback no"; fb.textContent = "Nicht ganz – versuch's nochmal.";
-    }
-  });
-});
+function renderLesson(i){
+  const area = document.getElementById("lessonArea");
+  if (i >= LESSONS.length){
+    area.innerHTML = "";
+    document.getElementById("doneBox").classList.add("show");
+    document.getElementById("doneBox").scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  const L = LESSONS[i];
+  area.innerHTML =
+    '<div class="lesson"><div class="lhead" style="cursor:default;"><span class="lnum">'+(i+1)+' / '+LESSONS.length+'</span><span class="ltitle">'+L.t+'</span></div>'+
+      '<div class="lbody open"><p>'+L.c+'</p>'+
+        '<div class="quiz"><div class="q">'+L.q+'</div>'+
+          L.o.map((opt,j)=>'<button class="opt" onclick="answerLesson('+i+','+j+')">'+opt+'</button>').join('')+
+          '<div class="feedback" id="lfb"></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  area.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function answerLesson(i, j){
+  const L = LESSONS[i];
+  const opts = document.querySelectorAll("#lessonArea .opt");
+  const fb = document.getElementById("lfb");
+  if (j === L.a){
+    opts.forEach(o=>o.disabled=true);
+    opts[j].classList.add("correct");
+    fb.className = "feedback ok"; fb.textContent = "Richtig! " + L.e;
+    done[i] = true; localStorage.setItem(KEY, JSON.stringify(done)); lpProgress();
+    const b = document.createElement("button"); b.className = "btn"; b.style.marginTop = "14px";
+    b.textContent = (i+1 < LESSONS.length) ? "Weiter zur nächsten Lektion →" : "Lernpfad abschließen 🎓";
+    b.onclick = ()=> renderLesson(i+1);
+    document.querySelector("#lessonArea .quiz").appendChild(b);
+  } else {
+    opts[j].classList.add("wrong");
+    fb.className = "feedback no"; fb.textContent = "Nicht ganz – versuch's nochmal.";
+  }
+}
+
+lpProgress();
+const startAt = LESSONS.findIndex((_, i) => !done[i]);
+if (startAt < 0){
+  document.getElementById("lessonArea").innerHTML = "";
+  document.getElementById("doneBox").classList.add("show");
+} else {
+  renderLesson(startAt);
+}
 
 document.getElementById("resetBtn").addEventListener("click", ()=>{
   localStorage.removeItem(KEY); location.reload();
