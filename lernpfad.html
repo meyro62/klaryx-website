@@ -33,6 +33,7 @@
   .lnum{font-family:'Space Mono',monospace;font-size:13px;color:var(--accent);width:22px;flex:none}
   .ltitle{font-size:15px;font-weight:600;flex:1}
   .lstate{font-size:18px;flex:none}
+  .lchev{color:var(--muted);font-size:13px;flex:none;transition:transform .2s}
   .lbody{display:none;padding:0 20px 20px;border-top:1px solid var(--border)}
   .lbody.open{display:block}
   .lbody p{font-size:14px;color:var(--text);margin:14px 0}
@@ -86,6 +87,8 @@
     <div class="progress-top"><span>Dein Fortschritt</span><span><b id="pcount">0</b> / 7 Lektionen</span></div>
     <div class="bar"><div class="fill" id="pfill"></div></div>
   </div>
+
+  <p style="font-size:13px;color:var(--muted);margin:-12px 0 18px;">👉 Tippe auf eine Lektion, um sie zu öffnen und die Frage zu beantworten. Die erste ist schon offen.</p>
 
   <div id="lessons"></div>
 
@@ -176,7 +179,7 @@ LESSONS.forEach((L, i) => {
   const el = document.createElement("div");
   el.className = "lesson" + (done[i] ? " done" : "");
   el.innerHTML =
-    '<div class="lhead"><span class="lnum">'+(i+1)+'</span><span class="ltitle">'+L.t+'</span><span class="lstate" id="st'+i+'">'+(done[i]?"✅":"▢")+'</span></div>'+
+    '<div class="lhead"><span class="lnum">'+(i+1)+'</span><span class="ltitle">'+L.t+'</span><span class="lstate" id="st'+i+'">'+(done[i]?"✅":"▢")+'</span><span class="lchev">▾</span></div>'+
     '<div class="lbody" id="body'+i+'">'+
       '<p>'+L.c+'</p>'+
       '<div class="quiz"><div class="q">'+L.q+'</div>'+
@@ -196,8 +199,18 @@ function refresh(){
 refresh();
 
 document.querySelectorAll(".lhead").forEach((h,i)=>{
-  h.addEventListener("click", ()=> document.getElementById("body"+i).classList.toggle("open"));
+  h.addEventListener("click", ()=>{
+    const open = document.getElementById("body"+i).classList.toggle("open");
+    const chev = h.querySelector(".lchev"); if (chev) chev.style.transform = open ? "rotate(180deg)" : "";
+  });
 });
+// Erste noch nicht abgeschlossene Lektion automatisch öffnen, damit klar ist, wie man startet
+const firstOpen = LESSONS.findIndex((_, i) => !done[i]);
+if (firstOpen >= 0) {
+  document.getElementById("body"+firstOpen).classList.add("open");
+  const chev0 = document.querySelectorAll(".lhead")[firstOpen].querySelector(".lchev");
+  if (chev0) chev0.style.transform = "rotate(180deg)";
+}
 
 document.querySelectorAll(".opt").forEach(btn=>{
   btn.addEventListener("click", ()=>{
