@@ -225,6 +225,18 @@ document.querySelectorAll(".opt").forEach(btn=>{
       btn.closest(".lesson").classList.add("done");
       opts.forEach(o=>o.disabled=true);
       refresh();
+      // Nächste Lektion automatisch aufklappen
+      const next = i + 1;
+      if (next < LESSONS.length && !done[next]) {
+        const nb = document.getElementById("body"+next);
+        if (nb && !nb.classList.contains("open")) {
+          nb.classList.add("open");
+          const nh = document.querySelectorAll(".lhead")[next];
+          const nc = nh && nh.querySelector(".lchev");
+          if (nc) nc.style.transform = "rotate(180deg)";
+          setTimeout(()=>{ if (nh) nh.scrollIntoView({behavior:"smooth", block:"nearest"}); }, 500);
+        }
+      }
     } else {
       btn.classList.add("wrong");
       fb.className = "feedback no"; fb.textContent = "Nicht ganz – versuch's nochmal.";
