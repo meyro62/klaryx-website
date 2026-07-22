@@ -757,9 +757,15 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref && isValidSolanaAddress(ref)) {
-      document.getElementById('walletAddr').value = ref;
-      await initSupabase();
+      // Einlader NUR im Hintergrund merken – NICHT ins Wallet-Feld schreiben.
+      // Der neue Nutzer trägt hier seine EIGENE Wallet ein.
       window.referrerWallet = ref;
+      await initSupabase();
+      const inp = document.getElementById('walletAddr');
+      if (inp) {
+        inp.value = '';
+        inp.insertAdjacentHTML('beforebegin', '<div style="font-size:13px;color:#22d3a0;margin-bottom:8px;">✅ Einladung erkannt – trag jetzt deine <b>eigene</b> Wallet ein, um beizutreten.</div>');
+      }
     }
   });
 </script>
