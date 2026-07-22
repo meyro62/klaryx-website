@@ -116,7 +116,7 @@
       if(!r.ok || d.error){ msg.innerHTML='<div class="err">'+esc(d.error||('Fehler '+r.status))+'</div>'; btn.disabled=false; return; }
       msg.innerHTML='';
       const [cls,label] = AMPEL[d.ampel] || AMPEL.gelb;
-      const titel = d.name ? (esc(d.name) + (d.symbol?' ('+esc(d.symbol)+')':'')) : 'Unbekannter Token';
+      const titel = d.name ? (esc(d.name) + (d.symbol?' ('+esc(d.symbol)+')':'')) : (d.nichtGelistet ? 'Token – nicht an einer DEX gelistet' : 'Unbekannter Token');
       let html = '<div class="ampel '+cls+'"><h2>'+label+'</h2><div class="tok">'+esc(titel)+' · '+esc(d.token)+'</div></div>';
       html += '<div class="facts">';
       for(const f of d.facts){
