@@ -309,12 +309,13 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       }
 
       if (signature && signature.length > 0) {
-        console.log('✅ Wallet-Ownership verified via signature');
-        return true;
+        console.log('✅ Wallet-Ownership signiert');
+        // Signatur + Nachricht zurückgeben – die Edge Function prüft sie serverseitig
+        return { message: messageText, signature: Array.from(signature) };
       }
 
       alert('⚠️ Signatur-Verifikation fehlgeschlagen');
-      return false;
+      return null;
     } catch (err) {
       console.error('❌ Wallet-Signatur Fehler:', err);
       Sentry.captureException(err, {
@@ -667,8 +668,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
 
     // SECURITY: Verify wallet ownership before proceeding
     // Production-Ready: User must sign a message with their wallet to prove ownership
-    const isOwner = await verifyWalletOwnership(wallet);
-    if (!isOwner) {
+    const proof = await verifyWalletOwnership(wallet);
+    if (!proof) {
       return; // Verification failed - error already shown to user
     }
 
@@ -702,55 +703,27 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
         }
       }
 
-      // Calculate initial balance based on referrals (new wallets start with 0 referrals = 0.1 KLRX)
-      const initialBalance = calculateKLRXBalance(0); // 0 referrals = 0.1 KLRX
+      // Registrierung serverseitig über die Edge Function 'register'.
+      // Diese prüft die Wallet-Signatur (Eigentumsnachweis) und schreibt mit
+      // service_role. Direkte Inserts als anon sind gesperrt -> keine Fälschung.
+      const SB_URL = 'https://wpxcgducfkbozecknfdw.supabase.co';
+      const resp = await fetch(`${SB_URL}/functions/v1/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: wallet,
+          message: proof.message,
+          signature: proof.signature,
+          referrer: referrerWallet
+        })
+      });
 
-      // Register wallet directly via Supabase API
-      // SECURITY: Include CSRF Token to prevent CSRF attacks
-      const { data, error } = await sbClient
-        .from('wallets')
-        .insert([{
-          wallet_address: wallet,
-          registered_at: new Date().toISOString(),
-          klrx_balance: initialBalance,
-          badge: 'Free',
-          tier: 'Free',
-          claim_status: 'Ausstehend',
-          og_status: true, // Phase 1: All early adopters get OG-Status. Will change in Phase 2.
-          referrer_wallet: referrerWallet,
-          csrf_token: csrfToken // SECURITY: CSRF protection
-        }]);
-
-      if (error) {
-        // 23505 = duplicate key (wallet exists) - this is OK, load existing wallet
-        if (error.code === '23505') {
-          console.log('✓ Wallet existiert bereits, lade Daten...');
-          // Continue to loadWallet below
-        } else {
-          console.error('❌ Wallet insert error:', error);
-          Sentry.captureException(error, {
-            level: 'error',
-            tags: { component: 'wallet_registration', errorCode: error.code },
-            extra: { wallet: wallet, errorMessage: error.message }
-          });
-          alert(getSafeErrorMessage(error));
-          return;
-        }
-      }
-
-      // Track referral if referrer exists
-      if (referrerWallet && isValidSolanaAddress(referrerWallet)) {
-        const { error: refError } = await sbClient
-          .from('referrals')
-          .insert([{
-            referrer_wallet: referrerWallet,
-            invited_wallet: wallet,
-            created_at: new Date().toISOString()
-          }]);
-
-        if (refError) {
-          console.error('Referral insert error:', refError);
-        }
+      let out = {};
+      try { out = await resp.json(); } catch (e) {}
+      if (!resp.ok && out.status !== 'exists') {
+        console.error('❌ Registrierung fehlgeschlagen:', out);
+        alert('Registrierung fehlgeschlagen: ' + (out.error || ('HTTP ' + resp.status)));
+        return;
       }
 
       await loadWallet(wallet);
