@@ -98,17 +98,26 @@ def sb_request(method: str, path: str, body=None, prefer=None):
 
 def fetch_wallets():
     return sb_request("GET", "wallets?select=wallet_address,einladungen,klrx_balance,"
-                             "klrx_sent_onchain,claim_status,badge,tier&order=registered_at.asc") or []
+                             "klrx_sent_onchain,claim_status,badge,tier,referrer_wallet"
+                             "&order=registered_at.asc") or []
 
 
-def fetch_referral_counts():
-    """Zählt tatsächliche Referrals pro Einlader (verlässlicher als der Zähler)."""
-    rows = sb_request("GET", "referrals?select=referrer_wallet") or []
+def compute_referral_counts(wallets):
+    """Zählt Referrals aus der wallets-Tabelle statt aus dem frei beschreibbaren
+    referrals-Log. Robuster gegen Manipulation:
+      - jede eingeladene Wallet ist genau EINE Zeile (Primärschlüssel) -> keine
+        Doppel-/Fake-Zählung durch beliebige referrals-Inserts,
+      - Self-Referrals (referrer == eingeladene Wallet) werden ignoriert,
+      - der Einlader muss selbst eine registrierte Wallet sein.
+    Hinweis: schließt Sybil-Angriffe (viele Wegwerf-Wallets) NICHT vollständig –
+    dafür ist serverseitige Eigentums-/Wallet-Alter-Prüfung nötig (vor DEX-Listing)."""
+    valid = {w["wallet_address"] for w in wallets}
     counts = {}
-    for r in rows:
-        rw = r.get("referrer_wallet")
-        if rw:
-            counts[rw] = counts.get(rw, 0) + 1
+    for w in wallets:
+        ref = w.get("referrer_wallet")
+        inv = w.get("wallet_address")
+        if ref and ref != inv and ref in valid:
+            counts[ref] = counts.get(ref, 0) + 1
     return counts
 
 
@@ -198,7 +207,7 @@ def main():
     check_sol_balance()
 
     wallets = fetch_wallets()
-    ref_counts = fetch_referral_counts()
+    ref_counts = compute_referral_counts(wallets)
     print(f"{len(wallets)} Wallet(s), {sum(ref_counts.values())} Referral(s) gesamt\n")
 
     sent_total = Decimal("0")
