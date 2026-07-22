@@ -56,6 +56,15 @@
   .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
   .disc{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:32px;line-height:1.7}
   .reset{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:14px}
+  .qz{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+  .qz h2{font-size:18px;font-weight:700;margin-bottom:6px}
+  .qzsub{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .qzmeta{font-size:12px;color:var(--muted);margin-bottom:10px;font-family:'Space Mono',monospace}
+  .qzq{font-size:15px;font-weight:600;margin-bottom:12px;line-height:1.5}
+  .qzfb{font-size:13px;margin-top:10px;line-height:1.6}
+  .qzfb.ok{color:var(--gruen)} .qzfb.no{color:var(--rot)}
+  .qzresult{text-align:center}
+  .qzresult .big{font-size:40px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace}
   footer a:hover{color:var(--text)}
 </style>
 </head>
@@ -98,6 +107,12 @@
     <p>Stark – du kennst jetzt die wichtigsten Grundlagen und Warnzeichen. Wende sie gleich an:</p>
     <a href="check.html" class="btn">Token im Klartext-Check prüfen</a>
     <a href="check.html#warnzeichen" class="btn ghost">Sicherheits-Guide</a>
+  </div>
+
+  <div class="qz" id="quiz">
+    <h2>&#129504; Wissens-Quiz</h2>
+    <div class="qzsub">10 zuf&auml;llige Fragen aus &uuml;ber 100 &ndash; f&uuml;r zwischendurch. Jedes Mal neu gemischt.</div>
+    <div id="qzArea"><button class="btn" onclick="qzStart()">Quiz starten</button></div>
   </div>
 
   <div style="text-align:center;">
@@ -247,6 +262,141 @@ document.querySelectorAll(".opt").forEach(btn=>{
 document.getElementById("resetBtn").addEventListener("click", ()=>{
   localStorage.removeItem(KEY); location.reload();
 });
+
+// ================= Wissens-Quiz: 100 Fragen, 10 zufällig pro Runde =================
+const QUIZ = [
+{q:"Was ist eine Krypto-Wallet?",o:["Ein Ort, an dem Coins physisch liegen","Ein Schlüsselbund zum Nachweis des Besitzes","Eine Bank"],a:1,e:"Sie verwaltet Schlüssel, nicht die Coins selbst."},
+{q:"Was darfst du gefahrlos öffentlich teilen?",o:["Deinen privaten Schlüssel","Deine öffentliche Adresse","Deine Seed Phrase"],a:1,e:"Nur die öffentliche Adresse."},
+{q:"Was bedeutet Self-Custody?",o:["Eine Börse hält deine Coins","Du allein kontrollierst deine Schlüssel","Ein Bankkonto"],a:1},
+{q:"Wer hat bei einer Self-Custody-Wallet Zugriff auf deine Coins?",o:["Der Wallet-Anbieter","Nur du","Solana"],a:1},
+{q:"Der private Schlüssel ist …",o:["frei teilbar","streng geheim zu halten","unwichtig"],a:1},
+{q:"Eine Solana-Wallet-Adresse ist …",o:["eine E-Mail","eine Base58-Zeichenkette","eine Telefonnummer"],a:1},
+{q:"Was ist Phantom?",o:["Eine Solana-Wallet","Eine Börse","Ein Token"],a:0},
+{q:"Verlierst du deinen Zugang, hilft dir …",o:["der Support per Passwort-Reset","nur deine Seed Phrase","niemand, nie"],a:1,e:"Nur die Seed Phrase stellt die Wallet wieder her."},
+{q:"Kann man in Phantom mehrere Konten anlegen?",o:["Nein","Ja, viele (bis 100)","Nur gegen Gebühr"],a:1},
+{q:"Eine „Hot Wallet“ ist …",o:["offline auf Papier","mit dem Internet verbunden","eine Hardware"],a:1},
+{q:"Eine Hardware-Wallet (z. B. Ledger) …",o:["hält Schlüssel offline","ist eine Börse","ist ein Token"],a:0},
+{q:"Wenn jemand deinen privaten Schlüssel hat, …",o:["kann er deine Coins nehmen","passiert nichts","sieht er nur die Adresse"],a:0},
+{q:"Wie viele Wörter hat eine Seed Phrase meist?",o:["3 oder 4","12 oder 24","genau 100"],a:1},
+{q:"Wo bewahrst du die Seed Phrase am besten auf?",o:["In der Cloud","Als Foto","Offline auf Papier"],a:2},
+{q:"Der „Support“ fragt nach deiner Seed Phrase. Du …",o:["gibst sie","lehnst immer ab","gibst nur die Hälfte"],a:1},
+{q:"Eine Website will die Seed Phrase zum „Verbinden“. Das ist …",o:["normal","immer Betrug","nur bei neuen Seiten ok"],a:1},
+{q:"Wer die Seed Phrase hat, hat …",o:["nichts","vollen Zugriff auf die Wallet","nur die Adresse"],a:1},
+{q:"Die Seed Phrase als Screenshot speichern ist …",o:["sicher","riskant","empfohlen"],a:1},
+{q:"Solltest du die Seed Phrase per Chat verschicken?",o:["Ja, an Freunde","Nein, niemals","Nur verschlüsselt"],a:1},
+{q:"Verlierst du Seed Phrase UND Zugang, …",o:["kein Problem","sind die Coins unwiederbringlich weg","hilft der Support"],a:1},
+{q:"Zwei Wallets mit derselben Seed Phrase …",o:["sind unmöglich","ergeben dieselben Konten","sind sicherer"],a:1},
+{q:"Die Seed Phrase gibst du nie ein außer …",o:["beim Wiederherstellen der eigenen Wallet","bei Airdrops","beim Support"],a:0},
+{q:"Jemand bietet Hilfe per Screen-Sharing an und will die Seed sehen. Du …",o:["zeigst sie kurz","brichst sofort ab","zeigst nur ein paar Wörter"],a:1},
+{q:"Solana ist …",o:["eine Wallet","eine Blockchain","ein Token"],a:1},
+{q:"Der native Coin von Solana heißt …",o:["ETH","SOL","USDC"],a:1},
+{q:"Solana ist bekannt für …",o:["langsame, teure Transaktionen","schnelle, günstige Transaktionen","gar keine Transaktionen"],a:1},
+{q:"Ein Block-Explorer für Solana ist …",o:["Etherscan","Solscan","Google"],a:1},
+{q:"„On-Chain“ bedeutet …",o:["auf der Blockchain gespeichert und überprüfbar","geheim","offline"],a:0},
+{q:"Eine Solana-Transaktion wird bestätigt in …",o:["Tagen","Sekunden","Wochen"],a:1},
+{q:"Wer betreibt Solana?",o:["eine einzelne Firma allein","ein dezentrales Netzwerk aus Validatoren","niemand"],a:1},
+{q:"USDC ist …",o:["ein Stablecoin (~1 US-Dollar)","ein Meme-Coin","dasselbe wie SOL"],a:0},
+{q:"Kann man Transaktionen auf Solscan öffentlich einsehen?",o:["Ja","Nein","Nur mit Login"],a:0},
+{q:"Die meisten Solana-Token sind …",o:["ERC-20","SPL-Token","reine NFTs"],a:1},
+{q:"Die Mint-Adresse eines Tokens ist …",o:["seine eindeutige ID","deine Wallet","ein Passwort"],a:0},
+{q:"„Mint Authority deaktiviert“ heißt …",o:["Token ist verboten","keine neuen Token erzeugbar","nicht handelbar"],a:1},
+{q:"Aktive Mint Authority ist ein Risiko, weil …",o:["der Ersteller nachdrucken kann","gar nichts","der Preis fix ist"],a:0},
+{q:"„Freeze Authority“ aktiv bedeutet …",o:["der Ersteller kann Wallets einfrieren","der Token ist kalt","nichts"],a:0},
+{q:"Eine feste, nicht vermehrbare Supply ist …",o:["berechenbarer","schlechter","illegal"],a:0},
+{q:"Die „Supply“ eines Tokens ist …",o:["die Gesamtmenge","der Preis","die Zahl der Wallets"],a:0},
+{q:"Woran erkennst du, ob die Mint Authority aus ist?",o:["am Preis","im Klartext-Check / on-chain","am Namen"],a:1},
+{q:"Eine DEX ist …",o:["eine dezentrale Börse","eine Wallet","ein Coin"],a:0},
+{q:"Beispiele für Solana-DEXes sind …",o:["Raydium/Orca","Visa/PayPal","Ledger/Trezor"],a:0},
+{q:"Ein Liquiditäts-Pool ist …",o:["ein Topf mit zwei Token zum Tauschen","ein Sparbuch","eine Wallet"],a:0},
+{q:"Wenig Liquidität bedeutet …",o:["leicht handelbar","schwer und teuer handelbar","nichts"],a:1},
+{q:"„Slippage“ ist …",o:["die Kursabweichung beim Trade","eine Gebühr an Solana","ein Token"],a:0},
+{q:"Ein „Rug Pull“ ist, wenn …",o:["die Liquidität abgezogen wird","ein Token gelistet wird","die Wallet friert"],a:0},
+{q:"Ein „Honeypot“-Token …",o:["lässt sich kaufen, aber nicht verkaufen","ist besonders sicher","zahlt Zinsen"],a:0},
+{q:"„LP gelockt/gesperrt“ heißt …",o:["Liquidität kann nicht sofort abgezogen werden","der Token ist tot","du bist gesperrt"],a:0},
+{q:"Bei einem Swap tauschst du …",o:["einen Token gegen einen anderen","Coins gegen Bargeld","gar nichts"],a:0},
+{q:"Hohe Liquidität ist tendenziell …",o:["ein besseres Zeichen für Handelbarkeit","schlecht","egal"],a:0},
+{q:"Transaktionsgebühren auf Solana zahlst du in …",o:["USDC","SOL","Euro"],a:1},
+{q:"Warum brauchst du etwas SOL, auch wenn du nur andere Token hältst?",o:["für die Gebühren","als Sicherheit","gar nicht"],a:0},
+{q:"Solana-Gebühren sind meist …",o:["sehr hoch","Bruchteile eines Cents","komplett kostenlos"],a:1},
+{q:"Ein Token-Konto (ATA) anzulegen …",o:["ist gratis","kostet eine kleine, rückholbare SOL-Miete","kostet 1 SOL"],a:1},
+{q:"Ohne SOL in der Wallet …",o:["kannst du nichts bewegen","ist alles normal","verlierst du Token"],a:0},
+{q:"Die Konto-Miete (Rent) bekommst du …",o:["nie zurück","beim Schließen des Kontos zurück","doppelt zurück"],a:1},
+{q:"1 SOL besteht aus …",o:["1.000 Lamports","1 Milliarde Lamports","100 Cent"],a:1},
+{q:"„100× garantiert“ ist …",o:["ein realistisches Versprechen","ein Warnsignal","völlig normal"],a:1},
+{q:"Künstlicher Zeitdruck („nur heute!“) soll …",o:["dir helfen","dich am Nachdenken hindern","Gebühren sparen"],a:1},
+{q:"Viele Follower, aber kaum echte Interaktion deuten auf …",o:["eine starke Community","gekaufte/Bot-Zahlen","gar nichts"],a:1},
+{q:"Phishing bedeutet …",o:["gefälschte Seiten/Nachrichten, um Daten abzugreifen","echtes Angeln","ein Token-Typ"],a:0},
+{q:"Ein Airdrop verlangt deine Seed Phrase. Du …",o:["gibst sie","brichst ab, das ist Betrug","gibst die Adresse"],a:1},
+{q:"Ein anonymes Team mit Mond-Versprechen …",o:["ist vertrauenswürdig","erhöht die Vorsicht","ist Pflicht"],a:1},
+{q:"Der beste Schutz vor Scams ist …",o:["der FOMO folgen","prüfen und ruhig bleiben","schnell handeln"],a:1},
+{q:"„DYOR“ steht für …",o:["Do Your Own Research","einen Token","eine Börse"],a:0},
+{q:"Ein Token, den du nicht verkaufen kannst, ist wahrscheinlich …",o:["ein Honeypot","ein guter Deal","normal"],a:0},
+{q:"Gefälschte Websites erkennst du oft an …",o:["der leicht abweichenden URL","der Farbe","gar nicht"],a:0},
+{q:"Jemand verspricht, dein Geld zu „verdoppeln“, wenn du erst SOL schickst. Das ist …",o:["ein klassischer Scam","ein Investment","ein Airdrop"],a:0},
+{q:"Solltest du einen Token blind kaufen, weil ein Influencer ihn bewirbt?",o:["Ja","Nein, erst prüfen","nur bei großen"],a:1},
+{q:"Halten wenige Wallets sehr viel eines Tokens, ist das …",o:["ein Konzentrations-Risiko","ein gutes Zeichen","egal"],a:0},
+{q:"Die echte Holder-Zahl siehst du am ehesten …",o:["auf Solscan / on-chain","im Werbetext","gar nicht"],a:0},
+{q:"Top-10-Holder mit 90 % bedeuten …",o:["breite Verteilung","hohe Konzentration","nichts"],a:1},
+{q:"Als „Whale“ bezeichnet man …",o:["einen sehr großen Halter","einen kleinen Trader","eine Wallet-App"],a:0},
+{q:"Ein „Dump“ ist …",o:["ein großer Verkauf","ein Kauf","eine Gebühr"],a:0},
+{q:"Token, die auf viele Wallets verteilt sind, sind tendenziell …",o:["ein besseres Zeichen","ein schlechtes Zeichen","egal"],a:0},
+{q:"Eine Signatur mit deiner Wallet …",o:["kann die Zustimmung sein, Token zu bewegen","ist immer harmlos","kostet 1 SOL"],a:0},
+{q:"Bevor du etwas signierst, solltest du …",o:["blind bestätigen","lesen, was du signierst","den Support fragen"],a:1},
+{q:"Eine bestätigte Solana-Transaktion ist …",o:["leicht rückgängig machbar","endgültig","löschbar"],a:1},
+{q:"„Approve/Genehmigen“ bei einer dApp …",o:["gibt oft Zugriff auf deine Token","ist bedeutungslos","kostet nie etwas"],a:0},
+{q:"Eine Transaktions-Signatur (tx) findest du …",o:["auf Solscan","in deiner E-Mail","nirgends"],a:0},
+{q:"Klaryx ist …",o:["ein Finanzprodukt mit Gewinnversprechen","ein nicht-kommerzielles Community-Projekt","eine Bank"],a:1},
+{q:"Der Klartext-Check gibt dir …",o:["eine Kaufempfehlung","eine beschreibende Auffälligkeits-Einordnung","garantierte Gewinne"],a:1},
+{q:"„Kein Finanzprodukt, keine Anlageberatung“ heißt …",o:["du bekommst Kauftipps","es ist rein informativ","es ist verboten"],a:1},
+{q:"Bevor du in einen neuen Token gehst, solltest du …",o:["ihn prüfen (z. B. Klartext-Check)","sofort kaufen","dem Hype folgen"],a:0},
+{q:"Investieren solltest du nur, was …",o:["du dir zu verlieren leisten kannst","du dir leihst","dein Nachbar empfiehlt"],a:0},
+{q:"Eine „rote“ Ampel im Klartext-Check heißt …",o:["garantiert Scam","deutliche Auffälligkeiten – genauer hinschauen","sicherer Kauf"],a:1},
+{q:"Ein Projekt mit Impressum und ehrlicher Kommunikation ist …",o:["tendenziell vertrauenswürdiger","schlechter","egal"],a:0},
+{q:"Verluste in Krypto sind …",o:["ausgeschlossen","möglich – es ist hochriskant","garantiert"],a:1},
+{q:"Wenn du etwas nicht verstehst, solltest du …",o:["trotzdem investieren","erst lernen oder fragen","es ignorieren"],a:1},
+{q:"Panik und FOMO führen oft zu …",o:["guten Entscheidungen","überstürzten Fehlern","mehr SOL"],a:1},
+{q:"Ein realistisches Projekt verspricht …",o:["garantierte Gewinne","keine Gewinne","sichere 1000×"],a:1},
+{q:"Die Verantwortung für deine Self-Custody-Wallet trägt …",o:["die Börse","du selbst","Solana"],a:1},
+{q:"Der beste erste Schritt bei einem unbekannten Token ist …",o:["kaufen","prüfen und verstehen","weiterleiten"],a:1},
+{q:"Ein NFT ist …",o:["ein einzigartiges digitales Objekt on-chain","ein Stablecoin","eine Wallet"],a:0},
+{q:"„Gas“/Gebühren auf Solana sind im Vergleich zu Ethereum meist …",o:["viel höher","viel niedriger","identisch"],a:1},
+{q:"Ein Stablecoin soll …",o:["stark schwanken","seinen Wert stabil halten","sofort steigen"],a:1},
+{q:"Ein Memecoin ist typischerweise …",o:["hochspekulativ und riskant","wertstabil","eine Bank"],a:0},
+{q:"Wenn ein Chat-Bot in Discord dir eine „Wallet-Verifizierung“ per Link schickt, …",o:["klickst du sofort","bist du vorsichtig und prüfst","gibst du deine Seed ein"],a:1},
+{q:"Ein sicheres Passwort für deine Wallet-App schützt …",o:["vor Zugriff auf dem Gerät","deine Seed Phrase ersetzt es","gar nichts"],a:0},
+{q:"Der Unterschied zwischen Adresse und privatem Schlüssel:",o:["Adresse teilen, Schlüssel geheim","beide geheim","beide teilen"],a:0},
+{q:"Wenn dir jemand „kostenlose Token“ schickt, die du nur über eine fremde Seite „einlösen“ kannst, …",o:["ist Vorsicht geboten (oft Scam)","ist das ein Geschenk","musst du sofort handeln"],a:0}
+];
+
+let qzSet=[], qzIdx=0, qzScore=0;
+function qzShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const x=a[i];a[i]=a[j];a[j]=x;}return a;}
+function qzStart(){ qzSet=qzShuffle(QUIZ.slice()).slice(0,10); qzIdx=0; qzScore=0; qzRender(); }
+function qzRender(){
+  const Q=qzSet[qzIdx];
+  let h='<div class="qzmeta">Frage '+(qzIdx+1)+' / '+qzSet.length+' &middot; Punkte: '+qzScore+'</div>';
+  h+='<div class="qzq">'+Q.q+'</div>';
+  h+=Q.o.map((o,j)=>'<button class="opt" onclick="qzAnswer('+j+')">'+o+'</button>').join('');
+  h+='<div class="qzfb" id="qzfb"></div>';
+  document.getElementById("qzArea").innerHTML=h;
+}
+function qzAnswer(j){
+  const Q=qzSet[qzIdx];
+  const opts=document.querySelectorAll("#qzArea .opt");
+  opts.forEach(o=>o.disabled=true);
+  const fb=document.getElementById("qzfb");
+  if(j===Q.a){ opts[j].classList.add("correct"); qzScore++; fb.className="qzfb ok"; fb.textContent="Richtig! "+(Q.e||""); }
+  else{ opts[j].classList.add("wrong"); opts[Q.a].classList.add("correct"); fb.className="qzfb no"; fb.textContent="Leider falsch. "+(Q.e||""); }
+  const b=document.createElement("button"); b.className="btn"; b.style.marginTop="12px";
+  b.textContent=(qzIdx+1<qzSet.length)?"Nächste Frage":"Ergebnis anzeigen";
+  b.onclick=()=>{ qzIdx++; (qzIdx<qzSet.length)?qzRender():qzResult(); };
+  document.getElementById("qzArea").appendChild(b);
+}
+function qzResult(){
+  const pct=Math.round(qzScore/qzSet.length*100);
+  const msg=pct>=80?"Stark! 🎉":(pct>=50?"Solide – dranbleiben!":"Übung macht den Meister.");
+  document.getElementById("qzArea").innerHTML='<div class="qzresult"><div class="big">'+qzScore+' / '+qzSet.length+'</div><p style="color:var(--muted);margin:8px 0 16px;">'+msg+'</p><button class="btn" onclick="qzStart()">Neue 10 Fragen</button></div>';
+}
+
 </script>
 </body>
 </html>
