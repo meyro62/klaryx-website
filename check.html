@@ -146,6 +146,7 @@
   <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
   <a href="check.html#warnzeichen" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
+  <a href="watchlist.html" style="color:var(--muted);text-decoration:none;">Wächter</a> ·
   <a href="portal.html" style="color:var(--muted);text-decoration:none;">Portal</a> ·
   <a href="klaryx_wallet_setup.html" style="color:var(--muted);text-decoration:none;">Wallet Setup</a> ·
   <a href="klaryx_halloffame.html" style="color:var(--muted);text-decoration:none;">Hall of Fame</a> ·
@@ -201,6 +202,8 @@
     btn.disabled=false;
   }
   document.getElementById('tok').addEventListener('keydown',(e)=>{ if(e.key==='Enter') check(); });
+  // Deeplink: ?token=<mint> vorbefüllen und direkt prüfen (z. B. aus der Watchlist)
+  (function(){ const _t = new URLSearchParams(location.search).get('token'); if(_t){ document.getElementById('tok').value = _t.trim(); check(); } })();
 </script>
 </body>
 </html>
