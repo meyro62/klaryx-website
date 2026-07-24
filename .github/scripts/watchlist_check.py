@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://wpxcgducfkbozecknfdw.supabase.co").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-RPC = os.environ.get("SOLANA_RPC", "https://api.mainnet-beta.solana.com")
+RPC = os.environ.get("SOLANA_RPC") or "https://api.mainnet-beta.solana.com"
 DISCORD = os.environ.get("WAECHTER_DISCORD_WEBHOOK") or os.environ.get("DISCORD_WEBHOOK_URL", "")
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT = os.environ.get("WAECHTER_TELEGRAM_CHAT_ID") or os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -86,6 +86,7 @@ def fmt_usd(v):
 def snapshot(token):
     d = fetch_dex(token)
     info = rpc("getAccountInfo", [token, {"encoding": "jsonParsed"}]) or {}
+    rpc_ok = bool(info.get("value")) if isinstance(info, dict) else False
     parsed = None
     try:
         parsed = (((info.get("value") or {}).get("data") or {}).get("parsed") or {}).get("info")
@@ -110,7 +111,8 @@ def snapshot(token):
     vol = (d.get("volume") or {}).get("h24") if d else None
     name = (d.get("baseToken") or {}).get("name") if d else None
     return {"mint_active": mint_active, "freeze_active": freeze_active,
-            "liq": liq, "vol": vol, "top10": top10, "name": name, "listed": bool(d)}
+            "liq": liq, "vol": vol, "top10": top10, "name": name,
+            "listed": bool(d), "rpc_ok": rpc_ok}
 
 
 def detect_changes(old, new):
@@ -118,10 +120,13 @@ def detect_changes(old, new):
     if not old:
         return []  # Baseline – kein Alarm beim ersten Sehen
     out = []
-    if new["mint_active"] and not old.get("mint_active"):
-        out.append("⚠️ Mint Authority wurde REAKTIVIERT – es können wieder neue Token erzeugt werden.")
-    if new["freeze_active"] and not old.get("freeze_active"):
-        out.append("⚠️ Freeze Authority wurde REAKTIVIERT – Wallets könnten eingefroren werden.")
+    # Mint/Freeze nur vergleichen, wenn die alte Baseline echte RPC-Daten hatte
+    # (sonst würde eine unvollständige Baseline einen Fehlalarm auslösen).
+    if old.get("rpc_ok") and new.get("rpc_ok"):
+        if new["mint_active"] and not old.get("mint_active"):
+            out.append("⚠️ Mint Authority wurde REAKTIVIERT – es können wieder neue Token erzeugt werden.")
+        if new["freeze_active"] and not old.get("freeze_active"):
+            out.append("⚠️ Freeze Authority wurde REAKTIVIERT – Wallets könnten eingefroren werden.")
     ol, nl = old.get("liq"), new.get("liq")
     if ol and ol > 1000:
         if nl is None or nl < ol * 0.5:
