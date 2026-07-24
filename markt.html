@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klaryx Markt-Überblick – Top-Solana-Token</title>
+<meta name="description" content="Beschreibender Überblick der größten Solana-Token nach Marktkapitalisierung. Nur öffentliche Daten. Kein Finanzprodukt, keine Anlageberatung.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236;
+    --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa;
+    --gruen:#22d3a0; --gelb:#f5c542; --rot:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7}
+  .wrap{max-width:860px;margin:0 auto;padding:48px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:12px}
+  .sub{color:var(--muted);max-width:600px;margin-bottom:20px}
+  .note{background:rgba(91,127,255,.06);border:1px solid rgba(91,127,255,.25);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text);margin-bottom:24px}
+  .btn.sm{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+  .btn.sm:hover{border-color:var(--accent)}
+  .meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .updated{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace}
+  .tblwrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:12px 14px;text-align:right;white-space:nowrap}
+  th{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);background:var(--surface2)}
+  td{border-bottom:1px solid var(--border)}
+  tr:last-child td{border-bottom:none}
+  th.l,td.l{text-align:left}
+  .rank{color:var(--muted);font-family:'Space Mono',monospace}
+  .coin{display:flex;align-items:center;gap:10px}
+  .coin img{width:24px;height:24px;border-radius:50%;background:var(--surface2);flex:none}
+  .coin .nm{font-weight:600}
+  .coin .sy{color:var(--muted);font-size:12px;font-family:'Space Mono',monospace}
+  .num{font-family:'Space Mono',monospace}
+  .up{color:var(--gruen)} .down{color:var(--rot)} .flat{color:var(--muted)}
+  .msg{font-size:14px;color:var(--muted);padding:22px;text-align:center}
+  .disc{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:28px;line-height:1.7}
+  footer a:hover{color:var(--text)}
+  @media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}.hidem{display:none}}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
+  <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
+    <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="markt.html" style="color:var(--text);text-decoration:none;font-size:13px;">Markt</a>
+    <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Meilensteine</a>
+    <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
+  </div>
+  <button class="khdr-b" onclick="var m=document.getElementById('khdrM');m.style.display=m.style.display==='flex'?'none':'flex';" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:0;">&#9776;</button>
+</header>
+<div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">
+  <a href="check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Klartext-Check</a>
+  <a href="markt.html" style="color:var(--text);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Markt</a>
+  <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Lernpfad</a>
+  <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Meilensteine</a>
+  <a href="portal.html" style="color:var(--accent);text-decoration:none;padding:12px 24px;font-size:14px;">Portal &#8594;</a>
+</div>
+
+<div class="wrap">
+  <div class="eyebrow">Markt-Überblick</div>
+  <h1>Die größten Solana-Token.</h1>
+  <p class="sub">Ein rein beschreibender Überblick der größten handelbaren Solana-Token nach Marktkapitalisierung – aus öffentlichen Daten. Stablecoins und tokenisierte Fonds sind ausgenommen. Zahlen, keine Wertung, keine Kauf- oder Verkaufsempfehlung.</p>
+  <div class="note">💡 Willst du einen bestimmten Token genauer prüfen? Der <a href="check.html" style="color:var(--accent);text-decoration:none;">Klartext-Check</a> zeigt dir Mint-/Freeze-Authority, Liquidität und Holder-Konzentration im Klartext.</div>
+
+  <div class="meta">
+    <div class="updated" id="updated">Lade Daten…</div>
+    <button class="btn sm" onclick="loadTop()">↻ Aktualisieren</button>
+  </div>
+
+  <div class="tblwrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="l">#</th>
+          <th class="l">Token</th>
+          <th>Preis</th>
+          <th>24h</th>
+          <th class="hidem">Marktkap.</th>
+          <th class="hidem">Volumen 24h</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="6"><div class="msg">Lade Markt-Daten…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="disc"><strong>Hinweis:</strong> Daten von CoinGecko (Solana-Ökosystem), rund 5&nbsp;Minuten zwischengespeichert, ohne Gewähr. Marktkapitalisierung, Preis und 24h-Veränderung sind Momentaufnahmen und können schwanken. Dies ist <b>kein Finanzprodukt</b> und <b>keine Anlageberatung</b> – Klaryx bewertet nicht, ob ein Token „gut" oder „schlecht" ist, sondern zeigt nur öffentliche Zahlen. $KLRX selbst erscheint hier nicht, solange es nicht an einer DEX gelistet ist.</div>
+</div>
+
+<footer style="text-align:center;padding:36px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2;">
+  $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
+  <a href="index.html" style="color:var(--muted);text-decoration:none;">Startseite</a> ·
+  <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
+  <a href="markt.html" style="color:var(--muted);text-decoration:none;">Markt</a> ·
+  <a href="check.html#warnzeichen" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
+  <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
+  <a href="watchlist.html" style="color:var(--muted);text-decoration:none;">Wächter</a> ·
+  <a href="portal.html" style="color:var(--muted);text-decoration:none;">Portal</a> ·
+  <a href="klaryx_wallet_setup.html" style="color:var(--muted);text-decoration:none;">Wallet Setup</a> ·
+  <a href="klaryx_halloffame.html" style="color:var(--muted);text-decoration:none;">Hall of Fame</a> ·
+  <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;">Meilensteine</a> ·
+  <a href="https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD" target="_blank" style="color:var(--muted);text-decoration:none;">Solscan</a><br>
+  <a href="klaryx_legal.html" style="color:var(--muted);text-decoration:none;">Rechtliche Hinweise</a> ·
+  <a href="klaryx_impressum.html" style="color:var(--muted);text-decoration:none;">Impressum</a> ·
+  <a href="klaryx_datenschutz.html" style="color:var(--muted);text-decoration:none;">Datenschutz</a> ·
+  <a href="klaryx_disclaimer.html" style="color:var(--muted);text-decoration:none;">Disclaimer</a> ·
+  <a href="mailto:info@klaryx.de" style="color:var(--muted);text-decoration:none;">Kontakt</a> ·
+  <a href="https://x.com/klaryxhq" target="_blank" style="color:var(--muted);text-decoration:none;">X</a> ·
+  <a href="https://discord.gg/abyTeFaghX" target="_blank" style="color:var(--muted);text-decoration:none;">Discord</a> ·
+  <a href="https://t.me/klaryxhq" target="_blank" style="color:var(--muted);text-decoration:none;">Telegram</a><br><br>
+  klaryx.de · © 2026 Meyro
+</footer>
+
+<script>
+  const TOP_URL = "https://klaryx-bot.mahirgulabi.workers.dev/top";
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  function fmtPrice(v){
+    if(v == null) return "–";
+    if(v >= 1) return "$" + v.toLocaleString("de-DE",{maximumFractionDigits:2});
+    if(v >= 0.01) return "$" + v.toLocaleString("de-DE",{maximumFractionDigits:4});
+    return "$" + v.toLocaleString("de-DE",{maximumFractionDigits:8});
+  }
+  function fmtBig(v){
+    if(v == null) return "–";
+    if(v >= 1e9) return "$" + (v/1e9).toLocaleString("de-DE",{maximumFractionDigits:2}) + " Mrd";
+    if(v >= 1e6) return "$" + (v/1e6).toLocaleString("de-DE",{maximumFractionDigits:1}) + " Mio";
+    return "$" + Math.round(v).toLocaleString("de-DE");
+  }
+  function fmtChange(v){
+    if(v == null) return '<span class="flat">–</span>';
+    const cls = v > 0 ? "up" : v < 0 ? "down" : "flat";
+    const sign = v > 0 ? "+" : "";
+    return '<span class="'+cls+'">'+sign+v.toLocaleString("de-DE",{maximumFractionDigits:2})+'%</span>';
+  }
+
+  async function loadTop(){
+    const rows = document.getElementById("rows");
+    const upd = document.getElementById("updated");
+    rows.innerHTML = '<tr><td colspan="6"><div class="msg">Lade Markt-Daten…</div></td></tr>';
+    upd.textContent = "Lade Daten…";
+    try{
+      const r = await fetch(TOP_URL, { cache: "no-store" });
+      const d = await r.json();
+      const coins = (d && d.coins) || [];
+      if(!coins.length){
+        rows.innerHTML = '<tr><td colspan="6"><div class="msg">Momentan keine Daten verfügbar. Bitte später erneut versuchen.</div></td></tr>';
+        upd.textContent = "";
+        return;
+      }
+      rows.innerHTML = coins.map((c, i) =>
+        '<tr>'+
+          '<td class="l rank">'+(c.rank ?? (i+1))+'</td>'+
+          '<td class="l"><div class="coin">'+
+            (c.image ? '<img src="'+esc(c.image)+'" alt="" loading="lazy">' : '<span class="coin"></span>')+
+            '<span><span class="nm">'+esc(c.name)+'</span> <span class="sy">'+esc(c.symbol)+'</span></span>'+
+          '</div></td>'+
+          '<td class="num">'+fmtPrice(c.priceUsd)+'</td>'+
+          '<td class="num">'+fmtChange(c.change24)+'</td>'+
+          '<td class="num hidem">'+fmtBig(c.marketCap)+'</td>'+
+          '<td class="num hidem">'+fmtBig(c.vol24)+'</td>'+
+        '</tr>'
+      ).join('');
+      const t = d.updated ? new Date(d.updated) : new Date();
+      upd.textContent = "Stand: " + t.toLocaleString("de-DE") + " · Quelle: CoinGecko";
+    }catch(e){
+      rows.innerHTML = '<tr><td colspan="6"><div class="msg">Fehler beim Laden. Bitte später erneut versuchen.</div></td></tr>';
+      upd.textContent = "";
+    }
+  }
+
+  loadTop();
+</script>
+</body>
+</html>
