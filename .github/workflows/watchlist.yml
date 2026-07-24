@@ -1,0 +1,28 @@
+name: Klaryx Wächter – tägliche Watchlist-Prüfung
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # täglich 09:00 UTC
+  workflow_dispatch:        # manuell startbar (Actions → Run workflow)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Watchlist prüfen
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SOLANA_RPC: ${{ secrets.SOLANA_RPC }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Optional – nur setzen, wenn ein eigener #waechter-Kanal genutzt werden soll:
+          WAECHTER_DISCORD_WEBHOOK: ${{ secrets.WAECHTER_DISCORD_WEBHOOK }}
+          WAECHTER_TELEGRAM_CHAT_ID: ${{ secrets.WAECHTER_TELEGRAM_CHAT_ID }}
+        run: python .github/scripts/watchlist_check.py
