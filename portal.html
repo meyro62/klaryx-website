@@ -3,9 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://*.supabase.co https://*.solana.com https://api.coingecko.com https://*.sentry.io; font-src 'self' data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co https://browser.sentry-cdn.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://*.supabase.co https://*.solana.com https://api.coingecko.com https://*.sentry.io https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; font-src 'self' data:;">
 <title>Klaryx Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Cloudflare Turnstile (Bot-Schutz für den Free Claim). Site Key leer = aus.
+  // Aktivieren: Site Key hier eintragen UND in der Supabase-Function 'register'
+  // die Secrets REQUIRE_TURNSTILE=true + TURNSTILE_SECRET setzen.
+  window.TURNSTILE_SITEKEY = '';
+  window._tsWidgetId = null;
+  window.onTurnstileLoad = function () {
+    if (!window.TURNSTILE_SITEKEY || !window.turnstile) return;
+    var box = document.getElementById('cf-turnstile-box');
+    if (!box) return;
+    box.style.display = 'flex';
+    try { window._tsWidgetId = window.turnstile.render('#cf-turnstile-box', { sitekey: window.TURNSTILE_SITEKEY }); } catch (e) {}
+  };
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
 <style>
   :root {
     --bg: #080b12;
@@ -96,6 +111,7 @@
     <h2>🔐 Portal betreten</h2>
     <p style="color: var(--muted); margin-bottom: 20px;">Gib deine Solana-Wallet-Adresse ein, um dein Klaryx-Profil zu laden.</p>
     <input type="text" id="walletAddr" placeholder="z.B. DYw8jCTfwc8LU7tVo5DryXjJ2eUbRD2mk5udAGdPJzb">
+    <div id="cf-turnstile-box" style="display:none;justify-content:center;margin:14px 0;"></div>
     <button onclick="handleWallet()">Portal laden</button>
     <p style="font-size: 11px; color: var(--muted); margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;"><strong>Disclaimer:</strong> $KLRX ist kein Finanzprodukt. Dies ist ein privates Community-Projekt ohne Gewinn- oder Renditeversprechen. Teilnahme auf eigenes Risiko.</p>
   </div>
@@ -723,6 +739,13 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       // Registrierung serverseitig über die Edge Function 'register'.
       // Diese prüft die Wallet-Signatur (Eigentumsnachweis) und schreibt mit
       // service_role. Direkte Inserts als anon sind gesperrt -> keine Fälschung.
+      // Bot-Schutz-Token (nur wenn Turnstile aktiv ist)
+      let turnstileToken = null;
+      if (window.TURNSTILE_SITEKEY && window.turnstile && window._tsWidgetId !== null) {
+        turnstileToken = window.turnstile.getResponse(window._tsWidgetId) || null;
+        if (!turnstileToken) { alert('Bitte kurz den Sicherheits-Check bestätigen.'); return; }
+      }
+
       const SB_URL = 'https://wpxcgducfkbozecknfdw.supabase.co';
       const resp = await fetch(`${SB_URL}/functions/v1/register`, {
         method: 'POST',
@@ -731,7 +754,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
           wallet: wallet,
           message: proof.message,
           signature: proof.signature,
-          referrer: referrerWallet
+          referrer: referrerWallet,
+          turnstileToken: turnstileToken
         })
       });
 
@@ -742,6 +766,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
         alert('Registrierung fehlgeschlagen: ' + (out.error || ('HTTP ' + resp.status)));
         return;
       }
+
+      if (window._tsWidgetId !== null && window.turnstile) { try { window.turnstile.reset(window._tsWidgetId); } catch (e) {} }
 
       await loadWallet(wallet);
     } catch (err) {

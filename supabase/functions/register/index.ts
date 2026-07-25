@@ -28,6 +28,14 @@ const MIN_AGE_DAYS = Number(Deno.env.get("MIN_WALLET_AGE_DAYS") ?? "30");
 const MIN_TX = Number(Deno.env.get("MIN_TX_COUNT") ?? "3");
 const RPC = Deno.env.get("SOLANA_RPC") ?? "https://api.mainnet-beta.solana.com";
 
+// Free-Claim-Härtung (#25) – standardmäßig AUS, per Function-Secret scharf:
+//   REQUIRE_TURNSTILE = true          (Bot-Schutz via Cloudflare Turnstile)
+//   TURNSTILE_SECRET  = 0x...         (Secret Key des Turnstile-Widgets)
+//   MAX_CLAIMS        = 5000          (Deckel für den Free-Claim-Topf; 0 = unbegrenzt)
+const REQUIRE_TURNSTILE = (Deno.env.get("REQUIRE_TURNSTILE") ?? "false").toLowerCase() === "true";
+const TURNSTILE_SECRET = Deno.env.get("TURNSTILE_SECRET") ?? "";
+const MAX_CLAIMS = Number(Deno.env.get("MAX_CLAIMS") ?? "0");
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -39,6 +47,25 @@ const j = (o: unknown, s = 200) =>
 
 function validAddr(a: unknown): a is string {
   try { return typeof a === "string" && bs58.decode(a).length === 32; } catch { return false; }
+}
+
+// Bot-Schutz: prüft optional das Cloudflare-Turnstile-Token serverseitig.
+async function turnstileEligible(token: unknown, ip: string | null): Promise<{ ok: boolean; reason?: string }> {
+  if (!REQUIRE_TURNSTILE) return { ok: true };
+  if (!TURNSTILE_SECRET) return { ok: false, reason: "Bot-Schutz nicht konfiguriert." };
+  if (typeof token !== "string" || !token) return { ok: false, reason: "Bitte den Sicherheits-Check bestätigen." };
+  try {
+    const form = new URLSearchParams();
+    form.set("secret", TURNSTILE_SECRET);
+    form.set("response", token);
+    if (ip) form.set("remoteip", ip);
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const d = await r.json();
+    return d?.success ? { ok: true } : { ok: false, reason: "Sicherheits-Check fehlgeschlagen. Bitte erneut versuchen." };
+  } catch (_e) {
+    // Fail-closed: bei einem Sicherheits-Gate im Zweifel ablehnen.
+    return { ok: false, reason: "Sicherheits-Check derzeit nicht erreichbar. Bitte später erneut." };
+  }
 }
 
 // Anti-Sybil: prüft optional Wallet-Alter + Mindest-Transaktionen via Solana-RPC.
@@ -74,7 +101,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return j({ error: "bad json" }, 400); }
-  const { wallet, message, signature, referrer } = body ?? {};
+  const { wallet, message, signature, referrer, turnstileToken } = body ?? {};
 
   if (!validAddr(wallet)) return j({ error: "wallet ungültig" }, 400);
   if (typeof message !== "string" || !Array.isArray(signature)) return j({ error: "signatur fehlt" }, 400);
@@ -96,6 +123,11 @@ Deno.serve(async (req) => {
   } catch { ok = false; }
   if (!ok) return j({ error: "signatur ungültig" }, 401);
 
+  // Optionaler Bot-Schutz (Turnstile)
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const bot = await turnstileEligible(turnstileToken, ip);
+  if (!bot.ok) return j({ error: bot.reason }, 403);
+
   // Optionaler Anti-Sybil-Check
   const elig = await walletEligible(wallet);
   if (!elig.ok) return j({ error: elig.reason }, 403);
@@ -112,6 +144,12 @@ Deno.serve(async (req) => {
   // Schon registriert? -> bestätigen, referrer NICHT überschreiben
   const { data: existing } = await sb.from("wallets").select("wallet_address").eq("wallet_address", wallet).maybeSingle();
   if (existing) return j({ status: "exists" });
+
+  // Claim-Deckel: Topf für neue Free Claims begrenzen (0 = unbegrenzt)
+  if (MAX_CLAIMS > 0) {
+    const { count } = await sb.from("wallets").select("wallet_address", { count: "exact", head: true });
+    if ((count ?? 0) >= MAX_CLAIMS) return j({ error: "Das Free-Claim-Kontingent ist derzeit ausgeschöpft." }, 403);
+  }
 
   const { error } = await sb.from("wallets").insert([{
     wallet_address: wallet,
