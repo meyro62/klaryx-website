@@ -10,7 +10,7 @@
   // Cloudflare Turnstile (Bot-Schutz für den Free Claim). Site Key leer = aus.
   // Aktivieren: Site Key hier eintragen UND in der Supabase-Function 'register'
   // die Secrets REQUIRE_TURNSTILE=true + TURNSTILE_SECRET setzen.
-  window.TURNSTILE_SITEKEY = '';
+  window.TURNSTILE_SITEKEY = '0x4AAAAAAD9jCkVNh9OvPvRg';
   window._tsWidgetId = null;
   window.onTurnstileLoad = function () {
     if (!window.TURNSTILE_SITEKEY || !window.turnstile) return;
