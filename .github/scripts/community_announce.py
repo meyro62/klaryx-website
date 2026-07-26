@@ -46,17 +46,55 @@ def get_stats():
         return 0, 0, "-"
 
 
+def get_watchlist_stats():
+    """Aggregierte Wächter-Zahlen (keine einzelnen Token/Wallets – Privatsphäre)."""
+    try:
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/rest/v1/watchlist?select=token_address,last_snapshot",
+            headers={"apikey": SERVICE_KEY, "Authorization": f"Bearer {SERVICE_KEY}"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            rows = json.loads(r.read().decode())
+        seen = {}
+        for row in rows:
+            tk = row.get('token_address')
+            if tk and tk not in seen:
+                seen[tk] = row.get('last_snapshot') or {}
+        watched = len(seen)
+        auff = 0
+        for snap in seen.values():
+            if not snap:
+                continue
+            liq = snap.get('liq')
+            top10 = snap.get('top10')
+            risk = (bool(snap.get('mint_active')) or bool(snap.get('freeze_active'))
+                    or (top10 is not None and top10 > 60)
+                    or (liq is not None and liq < 2000))
+            if risk:
+                auff += 1
+        return watched, auff
+    except Exception as e:
+        print(f"WARN Watchlist-Fehler: {e}")
+        return 0, 0
+
+
 def build_message():
     total, new, top = get_stats()
+    watched, auff = get_watchlist_stats()
     kw = datetime.now().isocalendar()[1]
-    return (
-        f"📊 Klaryx – Wochenupdate (KW {kw})\n"
-        f"👥 {total} Holder insgesamt\n"
-        f"🆕 {new} neue Wallets diese Woche\n"
-        f"🔗 Aktivster Einlader: {top}\n\n"
-        f"Kostenlos beitreten: https://klaryx.de\n"
-        f"— Kein Finanzprodukt, kein Gewinnversprechen."
-    )
+    lines = [
+        f"📊 Klaryx – Wochenupdate (KW {kw})",
+        f"👥 {total} Holder insgesamt",
+        f"🆕 {new} neue Wallets diese Woche",
+        f"🔗 Aktivster Einlader: {top}",
+    ]
+    if watched > 0:
+        lines.append(f"👀 Wächter: {watched} Token beobachtet · ⚠️ {auff} aktuell auffällig")
+    lines += [
+        "",
+        "Solana-Coins selbst auf Scam prüfen: https://klaryx.de/check.html",
+        "— Kein Finanzprodukt, kein Gewinnversprechen.",
+    ]
+    return "\n".join(lines)
 
 
 def post_discord(msg):
