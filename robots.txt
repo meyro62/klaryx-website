@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://klaryx.de/sitemap.xml
