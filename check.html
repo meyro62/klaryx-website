@@ -188,7 +188,8 @@
       msg.innerHTML='';
       const [cls,label] = AMPEL[d.ampel] || AMPEL.gelb;
       const titel = d.name ? (esc(d.name) + (d.symbol?' ('+esc(d.symbol)+')':'')) : (d.nichtGelistet ? 'Token – nicht an einer DEX gelistet' : 'Unbekannter Token');
-      let html = '<div class="ampel '+cls+'"><h2>'+label+'</h2><div class="tok">'+esc(titel)+' · '+esc(d.token)+'</div></div>';
+      let html = '<div class="ampel '+cls+'"><h2>'+label+'</h2><div class="tok">'+esc(titel)+' · '+esc(d.token)+'</div>'
+             +  '<div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;">Prüft das <strong>Betrugsrisiko</strong> (mögliche Scam-Signale) – <strong>keine Kaufempfehlung</strong> und kein Urteil über „gut" oder „schlecht". Grün heißt nur: keine offensichtlichen Betrugssignale, nicht „sichere Investition".</div></div>';
       html += '<div class="facts">';
       for(const f of d.facts){
         html += '<div class="fact"><div class="top"><span class="dot d-'+f.status+'"></span><span class="lbl">'+esc(f.label)+'</span></div>'

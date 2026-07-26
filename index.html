@@ -206,13 +206,18 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-eyebrow">Jetzt live auf Solana</div>
-  <h1>KI-gestützte<br>Marktintelligenz.<br><em>Zugänglich für alle.</em></h1>
-  <p class="hero-sub">Der Solana-Markt, verständlich zusammengefasst. Zugang über $KLRX – durch Community-Arbeit verdient, nicht gekauft. Kein Investment, kein Versprechen – nur Klarheit.</p>
-  <div class="hero-actions">
-    <a href="klaryx_wallet_setup.html" class="btn-primary">Wallet Setup →</a>
-    <a href="portal.html" class="btn-secondary">Zum Portal</a>
+  <div class="hero-eyebrow">Scam-Check für Solana · kostenlos</div>
+  <h1>Ist dieser Coin<br>ein <em>Scam?</em></h1>
+  <p class="hero-sub">Solana-Coin-Adresse einfügen und in Klartext prüfen: Mint-/Freeze-Rechte, Liquidität, Holder-Konzentration – mit Ampel und verständlicher Erklärung auf Deutsch. Prüft das Betrugsrisiko, keine Kaufempfehlung.</p>
+  <div style="display:flex;gap:10px;max-width:580px;margin:4px auto 0;flex-wrap:wrap;justify-content:center;">
+    <input id="heroTok" type="text" placeholder="Solana Token-Adresse (Mint) einfügen…" autocomplete="off" spellcheck="false" style="flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 15px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;">
+    <button onclick="heroCheck()" class="btn-primary">Auf Scam prüfen →</button>
   </div>
+  <div style="font-size:12px;color:var(--muted);margin-top:12px;">Kostenlos · keine Anmeldung nötig · <a href="markt.html" style="color:var(--accent);text-decoration:none;">Top-Coins ansehen</a> · <a href="portal.html" style="color:var(--accent);text-decoration:none;">Community & Portal</a></div>
+  <script>
+    function heroCheck(){ var t=(document.getElementById('heroTok').value||'').trim(); if(!t){document.getElementById('heroTok').focus();return;} location.href='check.html?token='+encodeURIComponent(t); }
+    (function(){ var i=document.getElementById('heroTok'); if(i) i.addEventListener('keydown',function(e){ if(e.key==='Enter') heroCheck(); }); })();
+  </script>
   <div class="mint-bar">
     <span class="mint-label">$KLRX</span>
     <span class="mint-address" id="mintAddr">2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD</span>
