@@ -206,6 +206,47 @@
   const PUB = "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
   const DOT = { gruen:"var(--gruen)", gelb:"var(--gelb)", rot:"var(--rot)" };
   const shortMint = (a) => a ? (a.slice(0,4)+"…"+a.slice(-4)) : "";
+
+  const FUNC = SB_URL + "/functions/v1/watchlist";
+  const isAddr = (a) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
+  let wprovider = null, wowner = null;
+  async function ensureWallet(){
+    if(wowner) return true;
+    const cands = [window.phantom && window.phantom.solana, window.solflare, window.backpack, window.solana].filter(Boolean);
+    if(!cands.length){ alert("Keine Solana-Wallet gefunden. Bitte Phantom, Solflare oder Backpack installieren (nur auf der Live-Seite klaryx.de)."); return false; }
+    for(const p of cands){
+      try{ if(p.connect){ const r = await p.connect(); const pk=(r&&r.publicKey)||p.publicKey; if(pk){ wprovider=p; wowner=pk.toString(); break; } } }catch(e){}
+    }
+    if(!wowner){ alert("Wallet-Verbindung fehlgeschlagen. Ist die Wallet entsperrt?"); return false; }
+    return true;
+  }
+  async function wsign(){
+    const text = "Klaryx Watchlist\nWallet: " + wowner + "\nZeit: " + new Date().toISOString();
+    const res = await wprovider.signMessage(new TextEncoder().encode(text), "utf8");
+    const sig = res.signature || res;
+    return { message: text, signature: Array.from(sig) };
+  }
+  async function watchToken(token){
+    const m = document.getElementById('watchMsg');
+    if(!isAddr(token)) return;
+    if(!(await ensureWallet())){ if(m){ m.textContent="Keine Wallet verbunden."; m.style.color="var(--muted)"; } return; }
+    if(m){ m.textContent="Bitte in der Wallet signieren…"; m.style.color="var(--muted)"; }
+    try{
+      const s = await wsign();
+      const r = await fetch(FUNC, { method:"POST", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ action:"add", owner:wowner, token, message:s.message, signature:s.signature }) });
+      const d = await r.json();
+      if(r.ok && (d.status==="added" || d.status==="exists")){
+        m.textContent = d.status==="added"
+          ? "✅ Wird jetzt beobachtet – du wirst gewarnt, wenn sich etwas ändert. Deine Liste: Wächter."
+          : "Dieser Token steht schon auf deiner Watchlist (siehe Wächter).";
+        m.style.color = "var(--gruen)";
+      } else {
+        m.textContent = d.error || ("Fehler ("+r.status+"). Mehr Beobachtungs-Plätze bekommst du über Einladungen im Portal.");
+        m.style.color = "var(--rot)";
+      }
+    }catch(e){ m.textContent = "Signatur abgebrochen oder Verbindung fehlgeschlagen."; m.style.color = "var(--rot)"; }
+  }
   async function loadRecent(){
     const box = document.getElementById('recentChecks');
     if(!box) return;
@@ -298,6 +339,12 @@
            +  '<a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl)+'" style="'+shBtn+'">X</a>'
            +  '<a target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(shareUrl)+'&text='+encodeURIComponent(shareText)+'" style="'+shBtn+'">Telegram</a>'
            +  '<a target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(shareText+' '+shareUrl)+'" style="'+shBtn+'">WhatsApp</a>'
+           +  '</div>';
+      html += '<div style="border:1px solid rgba(91,127,255,.35);border-radius:12px;padding:14px 16px;margin-top:16px;background:rgba(91,127,255,.06);">'
+           +  '<div style="font-size:14px;font-weight:600;margin-bottom:4px;">Diesen Coin im Auge behalten?</div>'
+           +  '<div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:11px;">Der <strong>Klaryx-Wächter</strong> warnt dich automatisch, wenn sich etwas ändert – z. B. Mint reaktiviert oder Liquidität gezogen. Kostenlos, du verbindest nur deine Wallet.</div>'
+           +  '<button onclick="watchToken(\''+esc(d.token)+'\')" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;">🔔 Token beobachten</button>'
+           +  '<div id="watchMsg" style="font-size:13px;margin-top:9px;line-height:1.5;"></div>'
            +  '</div>';
       html += '<div class="disc"><strong>Hinweis:</strong> Rein informativ, aus öffentlichen Quellen ('+esc(d.quelle)+'), ohne Gewähr. '
            +  'Keine Anlageberatung, keine Kaufempfehlung, keine Prognose. Die Ampel ist eine Auffälligkeits-Einordnung, kein „sicher/unsicher"-Urteil.</div>';
