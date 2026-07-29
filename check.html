@@ -120,7 +120,7 @@
   </style>
   <div id="twoTables" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0 4px;">
     <div>
-      <div class="tblhead">Top 10 Coins</div>
+      <div class="tblhead">Am häufigsten geprüft</div>
       <div id="topCoins"><div style="font-size:13px;color:var(--muted);">Lade…</div></div>
     </div>
     <div>
@@ -227,25 +227,25 @@
     }catch(e){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Feed derzeit nicht verfügbar.</div>'; }
   }
 
-  const TOP_URL = "https://klaryx-bot.mahirgulabi.workers.dev/top";
-  async function loadTop10(){
+  async function loadTopChecked(){
     const box = document.getElementById('topCoins');
     if(!box) return;
     try{
-      const r = await fetch(TOP_URL);
-      const d = await r.json();
-      const coins = (d && d.coins) || [];
-      if(!coins.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Momentan nicht verfügbar.</div>'; return; }
-      box.innerHTML = coins.map(function(c){
-        var mint = c.mint || '';
-        var name = esc(c.name || c.symbol || '');
-        var lead = c.image ? '<img src="'+esc(c.image)+'" alt="" loading="lazy">' : '<span class="rdot" style="background:var(--muted);"></span>';
-        var inner = lead + '<span class="rn">'+name+'</span>'
-          + '<span class="rm">'+(mint?shortMint(mint):'–')+'</span>'
-          + (mint ? '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(mint)+'\',this)">⧉</button>' : '');
-        return mint
-          ? '<a class="rowcard" href="check.html?token='+encodeURIComponent(mint)+'">'+inner+'</a>'
-          : '<div class="rowcard" style="cursor:default;">'+inner+'</div>';
+      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks&order=checks.desc,checked_at.desc&limit=10",
+        { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
+      const rows = await r.json();
+      if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen.</div>'; return; }
+      box.innerHTML = rows.map(function(x){
+        var name = x.name ? esc(x.name) : shortMint(x.token_address);
+        var dot = DOT[x.ampel] || 'var(--muted)';
+        var n = x.checks || 1;
+        return '<a class="rowcard" href="check.html?token='+encodeURIComponent(x.token_address)+'">'
+          + '<span class="rdot" style="background:'+dot+';"></span>'
+          + '<span class="rn">'+name+'</span>'
+          + '<span class="rm">'+shortMint(x.token_address)+'</span>'
+          + '<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent);font-weight:700;flex:none;">'+n+'×</span>'
+          + '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(x.token_address)+'\',this)">⧉</button>'
+          + '</a>';
       }).join('');
     }catch(e){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Momentan nicht verfügbar.</div>'; }
   }
@@ -302,7 +302,7 @@
       html += '<div class="disc"><strong>Hinweis:</strong> Rein informativ, aus öffentlichen Quellen ('+esc(d.quelle)+'), ohne Gewähr. '
            +  'Keine Anlageberatung, keine Kaufempfehlung, keine Prognose. Die Ampel ist eine Auffälligkeits-Einordnung, kein „sicher/unsicher"-Urteil.</div>';
       result.innerHTML = html; result.style.display='block';
-      loadRecent(); setTimeout(loadRecent, 2500);
+      loadRecent(); loadTopChecked(); setTimeout(function(){ loadRecent(); loadTopChecked(); }, 2500);
     }catch(e){
       msg.innerHTML='<div class="err">Verbindung fehlgeschlagen. Bitte später erneut versuchen.</div>';
     }
@@ -315,7 +315,7 @@
   }
   document.getElementById('tok').addEventListener('keydown',(e)=>{ if(e.key==='Enter') check(); });
   // Deeplink: ?token=<mint> vorbefüllen und direkt prüfen (z. B. aus der Watchlist)
-  loadRecent(); loadTop10();
+  loadRecent(); loadTopChecked();
   (function(){ const _t = new URLSearchParams(location.search).get('token'); if(_t){ document.getElementById('tok').value = _t.trim(); check(); } })();
 </script>
 </body>
