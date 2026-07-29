@@ -154,11 +154,12 @@
       const rows = await r.json();
       if(!Array.isArray(rows)){ list.innerHTML = '<div class="msg err">Watchlist konnte nicht geladen werden.</div>'; return; }
       if(!rows.length){ list.innerHTML = '<div class="msg load">Noch keine beobachteten Token. Füge oben eine Adresse hinzu.</div>'; return; }
-      list.innerHTML = rows.map(x =>
-        '<div class="item"><div class="addr">'+esc(x.token_address)+(x.label?'<div class="lbl">'+esc(x.label)+'</div>':'')+'</div>'+
-        '<a href="check.html?token='+encodeURIComponent(x.token_address)+'" title="Im Klartext-Check prüfen">prüfen</a>'+
-        '<button class="btn sm ghost" onclick="wlRemove(\''+esc(x.token_address)+'\')">entfernen</button></div>'
-      ).join('');
+      list.innerHTML = rows.map(function(x){
+        var sa = x.token_address.slice(0,5) + "…" + x.token_address.slice(-5);
+        return '<div class="item"><div class="addr" title="'+esc(x.token_address)+'">'+sa+(x.label?' <span class="lbl">'+esc(x.label)+'</span>':'')+'</div>'+
+          '<a href="check.html?token='+encodeURIComponent(x.token_address)+'" title="Im Klartext-Check prüfen">prüfen ↗</a>'+
+          '<button class="btn sm ghost" onclick="wlRemove(\''+esc(x.token_address)+'\')">🗑 entfernen</button></div>';
+      }).join('');
     }catch(e){ list.innerHTML = '<div class="msg err">Fehler beim Laden (Tabelle schon angelegt?).</div>'; }
   }
 
