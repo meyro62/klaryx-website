@@ -202,12 +202,23 @@
              +  (d.fazit ? '<div style="font-size:15px;color:var(--text);font-weight:600;margin:2px 0 6px;">'+esc(d.fazit)+'</div>' : '')
              +  '<div class="tok">'+esc(titel)+' · '+esc(d.token)+'</div>'
              +  '<div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;">Prüft das <strong>Betrugsrisiko</strong> (mögliche Scam-Signale) – <strong>keine Kaufempfehlung</strong> und kein Urteil über „gut" oder „schlecht". Grün heißt nur: keine offensichtlichen Betrugssignale, nicht „sichere Investition".</div></div>';
-      html += '<div class="facts">';
-      for(const f of d.facts){
-        html += '<div class="fact"><div class="top"><span class="dot d-'+f.status+'"></span><span class="lbl">'+esc(f.label)+'</span></div>'
+      const factHtml = (f) => '<div class="fact"><div class="top"><span class="dot d-'+f.status+'"></span><span class="lbl">'+esc(f.label)+'</span></div>'
              +  '<div class="val">'+esc(f.wert)+'</div><div class="hin">'+esc(f.hinweis)+'</div></div>';
+      const GROUPS = [
+        { title: 'Kontrolle des Erstellers', labels: ['Mint Authority','Freeze Authority','Metadaten'] },
+        { title: 'Markt', labels: ['Liquidität','Volumen 24h','Alter'] },
+        { title: 'Verteilung', labels: ['Top-10-Holder'] },
+      ];
+      const gtStyle = 'font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:22px 0 10px;font-weight:600;';
+      const used = new Set();
+      for(const g of GROUPS){
+        const gf = d.facts.filter(f => g.labels.includes(f.label));
+        if(!gf.length) continue;
+        gf.forEach(f => used.add(f.label));
+        html += '<div style="'+gtStyle+'">'+g.title+'</div><div class="facts">' + gf.map(factHtml).join('') + '</div>';
       }
-      html += '</div>';
+      const rest = d.facts.filter(f => !used.has(f.label));
+      if(rest.length){ html += '<div style="'+gtStyle+'">Weitere</div><div class="facts">' + rest.map(factHtml).join('') + '</div>'; }
       html += '<div class="erkl"><h3>Klartext</h3><div>'+esc(d.erklaerung).replace(/\n/g,'<br>')+'</div></div>';
       const shareUrl = 'https://klaryx.de/check.html?token=' + encodeURIComponent(d.token);
       const shareText = 'Klaryx Scam-Check für ' + titel + ' – prüf Solana-Coins auf Betrug:';
