@@ -128,9 +128,10 @@ def detect_changes(old, new):
         if new["freeze_active"] and not old.get("freeze_active"):
             out.append("⚠️ Freeze Authority wurde REAKTIVIERT – Wallets könnten eingefroren werden.")
     ol, nl = old.get("liq"), new.get("liq")
-    if ol and ol > 1000:
-        if nl is None or nl < ol * 0.5:
-            out.append(f"📉 Liquidität stark gefallen: {fmt_usd(ol)} → {fmt_usd(nl)}.")
+    # Nur bei ECHTEM Abfluss warnen: war substanziell, ist nun stark gefallen UND absolut niedrig.
+    # Verhindert Fehlalarme durch Dexscreener-Pool-Datenrauschen (großer Token zeigt kurz einen kleinen Pool).
+    if ol and ol > 20000 and nl is not None and nl < ol * 0.3 and nl < 30000:
+        out.append(f"📉 Liquidität stark gefallen: {fmt_usd(ol)} → {fmt_usd(nl)} – möglicher Abzug/Rugpull.")
     ot, nt = old.get("top10"), new.get("top10")
     if ot is not None and nt is not None and (nt - ot) >= 15:
         out.append(f"📊 Top-10-Konzentration deutlich gestiegen: {ot}% → {nt}%.")
