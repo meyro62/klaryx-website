@@ -79,6 +79,7 @@
   <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
   <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
     <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="link-check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Link-Check</a>
     <a href="markt.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Markt</a>
     <a href="watchlist.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Wächter</a>
     <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
@@ -89,6 +90,7 @@
 </header>
 <div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">
   <a href="check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Klartext-Check</a>
+  <a href="link-check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Link-Check</a>
   <a href="markt.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Markt</a>
   <a href="watchlist.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Wächter</a>
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Lernpfad</a>
@@ -178,6 +180,7 @@
   $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
   <a href="index.html" style="color:var(--muted);text-decoration:none;">Startseite</a> ·
   <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
+  <a href="link-check.html" style="color:var(--muted);text-decoration:none;">Link-Check</a> ·
   <a href="markt.html" style="color:var(--muted);text-decoration:none;">Markt</a> ·
   <a href="check.html#warnzeichen" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
@@ -248,24 +251,34 @@
       }
     }catch(e){ m.textContent = "Signatur abgebrochen oder Verbindung fehlgeschlagen."; m.style.color = "var(--rot)"; }
   }
+  const shortHost = (h) => h ? (h.length>22 ? h.slice(0,20)+"…" : h) : "";
+  // Eine Zeile im Feed – kind-fähig: Token -> Klartext-Check, Link -> Link-Check (🔗).
+  function feedRow(x, withCount){
+    var dot = DOT[x.ampel] || 'var(--muted)';
+    var cnt = withCount ? '<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent);font-weight:700;flex:none;">'+(x.checks||1)+'×</span>' : '';
+    if(x.kind === 'link'){
+      return '<a class="rowcard" href="link-check.html?url='+encodeURIComponent(x.token_address)+'">'
+        + '<span class="rdot" style="background:'+dot+';"></span>'
+        + '<span class="rn">🔗 '+esc(shortHost(x.token_address))+'</span>'
+        + '<span class="rm">'+esc(x.token_address)+'</span>' + cnt + '</a>';
+    }
+    var name = x.name ? esc(x.name) : shortMint(x.token_address);
+    return '<a class="rowcard" href="check.html?token='+encodeURIComponent(x.token_address)+'">'
+      + '<span class="rdot" style="background:'+dot+';"></span>'
+      + '<span class="rn">'+name+'</span>'
+      + '<span class="rm">'+shortMint(x.token_address)+'</span>' + cnt
+      + '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(x.token_address)+'\',this)">⧉</button>'
+      + '</a>';
+  }
   async function loadRecent(){
     const box = document.getElementById('recentChecks');
     if(!box) return;
     try{
-      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checked_at&order=checked_at.desc&limit=10",
+      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checked_at,kind&order=checked_at.desc&limit=10",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB } });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen – sei die/der Erste.</div>'; return; }
-      box.innerHTML = rows.map(function(x){
-        var name = x.name ? esc(x.name) : shortMint(x.token_address);
-        var dot = DOT[x.ampel] || 'var(--muted)';
-        return '<a class="rowcard" href="check.html?token='+encodeURIComponent(x.token_address)+'">'
-          + '<span class="rdot" style="background:'+dot+';"></span>'
-          + '<span class="rn">'+name+'</span>'
-          + '<span class="rm">'+shortMint(x.token_address)+'</span>'
-          + '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(x.token_address)+'\',this)">⧉</button>'
-          + '</a>';
-      }).join('');
+      box.innerHTML = rows.map(function(x){ return feedRow(x, false); }).join('');
     }catch(e){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Feed derzeit nicht verfügbar.</div>'; }
   }
 
@@ -273,22 +286,11 @@
     const box = document.getElementById('topCoins');
     if(!box) return;
     try{
-      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks&order=checks.desc,checked_at.desc&limit=10",
+      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks,kind&order=checks.desc,checked_at.desc&limit=10",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen.</div>'; return; }
-      box.innerHTML = rows.map(function(x){
-        var name = x.name ? esc(x.name) : shortMint(x.token_address);
-        var dot = DOT[x.ampel] || 'var(--muted)';
-        var n = x.checks || 1;
-        return '<a class="rowcard" href="check.html?token='+encodeURIComponent(x.token_address)+'">'
-          + '<span class="rdot" style="background:'+dot+';"></span>'
-          + '<span class="rn">'+name+'</span>'
-          + '<span class="rm">'+shortMint(x.token_address)+'</span>'
-          + '<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent);font-weight:700;flex:none;">'+n+'×</span>'
-          + '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(x.token_address)+'\',this)">⧉</button>'
-          + '</a>';
-      }).join('');
+      box.innerHTML = rows.map(function(x){ return feedRow(x, true); }).join('');
     }catch(e){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Momentan nicht verfügbar.</div>'; }
   }
 
