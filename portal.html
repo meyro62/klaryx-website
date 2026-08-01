@@ -303,18 +303,27 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
         ]);
       };
 
-      // Try each provider
+      // 1) Bereits verbundene Wallet bevorzugen – kein erneutes Connect-Popup nötig.
       for (const provider of walletProviders) {
-        try {
-          // Attempt connection with 5-second timeout
-          if (provider.connect && typeof provider.connect === 'function') {
-            const response = await promiseWithTimeout(provider.connect(), 5000);
-            connectedPublicKey = response?.publicKey || provider.publicKey;
-            wallet = provider;
-            break;
+        if (provider.publicKey) { connectedPublicKey = provider.publicKey; wallet = provider; break; }
+      }
+
+      // 2) Sonst verbinden. WICHTIG: connect() wartet auf die Bestätigung im Wallet-Popup.
+      //    Früher lag der Timeout bei 5s – beim ersten Mal dauert das Bestätigen aber oft
+      //    länger, daher Timeout -> Fehler; beim zweiten Mal war die Wallet schon verbunden
+      //    und es klappte sofort. Ein von einer Nutzeraktion abhängiger Schritt darf keine
+      //    kurze Uhr haben -> großzügiger Timeout (2 Min) nur als Notbremse bei Hängern.
+      if (!wallet) {
+        for (const provider of walletProviders) {
+          try {
+            if (provider.connect && typeof provider.connect === 'function') {
+              const response = await promiseWithTimeout(provider.connect(), 120000);
+              connectedPublicKey = response?.publicKey || provider.publicKey;
+              if (connectedPublicKey) { wallet = provider; break; }
+            }
+          } catch (e) {
+            continue; // Try next provider
           }
-        } catch (e) {
-          continue; // Try next provider
         }
       }
 
