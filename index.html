@@ -147,7 +147,7 @@
     <input id="heroTok" type="text" placeholder="Solana Token-Adresse (Mint) einfügen…" autocomplete="off" spellcheck="false" style="flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 15px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;">
     <button onclick="heroCheck()" class="btn-primary">Auf Scam prüfen →</button>
   </div>
-  <div style="font-size:12px;color:var(--muted);margin-top:12px;">Kostenlos · keine Anmeldung nötig · <a href="markt.html" style="color:var(--accent);text-decoration:none;">Top-Coins ansehen</a> · <a href="ueber-klrx.html" style="color:var(--accent);text-decoration:none;">Was ist Klaryx?</a></div>
+  <div style="font-size:12px;color:var(--muted);margin-top:12px;">Kostenlos · keine Anmeldung nötig · <a href="faq.html" style="color:var(--accent);text-decoration:none;">Häufige Fragen</a> · <a href="ueber-klrx.html" style="color:var(--accent);text-decoration:none;">Was ist Klaryx?</a></div>
   <script>
     function heroCheck(){ var t=(document.getElementById('heroTok').value||'').trim(); if(!t){document.getElementById('heroTok').focus();return;} location.href='check.html?token='+encodeURIComponent(t); }
     (function(){ var i=document.getElementById('heroTok'); if(i) i.addEventListener('keydown',function(e){ if(e.key==='Enter') heroCheck(); }); })();
@@ -262,6 +262,7 @@
   <a href="warnliste.html" style="color:var(--muted);text-decoration:none;">Warnliste</a> ·
   <a href="markt.html" style="color:var(--muted);text-decoration:none;">Markt</a> ·
   <a href="check.html#warnzeichen" style="color:var(--muted);text-decoration:none;">Sicherheit</a> ·
+  <a href="faq.html" style="color:var(--muted);text-decoration:none;">FAQ</a> ·
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
   <a href="watchlist.html" style="color:var(--muted);text-decoration:none;">Wächter</a> ·
   <a href="ueber-klrx.html" style="color:var(--muted);text-decoration:none;">Über den Token</a> ·
