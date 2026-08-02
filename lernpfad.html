@@ -209,12 +209,13 @@ function lpProgress(){
   return n;
 }
 
-function renderLesson(i){
+function renderLesson(i, scroll){
+  scroll = (scroll !== false);
   const area = document.getElementById("lessonArea");
   if (i >= LESSONS.length){
     area.innerHTML = "";
     document.getElementById("doneBox").classList.add("show");
-    document.getElementById("doneBox").scrollIntoView({behavior:"smooth", block:"center"});
+    if (scroll) document.getElementById("doneBox").scrollIntoView({behavior:"smooth", block:"center"});
     return;
   }
   const L = LESSONS[i];
@@ -227,7 +228,7 @@ function renderLesson(i){
         '</div>'+
       '</div>'+
     '</div>';
-  area.scrollIntoView({behavior:"smooth", block:"nearest"});
+  if (scroll) area.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
 
 function answerLesson(i, j){
@@ -255,7 +256,7 @@ if (startAt < 0){
   document.getElementById("lessonArea").innerHTML = "";
   document.getElementById("doneBox").classList.add("show");
 } else {
-  renderLesson(startAt);
+  renderLesson(startAt, false);
 }
 
 document.getElementById("resetBtn").addEventListener("click", ()=>{
@@ -397,5 +398,6 @@ function qzResult(){
 }
 
 </script>
+<script src="partials.js"></script>
 </body>
 </html>
