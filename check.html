@@ -278,7 +278,7 @@
     const box = document.getElementById('recentChecks');
     if(!box) return;
     try{
-      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checked_at,kind&order=checked_at.desc&limit=10",
+      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checked_at,kind&kind=eq.token&order=checked_at.desc&limit=10",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB } });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen – sei die/der Erste.</div>'; return; }
@@ -290,7 +290,7 @@
     const box = document.getElementById('topCoins');
     if(!box) return;
     try{
-      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks,kind&order=checks.desc,checked_at.desc&limit=10",
+      const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks,kind&kind=eq.token&order=checks.desc,checked_at.desc&limit=10",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen.</div>'; return; }

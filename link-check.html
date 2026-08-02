@@ -5,12 +5,12 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://browser.sentry-cdn.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wpxcgducfkbozecknfdw.supabase.co https://klaryx-bot.mahirgulabi.workers.dev https://challenges.cloudflare.com https://o4511713764442112.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Phishing-Link prüfen – Ist dieser Krypto-Link Fake? | Klaryx</title>
-<meta name="description" content="Ist dieser Airdrop-, Wallet- oder Presale-Link ein Fake? Prüfe jeden Krypto-Link kostenlos auf typische Phishing-Merkmale – Ampel und Klartext-Erklärung auf Deutsch. Der Link verlässt deinen Browser nicht.">
+<meta name="description" content="Ist dieser Airdrop-, Wallet- oder Presale-Link ein Fake? Prüfe jeden Krypto-Link kostenlos auf typische Phishing-Merkmale – Ampel und Klartext-Erklärung auf Deutsch. Gespeichert wird nur die Domain.">
 <link rel="canonical" href="https://klaryx.de/link-check.html">
 <meta name="keywords" content="Phishing prüfen, Krypto Link checken, Fake Airdrop erkennen, Wallet Drainer, Solana Phishing, Scam Link deutsch, ist diese Seite echt">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Phishing-Link prüfen – Ist dieser Krypto-Link Fake? | Klaryx">
-<meta property="og:description" content="Airdrop-, Wallet- oder Presale-Link auf Phishing-Merkmale prüfen – Ampel und Klartext auf Deutsch. Der Link verlässt deinen Browser nicht.">
+<meta property="og:description" content="Airdrop-, Wallet- oder Presale-Link auf Phishing-Merkmale prüfen – Ampel und Klartext auf Deutsch. Gespeichert wird nur die Domain.">
 <meta property="og:url" content="https://klaryx.de/link-check.html">
 <meta name="twitter:card" content="summary">
 <style>
@@ -84,9 +84,11 @@
   <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
     <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
     <a href="link-check.html" style="color:var(--text);text-decoration:none;font-size:13px;">Link-Check</a>
+    <a href="warnliste.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Warnliste</a>
     <a href="markt.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Markt</a>
     <a href="watchlist.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Wächter</a>
     <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Meilensteine</a>
     <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
   </div>
   <button class="khdr-b" onclick="var m=document.getElementById('khdrM');m.style.display=m.style.display==='flex'?'none':'flex';" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:0;">&#9776;</button>
@@ -94,9 +96,11 @@
 <div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">
   <a href="check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Klartext-Check</a>
   <a href="link-check.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Link-Check</a>
+  <a href="warnliste.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Warnliste</a>
   <a href="markt.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Markt</a>
   <a href="watchlist.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Wächter</a>
   <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Lernpfad</a>
+  <a href="klaryx_milestones.html" style="color:var(--muted);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">Meilensteine</a>
   <a href="portal.html" style="color:var(--accent);text-decoration:none;padding:12px 24px;font-size:14px;">Portal &#8594;</a>
 </div>
 <style>@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}</style>
@@ -110,7 +114,7 @@
     <input id="url" type="text" placeholder="https://beispiel-airdrop.xyz/claim" autocomplete="off" spellcheck="false">
     <button id="btn" onclick="pruefen()">Link prüfen &#8594;</button>
   </div>
-  <div class="priv">🔒 Der Link verlässt deinen Browser nicht – die Prüfung läuft komplett lokal bei dir.</div>
+  <div class="priv">🔒 Der Link verlässt deinen Browser nicht – die Prüfung läuft komplett lokal bei dir. Nichts wird gespeichert.</div>
 
   <div id="err" class="err" style="display:none"></div>
   <div id="result">
@@ -127,17 +131,6 @@
 
   <div class="also">
     Willst du einen <b>Solana-Coin</b> statt eines Links prüfen? → <a href="check.html">Klartext-Check öffnen</a>
-  </div>
-
-  <div class="feeds">
-    <div class="feedcol">
-      <div class="feedhd">Am häufigsten geprüft</div>
-      <div id="topLinks"><div style="font-size:13px;color:var(--muted);">Lädt…</div></div>
-    </div>
-    <div class="feedcol">
-      <div class="feedhd">Zuletzt geprüft · <span style="color:var(--gruen)">live</span></div>
-      <div id="recentLinks"><div style="font-size:13px;color:var(--muted);">Lädt…</div></div>
-    </div>
   </div>
 </div>
 
@@ -190,12 +183,56 @@
 </footer>
 
 <script>
-  const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/linkcheck";
-  const SB_URL = "https://wpxcgducfkbozecknfdw.supabase.co";
-  const PUB = "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
-  const DOT = { gruen:"var(--gruen)", gelb:"var(--gelb)", rot:"var(--rot)" };
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const shortHost = (h) => h ? (h.length>22 ? h.slice(0,20)+"…" : h) : "";
+
+  // ---- Lokale Phishing-Heuristik (läuft komplett im Browser, kein Server, nichts gespeichert) ----
+  const BRANDS = {
+    "phantom":["phantom.com","phantom.app"],"solflare":["solflare.com"],"backpack":["backpack.app","backpack.exchange"],
+    "solana":["solana.com","solana.org"],"jupiter":["jup.ag","jupiter.exchange"],"raydium":["raydium.io"],"orca":["orca.so"],
+    "meteora":["meteora.ag"],"magiceden":["magiceden.io","magiceden.us"],"tensor":["tensor.trade"],"pumpfun":["pump.fun"],
+    "dexscreener":["dexscreener.com"],"birdeye":["birdeye.so"],"coinbase":["coinbase.com"],"binance":["binance.com"],
+    "metamask":["metamask.io"],"ledger":["ledger.com"],"trezor":["trezor.io"],"klaryx":["klaryx.de"]
+  };
+  const BRAND_ALIASES = {"phantom":"phantom","solflare":"solflare","solfare":"solflare","backpack":"backpack","solana":"solana",
+    "jupiter":"jupiter","jup":"jupiter","raydium":"raydium","orca":"orca","meteora":"meteora","magiceden":"magiceden",
+    "magic-eden":"magiceden","tensor":"tensor","pumpfun":"pumpfun","pump-fun":"pumpfun","dexscreener":"dexscreener",
+    "birdeye":"birdeye","coinbase":"coinbase","binance":"binance","metamask":"metamask","ledger":"ledger","trezor":"trezor","klaryx":"klaryx"};
+  const SUS_TLDS = ["xyz","top","click","live","gift","site","online","vip","cc","pro","icu","cfd","sbs","rest","fit","autos","monster","quest","lol","bond","cyou","gdn","work","link","buzz","win","loan","download","stream","review","country","kim","men","date"];
+  const SHORTENERS = ["bit.ly","tinyurl.com","cutt.ly","t.co","goo.gl","ow.ly","is.gd","rb.gy","shorturl.at","rebrand.ly","short.io","tiny.cc","bl.ink","lnkd.in","buff.ly","t.ly"];
+  const SCAM_WORDS = ["airdrop","claim","free-mint","freemint","connect-wallet","connectwallet","verify-wallet","verifywallet","validate","sync-wallet","syncwallet","restore-wallet","seed","seedphrase","private-key","privatekey","drainer","double","giveaway","1000x","100x","guaranteed","garantiert","presale","reward","bonus","unlock","migrate","wallet-connect"];
+  const DRAINER = ["seed","seedphrase","private-key","privatekey","drainer","restore-wallet","validate","sync-wallet","syncwallet","verify-wallet","verifywallet"];
+
+  function parseUrl(raw){ let s=raw.trim(); if(!s) return null; if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s="http://"+s; try{return new URL(s);}catch(_){return null;} }
+  function regDomain(host){ const p=host.split(".").filter(Boolean); return p.length<=2?host:p.slice(-2).join("."); }
+  function levenshtein(a,b){ const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]); for(let j=0;j<=n;j++)d[0][j]=j; for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[m][n]; }
+
+  function analyze(raw){
+    const u=parseUrl(raw);
+    if(!u) return { error:"Das sieht nicht nach einem gültigen Link aus. Füge die komplette Adresse ein (z. B. https://…)." };
+    const host=u.hostname.toLowerCase(), rdom=regDomain(host), tld=host.split(".").pop()||"";
+    const full=(host+" "+u.pathname+" "+u.search).toLowerCase();
+    const facts=[]; let red=0, yellow=0;
+    if(host.includes("xn--")){ facts.push({s:"rot",l:"Homograph-Domain (Punycode)",h:"Die Domain enthält versteckte Sonderzeichen (xn--), die echte Buchstaben nachahmen. Klassischer Fälschungstrick."}); red++; }
+    if(/^\d{1,3}(\.\d{1,3}){3}$/.test(host)){ facts.push({s:"rot",l:"IP-Adresse statt Domain",h:"Seriöse Krypto-Dienste nutzen keine nackte IP-Adresse. Starkes Betrugssignal."}); red++; }
+    if(raw.includes("@") && /^https?:\/\//i.test(raw.trim())){ facts.push({s:"rot",l:"Verstecktes Ziel (@ im Link)",h:"Alles vor dem @ ist Tarnung – das echte Ziel steht dahinter."}); red++; }
+    let brandHit=null, exact=false;
+    for(const alias in BRAND_ALIASES){ const key=BRAND_ALIASES[alias], off=BRANDS[key]||[]; if(off.includes(rdom)||off.includes(host)){exact=key;break;} if(host.includes(alias)) brandHit={key,alias,where:"host"}; else if((u.pathname+u.search).toLowerCase().includes(alias)&&!brandHit) brandHit={key,alias,where:"path"}; }
+    if(exact){ facts.push({s:"gruen",l:"Offizielle Domain erkannt",h:"Die Domain stimmt mit der offiziellen Adresse von „"+exact+"“ überein. (Nur so gut wie unsere Liste – im Zweifel selbst gegenprüfen.)"}); }
+    else if(brandHit && brandHit.where==="host"){ facts.push({s:"rot",l:"Gefälschte Marken-Domain?",h:"Der Name „"+brandHit.alias+"“ steckt in der Domain, ist aber NICHT die offizielle Adresse. Offiziell wäre z. B. "+BRANDS[brandHit.key][0]+". Typische Lookalike-Falle."}); red++; }
+    else if(brandHit && brandHit.where==="path"){ facts.push({s:"gelb",l:"Marken-Name nur im Pfad",h:"„"+brandHit.alias+"“ taucht im Link auf, aber nicht als offizielle Domain. Prüfe, ob die Domain selbst stimmt."}); yellow++; }
+    if(!exact && !brandHit){ const dp=rdom.split(".")[0]; for(const alias in BRAND_ALIASES){ if(alias.length>=5&&dp.length>=5){ const dist=levenshtein(dp,alias); if(dist>0&&dist<=1){ facts.push({s:"rot",l:"Tippfehler-Domain?",h:"Die Domain „"+dp+"“ ist nur einen Buchstaben von „"+alias+"“ entfernt – typisches Typosquatting."}); red++; break; } } } }
+    if(SUS_TLDS.includes(tld)){ facts.push({s:"gelb",l:"Verdächtige Domain-Endung (."+tld+")",h:"Diese Endung wird überdurchschnittlich oft für Betrugsseiten genutzt. Für sich allein kein Beweis, aber ein Warnsignal."}); yellow++; }
+    if(SHORTENERS.includes(rdom)){ facts.push({s:"gelb",l:"Kurzlink verschleiert das Ziel",h:"Ein Kurzlink versteckt, wohin es wirklich geht. Erst auflösen lassen, bevor du klickst."}); yellow++; }
+    const fw=SCAM_WORDS.filter(w=>full.includes(w));
+    if(fw.length){ const dr=fw.some(w=>DRAINER.includes(w)); facts.push({s:dr?"rot":"gelb",l:"Auffällige Wörter im Link",h:"Enthält: "+fw.slice(0,6).join(", ")+". "+(dr?"Begriffe rund um Seed/Verify/Sync sind ein starkes Wallet-Drainer-Signal.":"Typische Köder-Begriffe (Airdrop, Claim, Presale …). Mit Vorsicht behandeln.")}); if(dr)red++; else yellow++; }
+    if(u.protocol==="http:" && /^http:\/\//i.test(raw.trim())){ facts.push({s:"gelb",l:"Keine sichere Verbindung (http)",h:"Die Seite nutzt kein HTTPS. Bei Krypto-Diensten unüblich – erhöhte Vorsicht."}); yellow++; }
+    if(!facts.length){ facts.push({s:"gruen",l:"Keine typischen Phishing-Merkmale",h:"Weder gefälschte Domain, verdächtige Endung, Kurzlink noch Köder-Wörter gefunden."}); }
+    let ampel, fazit;
+    if(red>0){ ampel="rot"; fazit="Dieser Link zeigt <b>deutliche Phishing-Merkmale</b>. Verbinde hier auf keinen Fall deine Wallet und gib nichts ein."; }
+    else if(yellow>0){ ampel="gelb"; fazit="Dieser Link hat <b>ein paar Warnzeichen</b>. Prüfe die Domain genau und rufe die Seite lieber selbst über die offizielle Quelle auf."; }
+    else { ampel="gruen"; fazit="Keine der geprüften Phishing-Merkmale gefunden. Das heißt <b>nicht „garantiert echt"</b> – bleib bei Wallet-Verbindungen trotzdem wachsam."; }
+    return { host, ampel, fazit, facts };
+  }
 
   const AMPEL_LBL = { gruen:["a-gruen","🟢 Grün – keine Phishing-Merkmale gefunden"], gelb:["a-gelb","🟡 Gelb – ein paar Warnzeichen"], rot:["a-rot","🔴 Rot – deutliche Phishing-Merkmale"] };
 
@@ -220,50 +257,16 @@
 
   function showErr(m){ document.getElementById("result").style.display="none"; const e=document.getElementById("err"); e.textContent=m; e.style.display="block"; }
 
-  async function pruefen(){
+  function pruefen(){
     const raw = document.getElementById("url").value;
     if(!raw.trim()){ document.getElementById("url").focus(); return; }
-    const btn = document.getElementById("btn");
-    btn.disabled = true; btn.textContent = "Prüfe…";
-    try{
-      const r = await fetch(WORKER + "?url=" + encodeURIComponent(raw.trim()));
-      const d = await r.json();
-      if(d.error){ showErr(d.error); }
-      else { render(d); setTimeout(loadFeeds, 1200); }
-    }catch(e){ showErr("Prüfung derzeit nicht erreichbar. Bitte später erneut versuchen."); }
-    finally{ btn.disabled=false; btn.textContent="Link prüfen →"; }
+    const r = analyze(raw);
+    if(r.error){ showErr(r.error); return; }
+    render(r);
   }
   document.getElementById("url").addEventListener("keydown", e=>{ if(e.key==="Enter") pruefen(); });
 
-  // ---- Öffentlicher Feed (gleiche Tabelle wie der Token-Check, gefiltert auf kind=link) ----
-  function feedRow(x, withCount){
-    const dot = DOT[x.ampel] || "var(--muted)";
-    const cnt = withCount ? '<span style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent);font-weight:700;flex:none;">'+(x.checks||1)+'×</span>' : '';
-    return '<a class="rowcard" href="link-check.html?url='+encodeURIComponent(x.token_address)+'">'
-      + '<span class="rdot" style="background:'+dot+';"></span>'
-      + '<span class="rn">🔗 '+esc(shortHost(x.token_address))+'</span>'
-      + '<span class="rm">'+esc(x.token_address)+'</span>' + cnt + '</a>';
-  }
-  async function loadRecent(){
-    const box = document.getElementById("recentLinks"); if(!box) return;
-    try{
-      const r = await fetch(SB_URL+"/rest/v1/recent_checks?select=token_address,ampel,checked_at,kind&kind=eq.link&order=checked_at.desc&limit=10",{headers:{apikey:PUB,Authorization:"Bearer "+PUB},cache:"no-store"});
-      const rows = await r.json();
-      box.innerHTML = (Array.isArray(rows)&&rows.length) ? rows.map(x=>feedRow(x,false)).join("") : '<div style="font-size:13px;color:var(--muted);">Noch keine Link-Prüfungen – sei die/der Erste.</div>';
-    }catch(e){ box.innerHTML='<div style="font-size:13px;color:var(--muted);">Feed derzeit nicht verfügbar.</div>'; }
-  }
-  async function loadTop(){
-    const box = document.getElementById("topLinks"); if(!box) return;
-    try{
-      const r = await fetch(SB_URL+"/rest/v1/recent_checks?select=token_address,ampel,checks,kind&kind=eq.link&order=checks.desc,checked_at.desc&limit=10",{headers:{apikey:PUB,Authorization:"Bearer "+PUB},cache:"no-store"});
-      const rows = await r.json();
-      box.innerHTML = (Array.isArray(rows)&&rows.length) ? rows.map(x=>feedRow(x,true)).join("") : '<div style="font-size:13px;color:var(--muted);">Noch keine Link-Prüfungen.</div>';
-    }catch(e){ box.innerHTML='<div style="font-size:13px;color:var(--muted);">Momentan nicht verfügbar.</div>'; }
-  }
-  function loadFeeds(){ loadRecent(); loadTop(); }
-  loadFeeds();
-
-  // Deeplink: ?url=… vorbefüllen und prüfen
+  // Deeplink: ?url=… vorbefüllen und lokal prüfen
   (function(){
     const p = new URLSearchParams(location.search).get("url");
     if(p){ document.getElementById("url").value = p; pruefen(); }
