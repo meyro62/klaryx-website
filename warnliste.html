@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://browser.sentry-cdn.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wpxcgducfkbozecknfdw.supabase.co https://klaryx-bot.mahirgulabi.workers.dev https://challenges.cloudflare.com https://o4511713764442112.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warnliste – auffällige Solana-Coins & Links | Klaryx</title>
+<meta name="description" content="Datenbasierte Warnliste: Solana-Coins und Links, die im Klaryx-Check wiederholt als 🔴 auffällig bewertet wurden. Rein beschreibend aus öffentlichen On-Chain-Daten, auf Deutsch. Kein Finanzprodukt.">
+<link rel="canonical" href="https://klaryx.de/warnliste.html">
+<meta name="keywords" content="Solana Scam Liste, auffällige Coins, Rugpull Liste, verdächtige Solana Token, Krypto Warnliste deutsch">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Warnliste – auffällige Solana-Coins & Links | Klaryx">
+<meta property="og:description" content="Coins und Links, die im Klaryx-Check wiederholt als 🔴 auffällig bewertet wurden – datenbasiert und beschreibend.">
+<meta property="og:url" content="https://klaryx.de/warnliste.html">
+<meta name="twitter:card" content="summary">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236;
+    --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa;
+    --gruen:#22d3a0; --gelb:#f5c542; --rot:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7}
+  .wrap{max-width:760px;margin:0 auto;padding:44px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rot);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,38px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:12px}
+  .sub{color:var(--muted);max-width:600px;margin-bottom:20px}
+  .note{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--rot);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px}
+  .note b{color:var(--text)}
+  h2{font-size:15px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:26px 0 12px;font-weight:600}
+  .rowcard{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;text-decoration:none;color:var(--text);transition:border-color .15s}
+  .rowcard:hover{border-color:var(--rot)}
+  .rowcard .rdot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--rot)}
+  .rowcard .rn{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rowcard .rm{flex:1;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rowcard .cnt{font-family:'Space Mono',monospace;font-size:11px;color:var(--rot);font-weight:700;flex:none}
+  .empty{font-size:13px;color:var(--muted)}
+  .cta{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;padding:12px 24px;font-weight:600;text-decoration:none;margin-top:8px}
+  footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2}
+  footer a{color:var(--muted);text-decoration:none}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
+  <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
+    <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="link-check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Link-Check</a>
+    <a href="warnliste.html" style="color:var(--text);text-decoration:none;font-size:13px;">Warnliste</a>
+    <a href="markt.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Markt</a>
+    <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Warnliste</div>
+  <h1>Auffällige Coins & Links</h1>
+  <p class="sub">Diese Solana-Adressen und Links wurden im Klaryx-Check wiederholt als 🔴 auffällig bewertet. Die Liste bildet ab, was die Community am häufigsten prüft – tippe auf einen Eintrag, um die Prüfung selbst zu sehen.</p>
+
+  <div class="note">
+    <b>Rein beschreibend, datenbasiert.</b> Diese Liste entsteht automatisch aus öffentlichen On-Chain-Daten (Mint-/Freeze-Rechte, Liquidität, Verteilung, Alter) – <b>nicht</b> aus Nutzer-Anschuldigungen. Ein Eintrag ist <b>kein Vorwurf gegen eine Person</b> und keine Aussage über Absichten, sondern nur der Hinweis, dass typische Risiko-Signale vorliegen. Kein Finanzprodukt, keine Anlageberatung. Prüfe immer selbst.
+  </div>
+
+  <h2>Am häufigsten als 🔴 geprüft – Coins</h2>
+  <div id="tokens"><div class="empty">Lädt…</div></div>
+
+  <h2>Auffällige Links</h2>
+  <div id="links"><div class="empty">Lädt…</div></div>
+
+  <div style="margin-top:28px;">
+    <a class="cta" href="check.html">Einen Coin selbst prüfen &#8594;</a>
+  </div>
+</div>
+
+<footer>
+  $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
+  <a href="index.html">Startseite</a> ·
+  <a href="check.html">Klartext-Check</a> ·
+  <a href="link-check.html">Link-Check</a> ·
+  <a href="warnliste.html">Warnliste</a> ·
+  <a href="ratgeber-solana-scam-erkennen.html">Scam erkennen</a> ·
+  <a href="lernpfad.html">Lernpfad</a> ·
+  <a href="klaryx_impressum.html">Impressum</a><br>
+  klaryx.de · © 2026 Meyro
+</footer>
+
+<script>
+  const SB_URL = "https://wpxcgducfkbozecknfdw.supabase.co";
+  const PUB = "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const shortMint = (a) => a ? (a.slice(0,4)+"…"+a.slice(-4)) : "";
+  const shortHost = (h) => h ? (h.length>26 ? h.slice(0,24)+"…" : h) : "";
+
+  async function load(kind, boxId, isLink){
+    const box = document.getElementById(boxId);
+    try{
+      const r = await fetch(SB_URL+"/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks,kind&ampel=eq.rot&kind=eq."+kind+"&order=checks.desc,checked_at.desc&limit=30",
+        { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
+      const rows = await r.json();
+      if(!Array.isArray(rows) || !rows.length){
+        box.innerHTML = '<div class="empty">Aktuell keine als 🔴 markierten '+(isLink?'Links':'Coins')+' im Prüf-Verlauf.</div>';
+        return;
+      }
+      box.innerHTML = rows.map(function(x){
+        var href = isLink ? ('link-check.html?url='+encodeURIComponent(x.token_address)) : ('check.html?token='+encodeURIComponent(x.token_address));
+        var name = isLink ? ('🔗 '+esc(shortHost(x.token_address))) : (x.name ? esc(x.name) : shortMint(x.token_address));
+        var rm = isLink ? esc(x.token_address) : shortMint(x.token_address);
+        return '<a class="rowcard" href="'+href+'">'
+          + '<span class="rdot"></span>'
+          + '<span class="rn">'+name+'</span>'
+          + '<span class="rm">'+rm+'</span>'
+          + '<span class="cnt">'+(x.checks||1)+'×</span>'
+          + '</a>';
+      }).join('');
+    }catch(e){ box.innerHTML = '<div class="empty">Liste derzeit nicht verfügbar.</div>'; }
+  }
+  load("token","tokens",false);
+  load("link","links",true);
+</script>
+</body>
+</html>

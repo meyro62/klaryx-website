@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://browser.sentry-cdn.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wpxcgducfkbozecknfdw.supabase.co https://klaryx-bot.mahirgulabi.workers.dev https://challenges.cloudflare.com https://o4511713764442112.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fake-Airdrop & Wallet-Drainer erkennen – Krypto-Phishing (Deutsch) | Klaryx</title>
+<meta name="description" content="Wie du Krypto-Phishing erkennst: Fake-Airdrops, gefälschte Wallet-Seiten und Wallet-Drainer. Anleitung in Klartext auf Deutsch, mit kostenlosem Link-Check. Kein Finanzprodukt.">
+<link rel="canonical" href="https://klaryx.de/ratgeber-krypto-phishing-erkennen.html">
+<meta name="keywords" content="Krypto Phishing erkennen, Fake Airdrop, Wallet Drainer, gefälschte Wallet Seite, ist dieser Airdrop echt, Solana Phishing, Seed Phrase Betrug">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fake-Airdrop & Wallet-Drainer erkennen – Krypto-Phishing">
+<meta property="og:description" content="Die häufigsten Krypto-Phishing-Maschen und wie du dich schützt – in Klartext auf Deutsch, mit kostenlosem Link-Check.">
+<meta property="og:url" content="https://klaryx.de/ratgeber-krypto-phishing-erkennen.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Wie erkenne ich einen Fake-Airdrop?","acceptedAnswer":{"@type":"Answer","text":"Unaufgeforderte Airdrops, die verlangen dass du deine Wallet verbindest oder eine Transaktion signierst, sind fast immer Betrug. Beim Verbinden unterschreibst du oft eine Transaktion, die deine Coins abzieht. Prüfe den Link vorher im Klaryx-Link-Check."}},
+{"@type":"Question","name":"Was ist ein Wallet-Drainer?","acceptedAnswer":{"@type":"Answer","text":"Ein Wallet-Drainer ist Schadcode auf einer gefälschten Seite. Wenn du deine Wallet verbindest und eine Transaktion bestätigst, überträgt er deine Token und NFTs an den Angreifer."}},
+{"@type":"Question","name":"Muss ich jemals meine Seed-Phrase eingeben?","acceptedAnswer":{"@type":"Answer","text":"Nein. Keine echte Wallet-, DEX- oder Support-Seite fragt jemals nach deiner Seed-Phrase oder deinem Private Key. Wer danach fragt, ist ein Betrüger."}}]}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236;
+    --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa;
+    --gruen:#22d3a0; --gelb:#f5c542; --rot:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:16px;line-height:1.75}
+  .wrap{max-width:760px;margin:0 auto;padding:44px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:14px}
+  h2{font-size:22px;font-weight:700;margin:34px 0 10px;letter-spacing:-.3px}
+  p{margin-bottom:14px;color:#c6cad9}
+  .lead{color:var(--muted);font-size:17px;margin-bottom:8px}
+  .cta{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;padding:14px 26px;font-weight:600;text-decoration:none;margin:8px 0 4px}
+  .signal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .signal .h{font-weight:700;font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+  .signal .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--rot)}
+  .signal .b{font-size:14.5px;color:var(--muted);line-height:1.7}
+  .signal .b b{color:var(--gruen)}
+  .mono{font-family:'Space Mono',monospace}
+  .disc{font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:26px;line-height:1.7}
+  a.inl{color:var(--accent);text-decoration:none}
+  .box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:26px 0;text-align:center}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
+  <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
+    <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="link-check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Link-Check</a>
+    <a href="markt.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Markt</a>
+    <a href="watchlist.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Wächter</a>
+    <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Ratgeber</div>
+  <h1>Fake-Airdrop & Wallet-Drainer erkennen</h1>
+  <p class="lead">Die meisten Krypto-Verluste passieren nicht durch einen schlechten Coin, sondern durch einen <b>Klick auf den falschen Link</b>. Diese Anleitung zeigt dir die häufigsten Phishing-Maschen – und wie du dich in Sekunden schützt.</p>
+
+  <a class="cta" href="link-check.html">Link jetzt kostenlos prüfen &#8594;</a>
+
+  <h2>Die 5 häufigsten Maschen</h2>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>1. Fake-Airdrop / „Claim your reward"</div>
+    <div class="b">Eine Seite verspricht Gratis-Token, wenn du „nur deine Wallet verbindest". Beim Verbinden signierst du in Wahrheit eine Transaktion, die deine Coins abzieht. <b>Regel: Unaufgeforderte Airdrops sind fast immer Betrug.</b></div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>2. Gefälschte Wallet-/DEX-Seite</div>
+    <div class="b">Die Adresse sieht fast aus wie das Original – z. B. <span class="mono">phantom-wallet.app</span> statt <span class="mono">phantom.com</span> oder <span class="mono">jup-airdrop.xyz</span>. <b>Regel: Domain Zeichen für Zeichen mit der echten vergleichen</b> – oder direkt im Link-Check prüfen.</div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>3. „Verify wallet" / „Sync wallet"</div>
+    <div class="b">Eine Support-DM oder Seite will, dass du deine Wallet „verifizierst" oder „synchronisierst". <b>Das gibt es nicht.</b> Kein echter Support fragt danach – und niemals nach deiner Seed-Phrase.</div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>4. Presale mit „garantiertem" Gewinn</div>
+    <div class="b">Ein Link zu einem exklusiven Vorverkauf: schick SOL an eine Adresse, bekomme Token „später". Meist kommt nichts zurück. <b>Regel: Garantierte Gewinne = garantierter Betrug.</b></div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>5. Versteckter Link / Kurzlink</div>
+    <div class="b">Der sichtbare Text sagt <span class="mono">solana.com</span>, das Ziel ist etwas anderes – oder ein Kurzlink (bit.ly …) verschleiert, wohin es geht. <b>Regel: Vor dem Klick immer das echte Ziel prüfen.</b></div>
+  </div>
+
+  <h2>Die eine Regel, die dich am meisten schützt</h2>
+  <p>Gib <b>niemals deine Seed-Phrase oder deinen Private Key</b> irgendwo ein. Keine echte Wallet-, DEX- oder Support-Seite fragt jemals danach. Wer danach fragt, will dich bestehlen – ausnahmslos.</p>
+
+  <div class="box">
+    <a class="cta" href="link-check.html">Verdächtigen Link kostenlos prüfen &#8594;</a>
+    <p style="margin:12px 0 0;font-size:13px;color:var(--muted);">Der Link verlässt deinen Browser nicht – die Prüfung läuft datensparsam ab.</p>
+  </div>
+
+  <h2>Und wenn es schon passiert ist?</h2>
+  <p>Wenn du deine Wallet mit einer Betrugsseite verbunden und eine Transaktion bestätigt hast: <b>sofort in eine neue Wallet umziehen</b> (Coins & NFTs übertragen) und die alte als kompromittiert betrachten. Widerrufe außerdem verdächtige Genehmigungen. Je schneller, desto besser.</p>
+
+  <div class="disc">
+    Klaryx prüft <b>typische Phishing-Merkmale</b> – das ist eine Hilfe, keine Garantie. „Grün" heißt „keine der geprüften Warnzeichen gefunden", nicht „garantiert echt". Kein Finanzprodukt, keine Rechtsberatung.
+  </div>
+</div>
+
+<footer style="text-align:center;padding:36px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2;">
+  $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
+  <a href="index.html" style="color:var(--muted);text-decoration:none;">Startseite</a> ·
+  <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
+  <a href="link-check.html" style="color:var(--muted);text-decoration:none;">Link-Check</a> ·
+  <a href="ratgeber-solana-scam-erkennen.html" style="color:var(--muted);text-decoration:none;">Scam erkennen</a> ·
+  <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
+  <a href="klaryx_impressum.html" style="color:var(--muted);text-decoration:none;">Impressum</a><br>
+  klaryx.de · © 2026 Meyro
+</footer>
+</body>
+</html>

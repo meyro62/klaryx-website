@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://browser.sentry-cdn.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wpxcgducfkbozecknfdw.supabase.co https://klaryx-bot.mahirgulabi.workers.dev https://challenges.cloudflare.com https://o4511713764442112.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ist ein Solana-Coin ein Scam? Rugpull erkennen (Anleitung, Deutsch) | Klaryx</title>
+<meta name="description" content="So erkennst du, ob ein Solana-Coin ein Scam ist: Mint-/Freeze-Authority, Liquidität, Holder-Konzentration und Alter einfach erklärt – mit kostenloser Prüfung in Klartext auf Deutsch. Kein Finanzprodukt, keine Anlageberatung.">
+<link rel="canonical" href="https://klaryx.de/ratgeber-solana-scam-erkennen.html">
+<meta name="keywords" content="Solana Coin Scam erkennen, ist dieser Coin ein Scam, Rugpull erkennen, Solana Token prüfen deutsch, Krypto Betrug erkennen, Mint Authority, Freeze Authority">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ist ein Solana-Coin ein Scam? So erkennst du einen Rugpull">
+<meta property="og:description" content="Die wichtigsten Warnzeichen für Solana-Scams – in Klartext auf Deutsch erklärt, mit kostenloser Prüfung.">
+<meta property="og:url" content="https://klaryx.de/ratgeber-solana-scam-erkennen.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Woran erkenne ich, ob ein Solana-Coin ein Scam ist?","acceptedAnswer":{"@type":"Answer","text":"An mehreren Signalen: aktive Mint-Authority (Ersteller kann nachdrucken), aktive Freeze-Authority (Wallets einfrierbar), sehr wenig Liquidität (du kommst nicht mehr raus), hohe Holder-Konzentration (wenige Wallets halten fast alles) und ein sehr junges Alter. Klaryx prüft diese Signale kostenlos in Klartext auf Deutsch."}},
+{"@type":"Question","name":"Was ist ein Rugpull?","acceptedAnswer":{"@type":"Answer","text":"Ein Rugpull ist ein Betrug, bei dem die Ersteller eines Tokens nach dem Kauf durch Anleger die Liquidität abziehen oder unbegrenzt neue Token drucken, sodass der Kurs zusammenbricht und Käufer nicht mehr verkaufen können."}},
+{"@type":"Question","name":"Kann ich einen Solana-Coin kostenlos prüfen?","acceptedAnswer":{"@type":"Answer","text":"Ja. Der Klaryx-Klartext-Check ist kostenlos und ohne Anmeldung. Du gibst die Token-Adresse ein und bekommst eine Ampel plus verständliche Erklärung auf Deutsch."}}]}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236;
+    --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa;
+    --gruen:#22d3a0; --gelb:#f5c542; --rot:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:16px;line-height:1.75}
+  .wrap{max-width:760px;margin:0 auto;padding:44px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:14px}
+  h2{font-size:22px;font-weight:700;margin:34px 0 10px;letter-spacing:-.3px}
+  p{margin-bottom:14px;color:#c6cad9}
+  .lead{color:var(--muted);font-size:17px;margin-bottom:8px}
+  .cta{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;padding:14px 26px;font-weight:600;text-decoration:none;margin:8px 0 4px}
+  .signal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .signal .h{font-weight:700;font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+  .signal .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--rot)}
+  .signal .b{font-size:14.5px;color:var(--muted);line-height:1.7}
+  .signal .b b{color:var(--gruen)}
+  .disc{font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:26px;line-height:1.7}
+  a.inl{color:var(--accent);text-decoration:none}
+  .box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:26px 0;text-align:center}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="index.html" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>
+  <div class="khdr-d" style="display:flex;align-items:center;gap:22px;">
+    <a href="check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Klartext-Check</a>
+    <a href="link-check.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Link-Check</a>
+    <a href="markt.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Markt</a>
+    <a href="watchlist.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Wächter</a>
+    <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;font-size:13px;">Lernpfad</a>
+    <a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal &#8594;</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Ratgeber</div>
+  <h1>Ist ein Solana-Coin ein Scam? So erkennst du einen Rugpull</h1>
+  <p class="lead">Ein neuer Solana-Coin taucht auf, alle reden von „100x" – und du fragst dich: <b>Ist das echt oder Betrug?</b> Diese Anleitung zeigt dir in Klartext auf Deutsch, an welchen Signalen du einen Scam erkennst. Ganz ohne Kurs-Prognose, ganz ohne Hype.</p>
+
+  <a class="cta" href="check.html">Coin jetzt kostenlos prüfen &#8594;</a>
+
+  <h2>Zuerst: Am Preis erkennst du gar nichts</h2>
+  <p>Ob ein Coin steigt, sagt nichts darüber aus, ob er sicher ist – viele Scams pumpen erst kräftig, bevor sie kollabieren. Was zählt, sind die <b>Fakten auf der Blockchain</b>. Die kann jeder einsehen, und genau die prüft Klaryx für dich in Sekunden.</p>
+
+  <h2>Die 5 wichtigsten Warnzeichen</h2>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>1. Mint-Authority ist aktiv</div>
+    <div class="b">Ist die „Mint-Authority" noch aktiv, kann der Ersteller <b>jederzeit beliebig viele neue Token nachdrucken</b> – und deinen Anteil verwässern, bis er wertlos ist. <b>Gut ist:</b> Mint-Authority deaktiviert. Bei etablierten, regulierten Token (z. B. Stablecoins) ist sie bewusst aktiv – das ist die Ausnahme, kein Scam.</div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>2. Freeze-Authority ist aktiv</div>
+    <div class="b">Mit aktiver „Freeze-Authority" kann der Ersteller <b>deine Wallet einfrieren</b>, sodass du deine Token nicht mehr bewegen oder verkaufen kannst. <b>Gut ist:</b> Freeze-Authority deaktiviert.</div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>3. Kaum Liquidität</div>
+    <div class="b">Liquidität ist das Geld im Handelspool. Ist sie sehr niedrig, <b>kommst du nach dem Kauf nicht mehr raus</b> – jeder Verkauf drückt den Preis massiv. Ein klassisches Rugpull-Muster: Liquidität wird komplett abgezogen, der Coin ist über Nacht wertlos.</div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>4. Wenige Wallets halten fast alles</div>
+    <div class="b">Wenn die Top-10-Wallets einen sehr großen Teil aller Token halten, können <b>ein paar Insider den Kurs beliebig bewegen</b> – und mit einem Schlag alles verkaufen. Breite Verteilung ist ein gutes Zeichen, hohe Konzentration ein Warnsignal.</div>
+  </div>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>5. Der Coin ist brandneu</div>
+    <div class="b">Sehr junge Token (wenige Stunden/Tage alt) sind das häufigste Scam-Umfeld. Kein Alter heißt keine Historie – <b>umso wichtiger sind die anderen vier Signale</b>. Etwas Alter allein ist keine Garantie, aber ein Pluspunkt.</div>
+  </div>
+
+  <h2>So prüfst du einen Coin in 10 Sekunden</h2>
+  <p>Du musst das nicht von Hand auf Solscan zusammensuchen. Kopiere die <b>Token-Adresse (Mint)</b> und füge sie in den Klaryx-Klartext-Check ein. Du bekommst eine <b>Ampel</b> (🟢 grün / 🟡 gelb / 🔴 rot) und zu jedem der fünf Punkte eine verständliche Erklärung – kostenlos, ohne Anmeldung, auf Deutsch.</p>
+
+  <div class="box">
+    <a class="cta" href="check.html">Zum kostenlosen Klartext-Check &#8594;</a>
+    <p style="margin:12px 0 0;font-size:13px;color:var(--muted);">Oder direkt in Telegram prüfen: <a class="inl" href="https://t.me/Klaryx_KI_bot" target="_blank" rel="noopener">@Klaryx_KI_bot</a></p>
+  </div>
+
+  <h2>Vorsicht auch bei Links, nicht nur Coins</h2>
+  <p>Viele Verluste entstehen gar nicht durch den Coin selbst, sondern durch <b>gefälschte Airdrop- oder Wallet-Seiten</b>, die deine Wallet leerräumen. Bevor du irgendwo „Wallet verbinden" klickst, prüfe den Link im <a class="inl" href="link-check.html">Klaryx-Link-Check</a>. Und gib <b>niemals</b> deine Seed-Phrase ein – keine echte Seite fragt danach.</p>
+
+  <h2>Häufige Fragen</h2>
+  <p><b>Was ist ein Rugpull?</b><br>Ein Betrug, bei dem die Ersteller nach dem Kauf durch Anleger die Liquidität abziehen oder unbegrenzt Token drucken – der Kurs bricht zusammen, Käufer kommen nicht mehr raus.</p>
+  <p><b>Heißt „grün", dass ich sicher kaufen kann?</b><br>Nein. Grün heißt nur „keine der typischen Betrugssignale gefunden". Es ist keine Kaufempfehlung und keine Garantie – Kryptowerte bleiben hochriskant.</p>
+  <p><b>Ist Klaryx kostenlos?</b><br>Ja, der Check ist kostenlos und ohne Anmeldung.</p>
+
+  <div class="disc">
+    Klaryx ist ein <b>Scam-Check</b>, kein Finanzprodukt und keine Anlageberatung. Der Check prüft öffentliche On-Chain-Daten auf typische Betrugssignale – er sagt dir nicht, ob sich ein Kauf „lohnt". Kryptowerte sind hochriskant; triff Entscheidungen eigenverantwortlich.
+  </div>
+</div>
+
+<footer style="text-align:center;padding:36px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2;">
+  $KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>
+  <a href="index.html" style="color:var(--muted);text-decoration:none;">Startseite</a> ·
+  <a href="check.html" style="color:var(--muted);text-decoration:none;">Klartext-Check</a> ·
+  <a href="link-check.html" style="color:var(--muted);text-decoration:none;">Link-Check</a> ·
+  <a href="ratgeber-krypto-phishing-erkennen.html" style="color:var(--muted);text-decoration:none;">Phishing erkennen</a> ·
+  <a href="markt.html" style="color:var(--muted);text-decoration:none;">Markt</a> ·
+  <a href="lernpfad.html" style="color:var(--muted);text-decoration:none;">Lernpfad</a> ·
+  <a href="watchlist.html" style="color:var(--muted);text-decoration:none;">Wächter</a> ·
+  <a href="klaryx_legal.html" style="color:var(--muted);text-decoration:none;">Rechtliche Hinweise</a> ·
+  <a href="klaryx_impressum.html" style="color:var(--muted);text-decoration:none;">Impressum</a><br>
+  klaryx.de · © 2026 Meyro
+</footer>
+</body>
+</html>
