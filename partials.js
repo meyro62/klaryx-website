@@ -49,35 +49,25 @@
     '<style>@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}</style>';
 
   // ---- Footer (eine Quelle) ----
-  var f = 'style="color:var(--muted);text-decoration:none;"';
+  // Gruppierter Footer: alle Links bleiben, nur nach Zweck sortiert (aufgeräumter als eine lange Kette).
+  function grp(label, links) {
+    var inner = links.map(function (l) {
+      var ext = l[2] ? ' target="_blank" rel="noopener"' : '';
+      return '<a href="' + l[0] + '"' + ext + ' style="color:var(--muted);text-decoration:none;white-space:nowrap;">' + l[1] + '</a>';
+    }).join(' <span style="opacity:.35;">·</span> ');
+    return '<div style="margin:7px 0;line-height:2;">' +
+      '<span style="color:var(--muted);opacity:.5;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-right:10px;">' + label + '</span>' +
+      inner + '</div>';
+  }
   var footerHTML =
-    '<footer style="text-align:center;padding:36px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2;">' +
-      '$KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko<br><br>' +
-      '<a href="index.html" ' + f + '>Startseite</a> · ' +
-      '<a href="check.html" ' + f + '>Klartext-Check</a> · ' +
-      '<a href="link-check.html" ' + f + '>Link-Check</a> · ' +
-      '<a href="warnliste.html" ' + f + '>Warnliste</a> · ' +
-      '<a href="markt.html" ' + f + '>Markt</a> · ' +
-      '<a href="check.html#warnzeichen" ' + f + '>Sicherheit</a> · ' +
-      '<a href="faq.html" ' + f + '>FAQ</a> · ' +
-      '<a href="ratgeber.html" ' + f + '>Ratgeber</a> · ' +
-      '<a href="lernpfad.html" ' + f + '>Lernpfad</a> · ' +
-      '<a href="watchlist.html" ' + f + '>Wächter</a> · ' +
-      '<a href="ueber-klrx.html" ' + f + '>Über den Token</a> · ' +
-      '<a href="portal.html" ' + f + '>Portal</a> · ' +
-      '<a href="klaryx_wallet_setup.html" ' + f + '>Wallet Setup</a> · ' +
-      '<a href="klaryx_halloffame.html" ' + f + '>Hall of Fame</a> · ' +
-      '<a href="klaryx_milestones.html" ' + f + '>Meilensteine</a> · ' +
-      '<a href="https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD" target="_blank" ' + f + '>Solscan</a><br>' +
-      '<a href="klaryx_legal.html" ' + f + '>Rechtliche Hinweise</a> · ' +
-      '<a href="klaryx_impressum.html" ' + f + '>Impressum</a> · ' +
-      '<a href="klaryx_datenschutz.html" ' + f + '>Datenschutz</a> · ' +
-      '<a href="klaryx_disclaimer.html" ' + f + '>Disclaimer</a> · ' +
-      '<a href="mailto:info@klaryx.de" ' + f + '>Kontakt</a> · ' +
-      '<a href="https://x.com/klaryxhq" target="_blank" ' + f + '>X</a> · ' +
-      '<a href="https://discord.gg/abyTeFaghX" target="_blank" ' + f + '>Discord</a> · ' +
-      '<a href="https://t.me/klaryxhq" target="_blank" ' + f + '>Telegram</a><br><br>' +
-      'klaryx.de · © 2026 Meyro' +
+    '<footer style="text-align:center;padding:40px 24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">' +
+      '<div style="font-size:11px;opacity:.8;margin-bottom:18px;">$KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko</div>' +
+      grp("Werkzeuge", [["check.html", "Klartext-Check"], ["link-check.html", "Link-Check"], ["warnliste.html", "Warnliste"], ["markt.html", "Markt"], ["watchlist.html", "Wächter"]]) +
+      grp("Lernen", [["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"], ["lernpfad.html", "Lernpfad"], ["check.html#warnzeichen", "Sicherheit"]]) +
+      grp("Projekt", [["ueber-klrx.html", "Über den Token"], ["klaryx_milestones.html", "Meilensteine"], ["klaryx_halloffame.html", "Hall of Fame"], ["portal.html", "Portal"], ["klaryx_wallet_setup.html", "Wallet Setup"], ["https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD", "Solscan", true]]) +
+      grp("Rechtliches", [["klaryx_impressum.html", "Impressum"], ["klaryx_datenschutz.html", "Datenschutz"], ["klaryx_disclaimer.html", "Disclaimer"], ["klaryx_legal.html", "Rechtliche Hinweise"], ["mailto:info@klaryx.de", "Kontakt"]]) +
+      grp("Folgen", [["https://x.com/klaryxhq", "X", true], ["https://discord.gg/abyTeFaghX", "Discord", true], ["https://t.me/klaryxhq", "Telegram", true]]) +
+      '<div style="margin-top:18px;font-size:11px;opacity:.7;">klaryx.de · © 2026 Meyro</div>' +
     '</footer>';
 
   // Ersetzt den vorhandenen Header/Footer jeder Seite durch die kanonische Version
