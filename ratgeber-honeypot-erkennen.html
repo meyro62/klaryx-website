@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://browser.sentry-cdn.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wpxcgducfkbozecknfdw.supabase.co https://klaryx-bot.mahirgulabi.workers.dev https://challenges.cloudflare.com https://o4511713764442112.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Honeypot erkennen – warum du einen Solana-Coin nicht verkaufen kannst | Klaryx</title>
+<meta name="description" content="Du kannst deinen Solana-Coin nicht verkaufen? Das könnte ein Honeypot sein. So erkennst du die Falle vorher: Freeze-Authority, Verkaufssperren, verdächtige Verteilung. Klartext auf Deutsch, kostenloser Check.">
+<link rel="canonical" href="https://klaryx.de/ratgeber-honeypot-erkennen.html">
+<meta name="keywords" content="Honeypot erkennen, Coin lässt sich nicht verkaufen, Solana Coin kann ich nicht verkaufen, Honeypot Krypto, Freeze Authority, Verkaufssperre Token">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Honeypot erkennen – warum du einen Coin nicht verkaufen kannst">
+<meta property="og:description" content="Wenn sich ein Coin kaufen, aber nicht verkaufen lässt, ist es oft ein Honeypot. So erkennst du die Falle vorher – auf Deutsch.">
+<meta property="og:url" content="https://klaryx.de/ratgeber-honeypot-erkennen.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Was ist ein Honeypot bei Krypto?","acceptedAnswer":{"@type":"Answer","text":"Ein Honeypot ist ein Coin, den du kaufen, aber nicht wieder verkaufen kannst. Der Ersteller hat eine Sperre eingebaut – nur er selbst kann verkaufen. Käufer sitzen fest, während der Ersteller kassiert."}},
+{"@type":"Question","name":"Warum kann ich meinen Solana-Coin nicht verkaufen?","acceptedAnswer":{"@type":"Answer","text":"Mögliche Gründe: eine aktive Freeze-Authority, mit der der Ersteller deine Wallet einfrieren kann, eine eingebaute Verkaufssperre, oder es gibt schlicht keine Liquidität mehr (Rugpull). In allen Fällen ist Vorsicht angebracht."}},
+{"@type":"Question","name":"Wie erkenne ich einen Honeypot vorher?","acceptedAnswer":{"@type":"Answer","text":"Prüfe vor dem Kauf, ob die Freeze-Authority aktiv ist, ob genug Liquidität da ist und ob wenige Wallets fast alles halten. Klaryx prüft diese Signale kostenlos in Klartext auf Deutsch."}}]}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{ --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236; --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa; --gruen:#22d3a0; --gelb:#f5c542; --rot:#ff6b6b; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:16px;line-height:1.75}
+  .wrap{max-width:760px;margin:0 auto;padding:44px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:14px}
+  h2{font-size:22px;font-weight:700;margin:34px 0 10px;letter-spacing:-.3px}
+  p{margin-bottom:14px;color:#c6cad9}
+  .lead{color:var(--muted);font-size:17px;margin-bottom:8px}
+  .cta{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;padding:14px 26px;font-weight:600;text-decoration:none;margin:8px 0 4px}
+  .signal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .signal .h{font-weight:700;font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+  .signal .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--rot)}
+  .signal .b{font-size:14.5px;color:var(--muted);line-height:1.7}
+  .signal .b b{color:var(--gruen)}
+  .disc{font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:26px;line-height:1.7}
+  a.inl{color:var(--accent);text-decoration:none}
+  .box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:26px 0;text-align:center}
+</style>
+</head>
+<body>
+<header></header>
+
+<div class="wrap">
+  <div class="eyebrow">Ratgeber</div>
+  <h1>Honeypot erkennen: Wenn sich ein Coin nicht verkaufen lässt</h1>
+  <p class="lead">Du hast einen Solana-Coin gekauft und willst verkaufen – aber es geht nicht? Dann steckst du womöglich in einem <b>Honeypot</b>. Diese Anleitung erklärt in Klartext auf Deutsch, was das ist und wie du die Falle erkennst, <b>bevor</b> du reingehst.</p>
+
+  <a class="cta" href="check.html">Coin vor dem Kauf prüfen &#8594;</a>
+
+  <h2>Was ist ein Honeypot?</h2>
+  <p>Ein Honeypot (deutsch „Honigtopf") ist ein Coin, den du <b>kaufen, aber nicht wieder verkaufen</b> kannst. Der Ersteller hat eine Sperre eingebaut: Alle können kaufen und treiben den Kurs hoch – aber nur er selbst kann verkaufen. Die Käufer sitzen fest, während er die Gewinne mitnimmt. Von außen sieht so ein Coin oft täuschend gesund aus.</p>
+
+  <h2>Warum du gerade nicht verkaufen kannst</h2>
+  <p>Wenn ein Verkauf fehlschlägt, gibt es meist einen dieser Gründe:</p>
+
+  <div class="signal">
+    <div class="h"><span class="dot"></span>Aktive Freeze-Authority</div>
+    <div class="b">Der Ersteller kann Wallets <b>einfrieren</b>, sodass du deine Token nicht mehr bewegst. <b>Gut ist: Freeze-Authority deaktiviert.</b> Das prüft Klaryx direkt.</div>
+  </div>
+  <div class="signal">
+    <div class="h"><span class="dot"></span>Eingebaute Verkaufssperre</div>
+    <div class="b">Manche Token haben im Code eine Regel, die nur bestimmten Adressen (dem Ersteller) das Verkaufen erlaubt. Das ist der klassische Honeypot.</div>
+  </div>
+  <div class="signal">
+    <div class="h"><span class="dot"></span>Keine Liquidität mehr</div>
+    <div class="b">Beim Rugpull wurde die Liquidität abgezogen – es gibt schlicht niemanden mehr, an den du verkaufen kannst. <b>Prüfe vor dem Kauf, ob genug Liquidität da ist.</b></div>
+  </div>
+
+  <h2>So erkennst du einen Honeypot – VOR dem Kauf</h2>
+  <p>Das Wichtigste: Prüfe den Coin, <b>bevor</b> du kaufst. Kopiere die <b>Token-Adresse (Mint)</b> und füge sie in den Klaryx-Klartext-Check ein. Du siehst auf einen Blick, ob die <b>Freeze-Authority aktiv</b> ist (das Kern-Signal für Honeypots), wie viel Liquidität da ist und wie die Token verteilt sind – mit Ampel und Erklärung auf Deutsch. Kostenlos, ohne Anmeldung.</p>
+
+  <div class="box">
+    <a class="cta" href="check.html">Zum kostenlosen Klartext-Check &#8594;</a>
+    <p style="margin:12px 0 0;font-size:13px;color:var(--muted);">Tipp: Prüfe <b>vor</b> dem ersten Kauf – nicht erst, wenn du schon feststeckst.</p>
+  </div>
+
+  <h2>Ich stecke schon fest – was jetzt?</h2>
+  <p>Wenn du bereits nicht verkaufen kannst, ist es leider oft zu spät, die Coins zu retten. Wichtig ist jetzt: Wirf <b>kein weiteres Geld hinterher</b> (Betrüger bieten manchmal „Freischaltung" gegen Gebühr an – das ist die nächste Masche). Und wenn du über einen dubiosen Link zur Seite kamst, prüfe ihn im <a class="inl" href="link-check.html">Link-Check</a> und trenne deine Wallet von unbekannten Seiten. Für die Zukunft: immer erst prüfen, dann kaufen.</p>
+
+  <div class="disc">
+    Klaryx ist ein <b>Scam-Check</b>, kein Finanzprodukt und keine Anlageberatung. Der Check prüft öffentliche On-Chain-Daten auf typische Betrugssignale und kann nicht jeden Honeypot mit hundertprozentiger Sicherheit erkennen – aber die wichtigsten Warnzeichen. Entscheide eigenverantwortlich.
+  </div>
+</div>
+
+<footer></footer>
+<script src="partials.js"></script>
+</body>
+</html>

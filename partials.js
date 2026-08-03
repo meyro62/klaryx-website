@@ -60,6 +60,7 @@
       '<a href="markt.html" ' + f + '>Markt</a> · ' +
       '<a href="check.html#warnzeichen" ' + f + '>Sicherheit</a> · ' +
       '<a href="faq.html" ' + f + '>FAQ</a> · ' +
+      '<a href="ratgeber.html" ' + f + '>Ratgeber</a> · ' +
       '<a href="lernpfad.html" ' + f + '>Lernpfad</a> · ' +
       '<a href="watchlist.html" ' + f + '>Wächter</a> · ' +
       '<a href="ueber-klrx.html" ' + f + '>Über den Token</a> · ' +
