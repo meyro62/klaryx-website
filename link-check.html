@@ -230,7 +230,7 @@
     let ampel, fazit;
     if(red>0){ ampel="rot"; fazit="Dieser Link zeigt <b>deutliche Phishing-Merkmale</b>. Verbinde hier auf keinen Fall deine Wallet und gib nichts ein."; }
     else if(yellow>0){ ampel="gelb"; fazit="Dieser Link hat <b>ein paar Warnzeichen</b>. Prüfe die Domain genau und rufe die Seite lieber selbst über die offizielle Quelle auf."; }
-    else { ampel="gruen"; fazit="Keine der geprüften Phishing-Merkmale gefunden. Das heißt <b>nicht „garantiert echt"</b> – bleib bei Wallet-Verbindungen trotzdem wachsam."; }
+    else { ampel="gruen"; fazit="Keine der geprüften Phishing-Merkmale gefunden. Das heißt <b>nicht automatisch</b>, dass die Seite echt ist – bleib bei Wallet-Verbindungen trotzdem wachsam."; }
     return { host, ampel, fazit, facts };
   }
 
