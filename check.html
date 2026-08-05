@@ -256,6 +256,19 @@
     }catch(e){ m.textContent = "Signatur abgebrochen oder Verbindung fehlgeschlagen."; m.style.color = "var(--rot)"; }
   }
   const shortHost = (h) => h ? (h.length>22 ? h.slice(0,20)+"…" : h) : "";
+  // Relativer Zeitstempel für den "Zuletzt geprüft"-Feed (zeigt Aktivität).
+  function zeitRel(iso){
+    if(!iso) return '';
+    var s = Math.max(0, (Date.now() - new Date(iso).getTime())/1000);
+    if(s < 45) return 'gerade eben';
+    if(s < 3600) return 'vor '+Math.floor(s/60)+' Min';
+    if(s < 86400) return 'vor '+Math.floor(s/3600)+' Std';
+    return 'vor '+Math.floor(s/86400)+' Tg';
+  }
+  function zeitSpan(x, withCount){
+    return (x.checked_at && !withCount)
+      ? '<span style="font-size:10px;color:var(--muted);flex:none;white-space:nowrap;margin-left:2px;">'+zeitRel(x.checked_at)+'</span>' : '';
+  }
   // Eine Zeile im Feed – kind-fähig: Token -> Klartext-Check, Link -> Link-Check (🔗).
   function feedRow(x, withCount){
     var dot = DOT[x.ampel] || 'var(--muted)';
@@ -264,13 +277,13 @@
       return '<a class="rowcard" href="link-check.html?url='+encodeURIComponent(x.token_address)+'">'
         + '<span class="rdot" style="background:'+dot+';"></span>'
         + '<span class="rn">🔗 '+esc(shortHost(x.token_address))+'</span>'
-        + '<span class="rm">'+esc(x.token_address)+'</span>' + cnt + '</a>';
+        + '<span class="rm">'+esc(x.token_address)+'</span>' + cnt + zeitSpan(x, withCount) + '</a>';
     }
     var name = x.name ? esc(x.name) : shortMint(x.token_address);
     return '<a class="rowcard" href="check.html?token='+encodeURIComponent(x.token_address)+'">'
       + '<span class="rdot" style="background:'+dot+';"></span>'
       + '<span class="rn">'+name+'</span>'
-      + '<span class="rm">'+shortMint(x.token_address)+'</span>' + cnt
+      + '<span class="rm">'+shortMint(x.token_address)+'</span>' + cnt + zeitSpan(x, withCount)
       + '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(x.token_address)+'\',this)">⧉</button>'
       + '</a>';
   }
