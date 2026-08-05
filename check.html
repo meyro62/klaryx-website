@@ -112,6 +112,16 @@
     <button id="btn" onclick="check()">Prüfen</button>
   </div>
   <div class="hint">Beispiel: die Mint-Adresse eines Tokens (44 Zeichen, Base58).</div>
+
+  <details id="finder" style="margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0;overflow:hidden;">
+    <summary style="cursor:pointer;padding:11px 14px;font-size:13px;font-weight:600;color:var(--accent);list-style:none;">🔎 Adresse nicht zur Hand? Nach Coin-Namen suchen</summary>
+    <div style="padding:0 14px 14px;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:9px;">Nur <b>verifizierte, handelbare</b> Coins erscheinen hier. Neue oder ungelistete Coins (z. B. frische pump.fun-Coins) findest du <b>nicht</b> über den Namen – die musst du per Adresse prüfen.</div>
+      <input id="fq" placeholder="Coin-Name eingeben, z. B. Bonk…" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-size:14px;">
+      <div id="fres" style="margin-top:10px;"></div>
+    </div>
+  </details>
+
   <div style="font-size:12px;color:var(--muted);margin-top:6px;">Lieber in Telegram prüfen? Schick dem <a href="https://t.me/Klaryx_KI_bot" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Klaryx-Bot</a> einfach eine Solana-Adresse – er antwortet sofort mit der Ampel.</div>
 
   <style>
@@ -207,7 +217,55 @@
 
 <script>
   const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/check";
+  const SEARCH = "https://klaryx-bot.mahirgulabi.workers.dev/search";
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ---- Namens-Sucher (sicher: nur Anzeige, Auswahl trifft der Nutzer) ----
+  (function(){
+    const fq = document.getElementById('fq'), fres = document.getElementById('fres');
+    if(!fq || !fres) return;
+    let t = null, seq = 0;
+    const kurz = (a) => a ? a.slice(0,4) + "…" + a.slice(-4) : "";
+    const zahl = (n) => n == null ? null : (n >= 1e6 ? (n/1e6).toFixed(n>=1e7?0:1)+" Mio." : n >= 1e3 ? (n/1e3).toFixed(0)+"k" : String(n));
+    function waehle(addr){
+      const inp = document.getElementById('tok');
+      inp.value = addr;
+      document.getElementById('finder').open = false;
+      inp.scrollIntoView({behavior:'smooth', block:'center'});
+      if (typeof check === 'function') check();
+    }
+    window.__klrxPick = waehle;
+    async function suche(){
+      const q = fq.value.trim();
+      if (q.length < 2){ fres.innerHTML = ""; return; }
+      const my = ++seq;
+      fres.innerHTML = '<div style="font-size:12.5px;color:var(--muted);">Suche…</div>';
+      let data;
+      try { data = await (await fetch(SEARCH + "?q=" + encodeURIComponent(q))).json(); }
+      catch(e){ if(my===seq) fres.innerHTML = '<div style="font-size:12.5px;color:var(--muted);">Suche gerade nicht erreichbar.</div>'; return; }
+      if (my !== seq) return;
+      const rs = (data && data.results) || [];
+      if (!rs.length){
+        fres.innerHTML = '<div style="font-size:12.5px;color:var(--a-gelb,#e0b000);background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;">⚠️ Kein <b>verifizierter</b> Coin mit diesem Namen gefunden. Bei sehr neuen/ungelisteten Coins ist das normal – kopiere die Adresse direkt von einer vertrauenswürdigen Quelle und füge sie oben ein. <b>Rate nie</b> bei mehreren gleichnamigen Coins.</div>';
+        return;
+      }
+      fres.innerHTML = rs.map((r) => {
+        const badge = r.verified
+          ? '<span style="font-size:10px;color:#12c26a;border:1px solid #12c26a;border-radius:6px;padding:1px 5px;flex:none;">✓ verifiziert</span>'
+          : '<span style="font-size:10px;color:#e0b000;border:1px solid #e0b000;border-radius:6px;padding:1px 5px;flex:none;">nicht verifiziert</span>';
+        const meta = [r.holders!=null ? zahl(r.holders)+" Holder" : null, r.mcap!=null ? "$"+zahl(r.mcap)+" MCap" : null].filter(Boolean).join(" · ");
+        return '<button type="button" onclick="__klrxPick(\'' + esc(r.address) + '\')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;cursor:pointer;color:var(--text);">'
+          + (r.icon ? '<img src="'+esc(r.icon)+'" style="width:22px;height:22px;border-radius:50%;flex:none;background:var(--surface);" onerror="this.style.display=\'none\'">' : '')
+          + '<span style="flex:1;min-width:0;"><span style="font-weight:600;font-size:13px;">'+esc(r.name||"?")+'</span> <span style="color:var(--muted);font-size:12px;">'+esc(r.symbol||"")+'</span>'
+          + (meta ? '<br><span style="color:var(--muted);font-size:11px;">'+esc(meta)+'</span>' : '') + '</span>'
+          + badge
+          + '<span style="font-family:\'Space Mono\',monospace;font-size:10.5px;color:var(--muted);flex:none;">'+esc(kurz(r.address))+'</span>'
+          + '</button>';
+      }).join('') + '<div style="font-size:11px;color:var(--muted);margin-top:2px;">Prüfe im Zweifel Symbol & Holderzahl – Betrüger kopieren gern echte Namen.</div>';
+    }
+    fq.addEventListener('input', () => { clearTimeout(t); t = setTimeout(suche, 280); });
+  })();
+  // ------------------------------------------------------------------------
   const AMPEL = { gruen: ["a-gruen","🟢 Grün – keine großen Auffälligkeiten"], gelb: ["a-gelb","🟡 Gelb – ein paar Punkte beachten"], rot: ["a-rot","🔴 Rot – deutliche Auffälligkeiten"] };
 
   const SB_URL = "https://wpxcgducfkbozecknfdw.supabase.co";
