@@ -18,6 +18,7 @@
 {"@type":"Question","name":"Was ist Klaryx?","acceptedAnswer":{"@type":"Answer","text":"Klaryx ist ein kostenloses Werkzeug, das prüft, ob ein Solana-Coin typische Betrugssignale hat. Du gibst die Adresse des Coins ein und bekommst eine Ampel (grün/gelb/rot) plus eine verständliche Erklärung auf Deutsch. Es sagt dir nicht, ob sich ein Kauf lohnt, sondern nur, ob typische Warnzeichen für Betrug vorliegen."}},
 {"@type":"Question","name":"Ist Klaryx kostenlos?","acceptedAnswer":{"@type":"Answer","text":"Ja. Der Scam-Check, der Link-Check, die Warnliste und der Lernpfad sind kostenlos und ohne Anmeldung nutzbar. Du brauchst keine Wallet und musst dich nirgends registrieren."}},
 {"@type":"Question","name":"Brauche ich eine Wallet oder ein Konto?","acceptedAnswer":{"@type":"Answer","text":"Nein. Zum Prüfen eines Coins brauchst du nur dessen Adresse. Eine Wallet brauchst du nur, wenn du freiwillig am Community-Programm ($KLRX) teilnehmen möchtest – für den Check selbst nicht."}},
+{"@type":"Question","name":"Ist es sicher, meine Wallet mit Klaryx zu verbinden?","acceptedAnswer":{"@type":"Answer","text":"Ja. Klaryx bittet dich nur, eine Nachricht zu signieren (als Eigentumsnachweis) – keine Transaktion. Damit kann Klaryx deine Coins nicht bewegen, nicht abbuchen und nicht darauf zugreifen. Betrüger erkennst du daran, dass sie dich eine Transaktion (Approve oder Transfer) bestätigen lassen wollen – das solltest du ablehnen."}},
 {"@type":"Question","name":"Was bedeutet die Ampel (grün, gelb, rot)?","acceptedAnswer":{"@type":"Answer","text":"Grün heißt: keine der typischen Betrugssignale gefunden. Gelb heißt: ein paar Punkte, die du dir genauer ansehen solltest. Rot heißt: deutliche Auffälligkeiten, die oft bei Betrug vorkommen. Wichtig: Grün ist keine Garantie und keine Kaufempfehlung."}},
 {"@type":"Question","name":"Heißt grün, dass ich sicher kaufen kann?","acceptedAnswer":{"@type":"Answer","text":"Nein. Grün heißt nur, dass keine der geprüften Betrugssignale gefunden wurden – nicht, dass der Coin garantiert echt ist oder im Wert steigt. Kryptowerte sind hochriskant. Klaryx ist kein Finanzprodukt und keine Anlageberatung."}},
 {"@type":"Question","name":"Woher bekomme ich die Coin-Adresse (den Mint)?","acceptedAnswer":{"@type":"Answer","text":"Die Adresse (auch Mint genannt) ist eine lange Zeichenkette. Du findest sie meist auf der Seite, wo der Coin gehandelt wird (z. B. Dexscreener, Jupiter, pump.fun) oder auf Solscan. Kopiere sie und füge sie bei Klaryx ein."}},
@@ -95,6 +96,33 @@
   <details>
     <summary>Brauche ich eine Wallet oder ein Konto? <span class="chev">▾</span></summary>
     <div class="answer">Nein. Zum Prüfen eines Coins brauchst du <b>nur dessen Adresse</b>. Eine Wallet brauchst du nur, wenn du freiwillig am Community-Programm ($KLRX) teilnehmen möchtest – für den Check selbst nicht.</div>
+  </details>
+
+  <details>
+    <summary>Ist es sicher, meine Wallet zu verbinden? <span class="chev">▾</span></summary>
+    <div class="answer">
+      <b>Ja.</b> Klaryx bittet dich nur, eine <b>Nachricht zu signieren</b> (als Eigentumsnachweis) – <b>keine Transaktion</b>. Damit kann Klaryx deine Coins <b>nicht bewegen, nicht abbuchen und nicht darauf zugreifen</b>. Genau daran erkennst du auch Betrüger: Wer dich eine <b>Transaktion</b> (z. B. „Approve" oder einen Transfer) bestätigen lässt, will zugreifen – dann ablehnen.
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px;">
+        <div style="border:1px solid rgba(34,211,160,.35);border-radius:10px;overflow:hidden;">
+          <div style="background:rgba(34,211,160,.1);padding:8px 12px;font-size:11px;color:#22d3a0;font-weight:600;">✅ Sicher – so macht es Klaryx</div>
+          <div style="padding:12px;">
+            <div style="font-size:11.5px;color:var(--text);font-weight:600;margin-bottom:6px;">Nachricht signieren</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;line-height:1.6;background:var(--surface2);border-radius:6px;padding:8px;margin-bottom:8px;word-break:break-word;">Klaryx Wallet Verification<br>Wallet: AbYz…myiT<br>Time: 2026-…</div>
+            <div style="display:flex;gap:6px;"><span style="flex:1;text-align:center;font-size:10px;border:1px solid var(--border);border-radius:5px;padding:4px;color:var(--muted);">Ablehnen</span><span style="flex:1;text-align:center;font-size:10px;border-radius:5px;padding:4px;background:#22d3a0;color:#053b2c;font-weight:700;">Signieren</span></div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;">Nur <b style="color:var(--text);">Text</b> unterschreiben – kein Zugriff auf deine Coins.</div>
+          </div>
+        </div>
+        <div style="border:1px solid rgba(255,107,107,.35);border-radius:10px;overflow:hidden;">
+          <div style="background:rgba(255,107,107,.1);padding:8px 12px;font-size:11px;color:#ff6b6b;font-weight:600;">⛔ Gefährlich – so machen es Scammer</div>
+          <div style="padding:12px;">
+            <div style="font-size:11.5px;color:var(--text);font-weight:600;margin-bottom:6px;">Transaktion bestätigen</div>
+            <div style="font-size:10px;color:#ff6b6b;font-family:'Space Mono',monospace;line-height:1.6;background:var(--surface2);border-radius:6px;padding:8px;margin-bottom:8px;word-break:break-word;">Approve: unbegrenzt<br>Zugriff auf alle Token<br>Empfänger: 9xK…rug</div>
+            <div style="display:flex;gap:6px;"><span style="flex:1;text-align:center;font-size:10px;border:1px solid var(--border);border-radius:5px;padding:4px;color:var(--muted);">Ablehnen</span><span style="flex:1;text-align:center;font-size:10px;border-radius:5px;padding:4px;background:#ff6b6b;color:#3a0c0c;font-weight:700;">Bestätigen</span></div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;">Fordert <b style="color:#ff6b6b;">Zugriff/Transfer</b> – immer ablehnen!</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </details>
 
   <details>
