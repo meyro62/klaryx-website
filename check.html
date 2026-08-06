@@ -106,11 +106,13 @@
   <style>
     .feedbar{margin-bottom:14px;}
     .feedbar .fbhead{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:7px;font-weight:600;}
-    .chiprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;}
-    .chiprow::-webkit-scrollbar{height:5px;}
-    .chiprow::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-    .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 11px;text-decoration:none;color:var(--text);white-space:nowrap;flex:none;transition:border-color .15s;}
+    .feedwrap{position:relative;}
+    .feedwrap::after{content:"";position:absolute;top:0;right:0;bottom:0;width:36px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;}
+    .chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
+    .chiprow::-webkit-scrollbar{display:none;width:0;height:0;}
+    .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 11px;text-decoration:none;color:var(--text);white-space:nowrap;flex:none;transition:border-color .15s;outline:none;}
     .chip:hover{border-color:var(--accent);}
+    .chip:focus,.chip:focus-visible{outline:none;border-color:var(--accent);}
     .chip .cdot{width:8px;height:8px;border-radius:50%;flex:none;}
     .chip .cn{font-weight:600;font-size:12.5px;}
     .chip .cx{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--accent);font-weight:700;}
@@ -118,11 +120,11 @@
   </style>
   <div class="feedbar">
     <div class="fbhead">Am häufigsten geprüft</div>
-    <div id="topCoins" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div>
+    <div class="feedwrap"><div id="topCoins" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div></div>
   </div>
   <div class="feedbar">
     <div class="fbhead">Zuletzt geprüft · live</div>
-    <div id="recentChecks" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div>
+    <div class="feedwrap"><div id="recentChecks" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div></div>
   </div>
 
   <div class="eyebrow">Klartext-Check</div>
