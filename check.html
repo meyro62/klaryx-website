@@ -103,6 +103,28 @@
 <style>@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}</style>
 
 <div class="wrap">
+  <style>
+    .feedbar{margin-bottom:14px;}
+    .feedbar .fbhead{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:7px;font-weight:600;}
+    .chiprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;}
+    .chiprow::-webkit-scrollbar{height:5px;}
+    .chiprow::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+    .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 11px;text-decoration:none;color:var(--text);white-space:nowrap;flex:none;transition:border-color .15s;}
+    .chip:hover{border-color:var(--accent);}
+    .chip .cdot{width:8px;height:8px;border-radius:50%;flex:none;}
+    .chip .cn{font-weight:600;font-size:12.5px;}
+    .chip .cx{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--accent);font-weight:700;}
+    .chip .ct{font-size:10.5px;color:var(--muted);}
+  </style>
+  <div class="feedbar">
+    <div class="fbhead">Am häufigsten geprüft</div>
+    <div id="topCoins" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div>
+  </div>
+  <div class="feedbar">
+    <div class="fbhead">Zuletzt geprüft · live</div>
+    <div id="recentChecks" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div>
+  </div>
+
   <div class="eyebrow">Klartext-Check</div>
   <h1>Verstehe einen Solana-Token,<br>bevor du reingehst.</h1>
   <p class="sub">Adresse einfügen → ehrliche Erklärung auf Deutsch + Auffälligkeits-Ampel aus öffentlichen Daten. Kein Finanzprodukt, keine Kaufempfehlung.</p>
@@ -123,27 +145,6 @@
   </details>
 
   <div style="font-size:12px;color:var(--muted);margin-top:6px;">Lieber in Telegram prüfen? Schick dem <a href="https://t.me/Klaryx_KI_bot" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Klaryx-Bot</a> einfach eine Solana-Adresse – er antwortet sofort mit der Ampel.</div>
-
-  <style>
-    .tblhead{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:9px;font-weight:600;}
-    .rowcard{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 9px;margin-bottom:6px;text-decoration:none;color:var(--text);transition:border-color .15s;}
-    .rowcard:hover{border-color:var(--accent);}
-    .rowcard img{width:18px;height:18px;border-radius:50%;flex:none;background:var(--surface2);}
-    .rowcard .rdot{width:9px;height:9px;border-radius:50%;flex:none;}
-    .rowcard .rn{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .rowcard .rm{flex:1;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:right;white-space:nowrap;}
-    @media(max-width:600px){#twoTables{grid-template-columns:1fr!important;}}
-  </style>
-  <div id="twoTables" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0 4px;">
-    <div>
-      <div class="tblhead">Am häufigsten geprüft</div>
-      <div id="topCoins"><div style="font-size:13px;color:var(--muted);">Lade…</div></div>
-    </div>
-    <div>
-      <div class="tblhead">Zuletzt geprüft · live</div>
-      <div id="recentChecks"><div style="font-size:13px;color:var(--muted);">Lade…</div></div>
-    </div>
-  </div>
 
   <div id="msg"></div>
   <div id="result"></div>
@@ -345,6 +346,18 @@
       + '<button class="cp" title="Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyShare(\''+esc(x.token_address)+'\',this)">⧉</button>'
       + '</a>';
   }
+  // Kompakter Chip für die beiden Feed-Zeilen ganz oben.
+  function feedChip(x, withCount){
+    var dot = DOT[x.ampel] || 'var(--muted)';
+    var name = x.name ? esc(x.name) : shortMint(x.token_address);
+    var extra = withCount
+      ? '<span class="cx">'+(x.checks||1)+'×</span>'
+      : (x.checked_at ? '<span class="ct">'+zeitRel(x.checked_at)+'</span>' : '');
+    return '<a class="chip" href="check.html?token='+encodeURIComponent(x.token_address)+'">'
+      + '<span class="cdot" style="background:'+dot+';"></span>'
+      + '<span class="cn">'+name+'</span>' + extra + '</a>';
+  }
+
   async function loadRecent(){
     const box = document.getElementById('recentChecks');
     if(!box) return;
@@ -352,9 +365,9 @@
       const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checked_at,kind&kind=eq.token&order=checked_at.desc&limit=10",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB } });
       const rows = await r.json();
-      if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen – sei die/der Erste.</div>'; return; }
-      box.innerHTML = rows.map(function(x){ return feedRow(x, false); }).join('');
-    }catch(e){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Feed derzeit nicht verfügbar.</div>'; }
+      if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Noch keine Prüfungen – sei die/der Erste.</div>'; return; }
+      box.innerHTML = rows.map(function(x){ return feedChip(x, false); }).join('');
+    }catch(e){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Feed derzeit nicht verfügbar.</div>'; }
   }
 
   async function loadTopChecked(){
@@ -364,9 +377,9 @@
       const r = await fetch(SB_URL + "/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks,kind&kind=eq.token&order=checks.desc,checked_at.desc&limit=10",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
       const rows = await r.json();
-      if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Noch keine Prüfungen.</div>'; return; }
-      box.innerHTML = rows.map(function(x){ return feedRow(x, true); }).join('');
-    }catch(e){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);">Momentan nicht verfügbar.</div>'; }
+      if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Noch keine Prüfungen.</div>'; return; }
+      box.innerHTML = rows.map(function(x){ return feedChip(x, true); }).join('');
+    }catch(e){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Momentan nicht verfügbar.</div>'; }
   }
 
   async function check(){
@@ -429,6 +442,7 @@
       html += '<div class="disc"><strong>Hinweis:</strong> Rein informativ, aus öffentlichen Quellen ('+esc(d.quelle)+'), ohne Gewähr. '
            +  'Keine Anlageberatung, keine Kaufempfehlung, keine Prognose. Die Ampel ist eine Auffälligkeits-Einordnung, kein „sicher/unsicher"-Urteil.</div>';
       result.innerHTML = html; result.style.display='block';
+      result.scrollIntoView({behavior:'smooth', block:'start'});
       loadRecent(); loadTopChecked(); setTimeout(function(){ loadRecent(); loadTopChecked(); }, 2500);
     }catch(e){
       msg.innerHTML='<div class="err">Verbindung fehlgeschlagen. Bitte später erneut versuchen.</div>';
