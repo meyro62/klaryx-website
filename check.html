@@ -381,8 +381,11 @@
   function renderMarquee(box, rows, withCount){
     var chips = rows.map(function(x){ return feedChip(x, withCount); }).join('');
     if(rows.length >= 4){
-      box.innerHTML = chips + '<span aria-hidden="true" style="display:contents;">' + chips + '</span>';   // zweite Hälfte (versteckt für Screenreader) für den nahtlosen -50%-Loop
-      box.style.animationPlayState = '';
+      // Zweite Hälfte direkt anhängen (kein display:contents-Wrapper – der
+      // würde die width:max-content-Berechnung stören und die Animation kippen).
+      box.innerHTML = chips + chips;
+      box.style.animation = '';
+      box.style.width = '';
     } else {
       box.innerHTML = chips;           // zu wenige -> statisch, kein Scrollen
       box.style.animation = 'none';
