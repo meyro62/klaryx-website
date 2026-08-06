@@ -106,10 +106,14 @@
   <style>
     .feedbar{margin-bottom:14px;}
     .feedbar .fbhead{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:7px;font-weight:600;}
-    .feedwrap{position:relative;}
-    .feedwrap::after{content:"";position:absolute;top:0;right:0;bottom:0;width:36px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;}
-    .chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
-    .chiprow::-webkit-scrollbar{display:none;width:0;height:0;}
+    .marquee{overflow:hidden;position:relative;}
+    .marquee::before,.marquee::after{content:"";position:absolute;top:0;bottom:0;width:28px;z-index:2;pointer-events:none;}
+    .marquee::before{left:0;background:linear-gradient(to right,var(--bg),transparent);}
+    .marquee::after{right:0;background:linear-gradient(to left,var(--bg),transparent);}
+    .chiprow{display:flex;gap:8px;width:max-content;animation:kxscroll 40s linear infinite;}
+    .marquee:hover .chiprow{animation-play-state:paused;}
+    @keyframes kxscroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+    @media(prefers-reduced-motion:reduce){.chiprow{animation:none;flex-wrap:wrap;width:auto;}}
     .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 11px;text-decoration:none;color:var(--text);white-space:nowrap;flex:none;transition:border-color .15s;outline:none;}
     .chip:hover{border-color:var(--accent);}
     .chip:focus,.chip:focus-visible{outline:none;border-color:var(--accent);}
@@ -120,11 +124,11 @@
   </style>
   <div class="feedbar">
     <div class="fbhead">Am häufigsten geprüft</div>
-    <div class="feedwrap"><div id="topCoins" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div></div>
+    <div class="marquee"><div id="topCoins" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div></div>
   </div>
   <div class="feedbar">
     <div class="fbhead">Zuletzt geprüft · live</div>
-    <div class="feedwrap"><div id="recentChecks" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div></div>
+    <div class="marquee"><div id="recentChecks" class="chiprow"><div style="font-size:12px;color:var(--muted);">Lade…</div></div></div>
   </div>
 
   <div class="eyebrow">Klartext-Check</div>
@@ -368,8 +372,22 @@
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB } });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Noch keine Prüfungen – sei die/der Erste.</div>'; return; }
-      box.innerHTML = rows.map(function(x){ return feedChip(x, false); }).join('');
+      renderMarquee(box, rows, false);
     }catch(e){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Feed derzeit nicht verfügbar.</div>'; }
+  }
+
+  // Füllt eine Marquee-Zeile. Verdoppelt die Chips für nahtlosen Loop und
+  // schaltet die Animation ab, wenn wenige Chips da sind (kein Ruckeln).
+  function renderMarquee(box, rows, withCount){
+    var chips = rows.map(function(x){ return feedChip(x, withCount); }).join('');
+    if(rows.length >= 4){
+      box.innerHTML = chips + '<span aria-hidden="true" style="display:contents;">' + chips + '</span>';   // zweite Hälfte (versteckt für Screenreader) für den nahtlosen -50%-Loop
+      box.style.animationPlayState = '';
+    } else {
+      box.innerHTML = chips;           // zu wenige -> statisch, kein Scrollen
+      box.style.animation = 'none';
+      box.style.width = 'auto';
+    }
   }
 
   async function loadTopChecked(){
@@ -380,7 +398,7 @@
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Noch keine Prüfungen.</div>'; return; }
-      box.innerHTML = rows.map(function(x){ return feedChip(x, true); }).join('');
+      renderMarquee(box, rows, true);
     }catch(e){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);">Momentan nicht verfügbar.</div>'; }
   }
 
