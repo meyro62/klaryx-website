@@ -518,17 +518,31 @@
         { title: 'Verteilung', labels: ['Top-10-Holder'] },
       ];
       const gtStyle = 'font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin:22px 0 12px;font-weight:600;';
-      // Donut für die Top-10-Konzentration: gefüllter Teil = Top 10, Rest = übrige Halter.
-      function donutSvg(pct){
-        var p = Math.max(0, Math.min(100, pct||0));
-        var r=52, c=2*Math.PI*r, seg=c*p/100;
-        var col = p>60?'var(--rot)':p>=40?'var(--gelb)':'var(--gruen)';
-        return '<svg width="130" height="130" viewBox="0 0 130 130">'
-          + '<circle cx="65" cy="65" r="52" fill="none" stroke="var(--surface2)" stroke-width="16"/>'
-          + '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" transform="rotate(-90 65 65)" stroke-linecap="round"/>'
-          + '<text x="65" y="60" text-anchor="middle" fill="var(--text)" font-size="21" font-weight="700" font-family="\'Space Mono\',monospace">'+p.toFixed(0)+'%</text>'
+      // Donut zeigt die ZUSAMMENSETZUNG der Top 10: grüne Segmente = sicher (Pool/Burn/
+      // Ersteller), gelbe = unbekannt. Spiegelt exakt die Liste daneben. total = Top-10-%.
+      const kindFarbe = { pool:'var(--gruen)', burn:'var(--gruen)', creator:'var(--accent)', unknown:'var(--gelb)' };
+      function donutSvg(total, split){
+        var p = Math.max(0, Math.min(100, total||0));
+        var r=52, c=2*Math.PI*r;
+        var svg = '<svg width="130" height="130" viewBox="0 0 130 130">'
+          + '<circle cx="65" cy="65" r="52" fill="none" stroke="var(--surface2)" stroke-width="16"/>';
+        if (split && split.length){
+          // Jedes Split-Segment mit seiner Farbe, aneinandergereiht (Anteil an 100% Supply).
+          var offset = 0;
+          split.forEach(function(h){
+            var frac = (h.pct||0)/100, seg = c*frac;
+            var col = kindFarbe[h.kind] || 'var(--gelb)';
+            svg += '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" stroke-dashoffset="'+(-c*offset).toFixed(1)+'" transform="rotate(-90 65 65)"/>';
+            offset += frac;
+          });
+        } else {
+          var col = p>60?'var(--rot)':p>=40?'var(--gelb)':'var(--gruen)', seg=c*p/100;
+          svg += '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" transform="rotate(-90 65 65)"/>';
+        }
+        svg += '<text x="65" y="60" text-anchor="middle" fill="var(--text)" font-size="21" font-weight="700" font-family="\'Space Mono\',monospace">'+p.toFixed(0)+'%</text>'
           + '<text x="65" y="79" text-anchor="middle" fill="var(--muted)" font-size="10">Top 10</text>'
           + '</svg>';
+        return svg;
       }
       const used = new Set();
       for(const g of GROUPS){
@@ -541,7 +555,7 @@
           const pctNum = parseFloat(String(tf.wert).replace('%','')) || 0;
           html += '<div style="'+gtStyle+'">'+g.title+'</div>'
             + '<div class="panel" style="display:grid;grid-template-columns:150px 1fr;gap:24px;align-items:center;">'
-            + '<div style="text-align:center;">'+donutSvg(pctNum)+'</div>'
+            + '<div style="text-align:center;">'+donutSvg(pctNum, tf.split)+'</div>'
             + '<div><div class="peyebrow">Wer hält den Coin?</div>'
             + (tf.split && tf.split.length ? splitHtml(tf.split) : '<div style="font-size:13px;color:var(--muted);">'+esc(tf.hinweis)+'</div>')
             + '</div></div>';
