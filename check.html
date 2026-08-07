@@ -46,13 +46,31 @@
   .a-gelb h2{color:var(--gelb)}
   .a-rot{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.35)}
   .a-rot h2{color:var(--rot)}
-  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
-  .fact{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-  .fact .top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  /* ---- Neues Ergebnis-Design ---- */
+  .rhero{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+  .rhero .ricon{width:60px;height:60px;border-radius:50%;background:#0a0d16;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 24px rgba(91,127,255,.2);overflow:hidden}
+  .rhero .ricon img{width:60px;height:60px;object-fit:cover}
+  .rhero .rname{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.15}
+  .rhero .rname .sym{color:var(--muted);font-size:18px;font-weight:400}
+  .rhero .rmeta{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px;word-break:break-all}
+  .rtop{display:grid;grid-template-columns:250px 1fr;gap:16px;margin-bottom:16px}
+  @media(max-width:640px){.rtop{grid-template-columns:1fr}}
+  .panel{background:linear-gradient(160deg,var(--surface),#0b0f18);border:1px solid var(--border);border-radius:16px;padding:22px;position:relative;overflow:hidden}
+  .panel .peyebrow{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px;position:relative}
+  .gauge-wrap{text-align:center}
+  .gauge-glow{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:180px;height:120px;pointer-events:none}
+  .gverdict{font-size:28px;font-weight:700;margin-top:-8px}
+  .gsub{font-size:12px;color:var(--muted)}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .fact{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .fact.s-gruen{border-color:rgba(34,211,160,.3)}
+  .fact.s-gelb{border-color:rgba(245,197,66,.3)}
+  .fact.s-rot{border-color:rgba(255,107,107,.3)}
+  .fact .top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .dot{width:9px;height:9px;border-radius:50%;flex:none}
-  .d-gruen{background:var(--gruen)} .d-gelb{background:var(--gelb)} .d-rot{background:var(--rot)}
-  .fact .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-  .fact .val{font-size:18px;font-weight:600;font-family:'Space Mono',monospace}
+  .d-gruen{background:var(--gruen);box-shadow:0 0 8px var(--gruen)} .d-gelb{background:var(--gelb);box-shadow:0 0 8px var(--gelb)} .d-rot{background:var(--rot);box-shadow:0 0 8px var(--rot)}
+  .fact .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .fact .val{font-size:16px;font-weight:600;font-family:'Space Mono',monospace}
   .fact .hin{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
   .erkl{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:18px}
   .erkl h3{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -226,6 +244,10 @@
   const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/check";
   const SEARCH = "https://klaryx-bot.mahirgulabi.workers.dev/search";
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  // Klaryx-K als Fallback-Icon (wenn der Coin kein eigenes Logo hat).
+  function klrxLogoSvg(){
+    return '<svg width="34" height="34" viewBox="0 0 34 34"><defs><linearGradient id="kglg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fa4ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs><rect x="7" y="7" width="6" height="20" rx="1.5" fill="url(#kglg)"/><path d="M14 17 L24 7 L28 7 L17 17 L28 27 L24 27 Z" fill="url(#kglg)"/></svg>';
+  }
 
   // ---- Namens-Sucher (sicher: nur Anzeige, Auswahl trifft der Nutzer) ----
   (function(){
@@ -421,26 +443,71 @@
       if(!r.ok || d.error){ msg.innerHTML='<div class="err">'+esc(d.error||('Fehler '+r.status))+'</div>'; btn.disabled=false; return; }
       msg.innerHTML='';
       const [cls,label] = AMPEL[d.ampel] || AMPEL.gelb;
+      const ampelFarbe = { gruen:'var(--gruen)', gelb:'var(--gelb)', rot:'var(--rot)' }[d.ampel] || 'var(--gelb)';
+      const ampelWort  = { gruen:'Grün', gelb:'Gelb', rot:'Rot' }[d.ampel] || 'Gelb';
+      const ampelSub   = { gruen:'keine großen Auffälligkeiten', gelb:'ein paar Punkte beachten', rot:'deutliche Auffälligkeiten' }[d.ampel] || '';
       const titel = d.name ? (esc(d.name) + (d.symbol?' ('+esc(d.symbol)+')':'')) : (d.nichtGelistet ? 'Token – nicht an einer DEX gelistet' : 'Unbekannter Token');
-      let html = '<div class="ampel '+cls+'"><h2>'+label+'</h2>'
-             +  (d.fazit ? '<div style="font-size:15px;color:var(--text);font-weight:600;margin:2px 0 6px;">'+esc(d.fazit)+'</div>' : '')
-             +  '<div class="tok">'+esc(titel)+' · '+esc(d.token)+'</div>'
-             +  '<div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;">Prüft das <strong>Betrugsrisiko</strong> (mögliche Scam-Signale) – <strong>keine Kaufempfehlung</strong> und kein Urteil über „gut" oder „schlecht". Grün heißt nur: keine offensichtlichen Betrugssignale, nicht „sichere Investition".</div></div>';
-      // Aufschlüsselung der größten Halter (Pool/Burn/Ersteller/unbekannt), jeweils mit Solscan-Link.
-      const splitStyle = { pool:'var(--gruen)', burn:'var(--gruen)', creator:'var(--accent)', unknown:'var(--muted)' };
-      const splitHtml = (rows) => '<div style="margin-top:11px;display:flex;flex-direction:column;gap:6px;">'
+
+      // Halbkreis-Gauge: füllt je nach Ampel (grün wenig, gelb halb, rot fast voll).
+      function gaugeSvg(farbe, ampel){
+        var frac = ampel==='gruen' ? 0.25 : ampel==='rot' ? 0.9 : 0.55;
+        var A0=Math.PI, A1=A0 - Math.PI*frac;  // von links (180°) nach oben/rechts
+        var cx=90, cy=96, r=76;
+        var x1=cx+r*Math.cos(A0), y1=cy-r*Math.sin(A0);
+        var x2=cx+r*Math.cos(A1), y2=cy-r*Math.sin(A1);
+        var large = frac>0.5?1:0;
+        var ex=cx+r*Math.cos(Math.PI), ey=cy;   // Track-Ende rechts
+        return '<svg width="180" height="104" viewBox="0 0 180 104" style="position:relative;">'
+          + '<path d="M14 96 A76 76 0 0 1 166 96" fill="none" stroke="var(--surface2)" stroke-width="13" stroke-linecap="round"/>'
+          + '<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A76 76 0 '+large+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+farbe+'" stroke-width="13" stroke-linecap="round"/>'
+          + '<circle cx="'+x2.toFixed(1)+'" cy="'+y2.toFixed(1)+'" r="7" fill="'+farbe+'"/>'
+          + '</svg>';
+      }
+      var alterFact = (d.facts||[]).find(function(f){return f.label==='Alter';});
+      var alterTxt = alterFact && alterFact.wert && alterFact.wert!=='unbekannt' ? alterFact.wert : '';
+      const coinIcon = d.icon
+        ? '<img src="'+esc(d.icon)+'" onerror="this.parentNode.innerHTML=klrxLogoSvg()">'
+        : klrxLogoSvg();
+
+      let html = '<div class="rhero">'
+        + '<div class="ricon">'+coinIcon+'</div>'
+        + '<div style="flex:1;min-width:200px;">'
+        +   '<div class="rname">'+(d.name?esc(d.name):'Unbekannter Token')+(d.symbol?' <span class="sym">('+esc(d.symbol)+')</span>':'')+'</div>'
+        +   '<div class="rmeta">'+esc(d.token)+(alterTxt?' · '+esc(alterTxt):'')+'</div>'
+        + '</div></div>';
+
+      const glowRGBA = { gruen:'rgba(34,211,160,.16)', gelb:'rgba(245,197,66,.16)', rot:'rgba(255,107,107,.16)' }[d.ampel] || 'rgba(245,197,66,.16)';
+      html += '<div class="rtop">'
+        + '<div class="panel gauge-wrap">'
+        +   '<div class="gauge-glow" style="background:radial-gradient(ellipse,'+glowRGBA+',transparent 70%);"></div>'
+        +   '<div class="peyebrow">Auffälligkeit</div>'
+        +   gaugeSvg(ampelFarbe, d.ampel)
+        +   '<div class="gverdict" style="color:'+ampelFarbe+';">'+ampelWort+'</div>'
+        +   '<div class="gsub">'+esc(ampelSub)+'</div>'
+        + '</div>'
+        + '<div class="panel">'
+        +   '<div class="peyebrow">Klartext</div>'
+        +   (d.fazit ? '<div style="font-size:15px;line-height:1.6;color:var(--text);font-weight:600;">'+esc(d.fazit)+'</div>' : '')
+        +   '<div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6;">Prüft das <strong>Betrugsrisiko</strong> – <strong>keine Kaufempfehlung</strong>. „Grün" heißt nur: keine offensichtlichen Betrugssignale, nicht „sichere Investition".</div>'
+        + '</div>'
+        + '</div>';
+      // Farbsystem: grün=sicher (Pool/Burn), gelb=Vorsicht (unbekannt), Ersteller=Akzent.
+      const splitStyle = { pool:'var(--gruen)', burn:'var(--gruen)', creator:'var(--accent)', unknown:'var(--gelb)' };
+      const splitTag   = { pool:'✓ sicher', burn:'✓ sicher', creator:'', unknown:'⚠ selbst prüfen' };
+      const splitHtml = (rows) => '<div style="margin-top:11px;display:flex;flex-direction:column;gap:8px;">'
         + rows.map(function(h){
-            var col = splitStyle[h.kind] || 'var(--muted)';
-            var link = h.owner ? '<a href="https://solscan.io/account/'+esc(h.owner)+'" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:none;flex:none;font-size:10px;">↗</a>' : '';
-            return '<div style="display:flex;align-items:center;gap:8px;font-size:11.5px;">'
-              + '<span style="width:44px;flex:none;font-family:\'Space Mono\',monospace;font-weight:700;text-align:right;">'+(h.pct!=null?h.pct.toFixed(1)+'%':'—')+'</span>'
+            var col = splitStyle[h.kind] || 'var(--gelb)';
+            var tag = splitTag[h.kind] || '';
+            var link = h.owner ? '<a href="https://solscan.io/account/'+esc(h.owner)+'" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:none;flex:none;font-size:10px;">'+(tag?esc(tag)+' ':'')+'↗</a>' : '';
+            return '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px;">'
+              + '<span style="width:46px;flex:none;font-family:\'Space Mono\',monospace;font-weight:700;text-align:right;color:'+col+';">'+(h.pct!=null?h.pct.toFixed(1)+'%':'—')+'</span>'
               + '<span style="flex:1;color:'+col+';font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(h.label)+'</span>'
               + link + '</div>';
           }).join('')
-        + '<div style="font-size:10.5px;color:var(--muted);margin-top:3px;">Pool/verbrannt = kein Konzentrations-Risiko. „Unbekannt" heißt: on-chain nicht zuordenbar – prüfe per ↗ selbst.</div>'
+        + '<div style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5;">Grün = sicher (Pool/verbrannt). Gelb = unbekannt, on-chain nicht zuordenbar – prüfe per ↗ selbst.</div>'
         + '</div>';
-      const factHtml = (f) => '<div class="fact"><div class="top"><span class="dot d-'+f.status+'"></span><span class="lbl">'+esc(f.label)+'</span></div>'
-             +  '<div class="val">'+esc(f.wert)+'</div>'
+      const factHtml = (f) => '<div class="fact s-'+f.status+'"><div class="top"><span class="dot d-'+f.status+'"></span><span class="lbl">'+esc(f.label)+'</span></div>'
+             +  (f.split && f.split.length ? '' : '<div class="val">'+esc(f.wert)+'</div>')
              +  (f.split && f.split.length ? splitHtml(f.split) : '')
              +  '<div class="hin">'+esc(f.hinweis)
              +  (f.link ? ' <a href="'+esc(f.link)+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;white-space:nowrap;">'+esc(f.linkText||'ansehen ↗')+'</a>' : '')
@@ -450,17 +517,41 @@
         { title: 'Markt', labels: ['Liquidität','LP-Liquidität (Raydium)','Volumen 24h','Alter'] },
         { title: 'Verteilung', labels: ['Top-10-Holder'] },
       ];
-      const gtStyle = 'font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:22px 0 10px;font-weight:600;';
+      const gtStyle = 'font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin:22px 0 12px;font-weight:600;';
+      // Donut für die Top-10-Konzentration: gefüllter Teil = Top 10, Rest = übrige Halter.
+      function donutSvg(pct){
+        var p = Math.max(0, Math.min(100, pct||0));
+        var r=52, c=2*Math.PI*r, seg=c*p/100;
+        var col = p>60?'var(--rot)':p>=40?'var(--gelb)':'var(--gruen)';
+        return '<svg width="130" height="130" viewBox="0 0 130 130">'
+          + '<circle cx="65" cy="65" r="52" fill="none" stroke="var(--surface2)" stroke-width="16"/>'
+          + '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" transform="rotate(-90 65 65)" stroke-linecap="round"/>'
+          + '<text x="65" y="60" text-anchor="middle" fill="var(--text)" font-size="21" font-weight="700" font-family="\'Space Mono\',monospace">'+p.toFixed(0)+'%</text>'
+          + '<text x="65" y="79" text-anchor="middle" fill="var(--muted)" font-size="10">Top 10</text>'
+          + '</svg>';
+      }
       const used = new Set();
       for(const g of GROUPS){
         const gf = d.facts.filter(f => g.labels.includes(f.label));
         if(!gf.length) continue;
         gf.forEach(f => used.add(f.label));
-        html += '<div style="'+gtStyle+'">'+g.title+'</div><div class="facts">' + gf.map(factHtml).join('') + '</div>';
+        if(g.title === 'Verteilung'){
+          // Sonder-Layout: Donut + Aufschlüsselung im breiten Panel.
+          const tf = gf[0];
+          const pctNum = parseFloat(String(tf.wert).replace('%','')) || 0;
+          html += '<div style="'+gtStyle+'">'+g.title+'</div>'
+            + '<div class="panel" style="display:grid;grid-template-columns:150px 1fr;gap:24px;align-items:center;">'
+            + '<div style="text-align:center;">'+donutSvg(pctNum)+'</div>'
+            + '<div><div class="peyebrow">Wer hält den Coin?</div>'
+            + (tf.split && tf.split.length ? splitHtml(tf.split) : '<div style="font-size:13px;color:var(--muted);">'+esc(tf.hinweis)+'</div>')
+            + '</div></div>';
+        } else {
+          html += '<div style="'+gtStyle+'">'+g.title+'</div><div class="facts">' + gf.map(factHtml).join('') + '</div>';
+        }
       }
       const rest = d.facts.filter(f => !used.has(f.label));
       if(rest.length){ html += '<div style="'+gtStyle+'">Weitere</div><div class="facts">' + rest.map(factHtml).join('') + '</div>'; }
-      html += '<div class="erkl"><h3>Klartext</h3><div>'+esc(d.erklaerung).replace(/\n/g,'<br>')+'</div></div>';
+      html += '<div class="panel" style="margin-top:16px;"><div class="peyebrow">Ausführlich</div><div style="font-size:14px;line-height:1.7;color:var(--text);">'+esc(d.erklaerung).replace(/\n/g,'<br>')+'</div></div>';
       const shareUrl = 'https://klaryx.de/check.html?token=' + encodeURIComponent(d.token);
       const shareText = 'Klaryx Scam-Check für ' + titel + ' – prüf Solana-Coins auf Betrug:';
       const shBtn = 'border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 13px;font-size:12px;text-decoration:none;font-family:inherit;cursor:pointer;background:transparent;';
