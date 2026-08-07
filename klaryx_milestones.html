@@ -299,21 +299,17 @@ async function updateMilestones() {
 
     if (error) throw error;
 
-    const holderCount = count || 0;   // Portal-Registrierungen -> treiben die Meilensteine
-
-    // Anzeige oben: echte ON-CHAIN-Holderzahl (deckt sich mit Solscan), via Worker.
+    // ON-CHAIN-Holderzahl (deckt sich mit Solscan) via Worker holen. Diese Zahl
+    // treibt BEIDES: die Anzeige oben UND die Meilenstein-Rechnung – konsistent.
+    let holderCount = count || 0;   // Fallback = Portal-Zahl, falls Worker nicht antwortet
     try {
       const hr = await fetch("https://klaryx-bot.mahirgulabi.workers.dev/holders?mint=2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD");
       const hd = await hr.json();
-      if (hd && typeof hd.holders === 'number') {
-        document.getElementById('holder-count').textContent = hd.holders.toLocaleString('de-DE');
-        cacheHolderCount(hd.holders);
-      } else { throw new Error('keine on-chain-zahl'); }
-    } catch (e) {
-      // Fallback: falls der Worker mal nicht antwortet, zeige die Portal-Zahl.
-      document.getElementById('holder-count').textContent = holderCount.toLocaleString('de-DE');
-      cacheHolderCount(holderCount);
-    }
+      if (hd && typeof hd.holders === 'number') holderCount = hd.holders;
+    } catch (e) { /* Fallback bleibt Portal-Zahl */ }
+
+    document.getElementById('holder-count').textContent = holderCount.toLocaleString('de-DE');
+    cacheHolderCount(holderCount);
 
     // Phase thresholds
     const phases = [
@@ -366,16 +362,17 @@ async function updateMilestones() {
 
 // Load on page load
 window.addEventListener('load', () => {
-  const cached = localStorage.getItem('klaryx_holder_cache');
-  const timestamp = localStorage.getItem('klaryx_holder_timestamp');
+  const cached = localStorage.getItem('klaryx_holder_cache_v2');
+  const timestamp = localStorage.getItem('klaryx_holder_timestamp_v2');
   const now = Date.now();
 
-  // Use cache if less than 1 hour old
+  // Cache nur für die sofortige Erstanzeige der Zahl (kein Flackern).
   if (cached && timestamp && (now - parseInt(timestamp)) < 3600000) {
     document.getElementById('holder-count').textContent = cached;
-  } else {
-    updateMilestones();
   }
+  // updateMilestones() IMMER aufrufen: aktualisiert Zahl UND die Meilenstein-Balken
+  // ("Noch X Holder"). Sonst bleiben die Balken auf ihren statischen HTML-Werten.
+  updateMilestones();
 });
 
 // Refresh every 1 hour (3600000ms)
@@ -383,8 +380,8 @@ setInterval(updateMilestones, 3600000);
 
 // Cache the result
 function cacheHolderCount(count) {
-  localStorage.setItem('klaryx_holder_cache', count.toLocaleString('de-DE'));
-  localStorage.setItem('klaryx_holder_timestamp', Date.now().toString());
+  localStorage.setItem('klaryx_holder_cache_v2', count.toLocaleString('de-DE'));
+  localStorage.setItem('klaryx_holder_timestamp_v2', Date.now().toString());
 }
 </script>
 
