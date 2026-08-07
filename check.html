@@ -448,19 +448,19 @@
       const ampelSub   = { gruen:'keine großen Auffälligkeiten', gelb:'ein paar Punkte beachten', rot:'deutliche Auffälligkeiten' }[d.ampel] || '';
       const titel = d.name ? (esc(d.name) + (d.symbol?' ('+esc(d.symbol)+')':'')) : (d.nichtGelistet ? 'Token – nicht an einer DEX gelistet' : 'Unbekannter Token');
 
-      // Halbkreis-Gauge: füllt je nach Ampel (grün wenig, gelb halb, rot fast voll).
+      // Halbkreis-Gauge über stroke-dasharray (robust, kein fehleranfälliger Bogen-Pfad).
+      // Der Track ist der halbe Umfang; der farbige Teil füllt je nach Ampel.
       function gaugeSvg(farbe, ampel){
         var frac = ampel==='gruen' ? 0.25 : ampel==='rot' ? 0.9 : 0.55;
-        var A0=Math.PI, A1=A0 - Math.PI*frac;  // von links (180°) nach oben/rechts
-        var cx=90, cy=96, r=76;
-        var x1=cx+r*Math.cos(A0), y1=cy-r*Math.sin(A0);
-        var x2=cx+r*Math.cos(A1), y2=cy-r*Math.sin(A1);
-        var large = frac>0.5?1:0;
-        var ex=cx+r*Math.cos(Math.PI), ey=cy;   // Track-Ende rechts
+        var r=76, half=Math.PI*r;                 // Länge des Halbkreis-Bogens
+        var fill=half*frac;
+        // Endpunkt-Winkel für den Zeiger-Punkt (von 180° zurück Richtung 0°).
+        var ang=Math.PI - Math.PI*frac, cx=90, cy=96;
+        var px=cx+r*Math.cos(ang), py=cy-r*Math.sin(ang);
         return '<svg width="180" height="104" viewBox="0 0 180 104" style="position:relative;">'
           + '<path d="M14 96 A76 76 0 0 1 166 96" fill="none" stroke="var(--surface2)" stroke-width="13" stroke-linecap="round"/>'
-          + '<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A76 76 0 '+large+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+farbe+'" stroke-width="13" stroke-linecap="round"/>'
-          + '<circle cx="'+x2.toFixed(1)+'" cy="'+y2.toFixed(1)+'" r="7" fill="'+farbe+'"/>'
+          + '<path d="M14 96 A76 76 0 0 1 166 96" fill="none" stroke="'+farbe+'" stroke-width="13" stroke-linecap="round" stroke-dasharray="'+fill.toFixed(1)+' '+half.toFixed(1)+'"/>'
+          + '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="7" fill="'+farbe+'"/>'
           + '</svg>';
       }
       var alterFact = (d.facts||[]).find(function(f){return f.label==='Alter';});
