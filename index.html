@@ -224,7 +224,7 @@
   <div style="margin-top:36px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center;">
     <span style="font-size:13px;color:var(--muted);">📊 Live:</span>
     <span style="font-size:24px;font-weight:700;color:var(--green);" id="holder-count">-</span>
-    <span style="font-size:13px;color:var(--muted);">registrierte Holder · nächster Meilenstein: 500</span>
+    <span style="font-size:13px;color:var(--muted);">Holder on-chain · nächster Meilenstein: 500</span>
   </div>
 </section>
 
@@ -285,40 +285,47 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 async function loadHolderCount() {
+  const el = document.getElementById('holder-count');
+  // Echte ON-CHAIN-Holderzahl (deckt sich mit Solscan) via Worker.
   try {
-    const supabase = window.supabase.createClient(
-      "https://wpxcgducfkbozecknfdw.supabase.co",
-      "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz"
-    );
-    const { count, error } = await supabase
-      .from('wallets')
-      .select('*', { count: 'exact', head: true });
-    if (error) throw error;
-    const holderCount = count || 0;
-    const displayCount = holderCount.toLocaleString('de-DE');
-    const el = document.getElementById('holder-count');
-    if (el) el.textContent = displayCount;
-    cacheHolderCount(holderCount);
+    const hr = await fetch("https://klaryx-bot.mahirgulabi.workers.dev/holders?mint=2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD");
+    const hd = await hr.json();
+    if (hd && typeof hd.holders === 'number') {
+      if (el) el.textContent = hd.holders.toLocaleString('de-DE');
+      cacheHolderCount(hd.holders);
+      return;
+    }
+    throw new Error('keine on-chain-zahl');
   } catch (err) {
-    const el = document.getElementById('holder-count');
-    if (el) el.textContent = '0';
+    // Fallback: Portal-Zahl, falls der Worker nicht antwortet.
+    try {
+      const supabase = window.supabase.createClient(
+        "https://wpxcgducfkbozecknfdw.supabase.co",
+        "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz"
+      );
+      const { count } = await supabase.from('wallets').select('*', { count: 'exact', head: true });
+      if (el) el.textContent = (count || 0).toLocaleString('de-DE');
+      cacheHolderCount(count || 0);
+    } catch (e) {
+      if (el && !el.textContent) el.textContent = '—';
+    }
   }
 }
 window.addEventListener('load', () => {
-  const cached = localStorage.getItem('klaryx_holder_cache');
-  const timestamp = localStorage.getItem('klaryx_holder_timestamp');
+  const cached = localStorage.getItem('klaryx_holder_cache_v2');
+  const timestamp = localStorage.getItem('klaryx_holder_timestamp_v2');
   const now = Date.now();
   const el = document.getElementById('holder-count');
+  // Cache nur für sofortige Erstanzeige; danach immer frisch laden.
   if (cached && timestamp && (now - parseInt(timestamp)) < 3600000) {
     if (el) el.textContent = cached;
-  } else {
-    loadHolderCount();
   }
+  loadHolderCount();
 });
 setInterval(loadHolderCount, 3600000);
 function cacheHolderCount(count) {
-  localStorage.setItem('klaryx_holder_cache', count.toLocaleString('de-DE'));
-  localStorage.setItem('klaryx_holder_timestamp', Date.now().toString());
+  localStorage.setItem('klaryx_holder_cache_v2', count.toLocaleString('de-DE'));
+  localStorage.setItem('klaryx_holder_timestamp_v2', Date.now().toString());
 }
 </script>
 <script src="partials.js"></script>
