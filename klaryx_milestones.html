@@ -142,11 +142,11 @@
 
   <!-- LIVE STATUS -->
   <div class="live-status">
-    <div class="live-label">📊 Live Community Status</div>
+    <div class="live-label">📊 Live On-Chain Status</div>
     <div class="live-count" id="holder-count">-</div>
-    <div class="live-sub">Holder registriert</div>
+    <div class="live-sub">Holder on-chain</div>
     <div style="margin-top: 20px;">
-      <a href="https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD" target="_blank" style="font-size: 12px; color: var(--accent); text-decoration: underline;">✓ Verifiziert auf Solscan</a>
+      <a href="https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD" target="_blank" style="font-size: 12px; color: var(--accent); text-decoration: underline;">✓ Auf Solscan überprüfbar</a>
     </div>
   </div>
 
@@ -299,10 +299,21 @@ async function updateMilestones() {
 
     if (error) throw error;
 
-    const holderCount = count || 0;
-    const displayCount = holderCount.toLocaleString('de-DE');
-    document.getElementById('holder-count').textContent = displayCount;
-    cacheHolderCount(holderCount);
+    const holderCount = count || 0;   // Portal-Registrierungen -> treiben die Meilensteine
+
+    // Anzeige oben: echte ON-CHAIN-Holderzahl (deckt sich mit Solscan), via Worker.
+    try {
+      const hr = await fetch("https://klaryx-bot.mahirgulabi.workers.dev/holders?mint=2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD");
+      const hd = await hr.json();
+      if (hd && typeof hd.holders === 'number') {
+        document.getElementById('holder-count').textContent = hd.holders.toLocaleString('de-DE');
+        cacheHolderCount(hd.holders);
+      } else { throw new Error('keine on-chain-zahl'); }
+    } catch (e) {
+      // Fallback: falls der Worker mal nicht antwortet, zeige die Portal-Zahl.
+      document.getElementById('holder-count').textContent = holderCount.toLocaleString('de-DE');
+      cacheHolderCount(holderCount);
+    }
 
     // Phase thresholds
     const phases = [
