@@ -535,6 +535,12 @@
             svg += '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" stroke-dashoffset="'+(-c*offset).toFixed(1)+'" transform="rotate(-90 65 65)"/>';
             offset += frac;
           });
+          // Rest bis zur Gesamt-Top-10-Zahl (falls Summe der Halter < total): neutral grau.
+          var restFrac = Math.max(0, (p/100) - offset);
+          if (restFrac > 0.001){
+            var rseg = c*restFrac;
+            svg += '<circle cx="65" cy="65" r="52" fill="none" stroke="#2a3350" stroke-width="16" stroke-dasharray="'+rseg.toFixed(1)+' '+(c-rseg).toFixed(1)+'" stroke-dashoffset="'+(-c*offset).toFixed(1)+'" transform="rotate(-90 65 65)"/>';
+          }
         } else {
           var col = p>60?'var(--rot)':p>=40?'var(--gelb)':'var(--gruen)', seg=c*p/100;
           svg += '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" transform="rotate(-90 65 65)"/>';
