@@ -70,6 +70,31 @@
       '<div style="margin-top:18px;font-size:11px;opacity:.7;">klaryx.de · © 2026 Meyro</div>' +
     '</footer>';
 
+  // ---- "Weitere Ratgeber" (nur auf Ratgeber-Seiten, interne Vernetzung/SEO) ----
+  // Erscheint automatisch vor dem Footer und verlinkt die je anderen Ratgeber + Check.
+  var RATGEBER = [
+    ["ratgeber-solana-scam-erkennen.html", "Ist dieser Solana-Coin ein Scam?"],
+    ["ratgeber-pumpfun-betrug-erkennen.html", "Betrug auf pump.fun erkennen"],
+    ["ratgeber-honeypot-erkennen.html", "Honeypot erkennen"],
+    ["ratgeber-krypto-phishing-erkennen.html", "Fake-Airdrop & Wallet-Drainer"]
+  ];
+  if (page.indexOf("ratgeber-") === 0) {
+    var andere = RATGEBER.filter(function (r) { return r[0].toLowerCase() !== page; });
+    var cards = andere.map(function (r) {
+      return '<a href="' + r[0] + '" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;text-decoration:none;color:var(--text);font-weight:600;font-size:14px;transition:border-color .15s;" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' + r[1] + ' <span style="color:var(--accent);">→</span></a>';
+    }).join("");
+    var relatedHTML =
+      '<section style="max-width:760px;margin:0 auto;padding:40px 24px 8px;border-top:1px solid var(--border);">' +
+        '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:14px;">Weitere Ratgeber</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">' + cards + '</div>' +
+        '<div style="margin-top:20px;text-align:center;">' +
+          '<a href="check.html" style="display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;padding:12px 26px;text-decoration:none;font-weight:600;font-size:15px;">Jetzt einen Coin prüfen →</a>' +
+        '</div>' +
+      '</section>';
+    var footEl = document.querySelector("footer");
+    if (footEl) footEl.insertAdjacentHTML("beforebegin", relatedHTML);
+  }
+
   // Ersetzt den vorhandenen Header/Footer jeder Seite durch die kanonische Version
   // (kein Platzhalter nötig – nur <script src="partials.js"></script> einbinden).
   // Altes Mobile-Menü zuerst entfernen, sonst gäbe es die id "khdrM" doppelt.
