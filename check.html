@@ -612,7 +612,7 @@
     var r=150, cx=600, cy=420, half=Math.PI*r, fill=half*frac;   // Scheitel bei y=270
     var ang=Math.PI - Math.PI*frac, px=cx+r*Math.cos(ang), py=cy-r*Math.sin(ang);
     var trackPath='M '+(cx-r)+' '+cy+' A '+r+' '+r+' 0 0 1 '+(cx+r)+' '+cy;
-    var titel = c.name + (c.symbol ? ' ('+c.symbol+')' : '');
+    var titel = c.name + (c.symbol && c.symbol.toLowerCase() !== c.name.toLowerCase() ? ' ('+c.symbol+')' : '');
     var svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">'
       + '<defs><radialGradient id="glow" cx="50%" cy="43%" r="42%">'
@@ -639,22 +639,19 @@
       + '<text x="600" y="580" text-anchor="middle" font-family="monospace" font-size="22" fill="#5b7fff">klaryx.de · Solana-Coins auf Betrug prüfen</text>'
       + '</svg>';
     var img = new Image();
-    var svgBlob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
-    var url = URL.createObjectURL(svgBlob);
+    // Als base64-data-URI laden (kodiert Umlaute sauber – Blob-URLs scheitern daran).
+    var b64 = btoa(unescape(encodeURIComponent(svg)));
     img.onload = function(){
       var cv = document.createElement('canvas'); cv.width=1200; cv.height=630;
       var ctx = cv.getContext('2d'); ctx.drawImage(img,0,0);
-      URL.revokeObjectURL(url);
-      cv.toBlob(function(blob){
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'klaryx-'+(c.symbol||c.name||'check').toLowerCase().replace(/[^a-z0-9]/g,'')+'.png';
-        a.click();
-        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
-      }, 'image/png');
+      // toDataURL (data:) statt toBlob (blob:) – die CSP erlaubt nur data:/https:.
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = 'klaryx-'+(c.symbol||c.name||'check').toLowerCase().replace(/[^a-z0-9]/g,'')+'.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
     };
-    img.onerror = function(){ alert('Bild konnte nicht erzeugt werden.'); URL.revokeObjectURL(url); };
-    img.src = url;
+    img.onerror = function(){ alert('Bild konnte nicht erzeugt werden.'); };
+    img.src = 'data:image/svg+xml;base64,' + b64;
   }
   function escSvg(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
 
