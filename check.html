@@ -560,8 +560,8 @@
           const tf = gf[0];
           const pctNum = parseFloat(String(tf.wert).replace('%','')) || 0;
           html += '<div style="'+gtStyle+'">'+g.title+'</div>'
-            + '<div class="panel" style="display:grid;grid-template-columns:150px 1fr;gap:24px;align-items:center;">'
-            + '<div style="text-align:center;">'+donutSvg(pctNum, tf.split)+'</div>'
+            + '<div class="panel" style="display:grid;grid-template-columns:150px 1fr;gap:24px;align-items:start;">'
+            + '<div style="text-align:center;position:sticky;top:20px;">'+donutSvg(pctNum, tf.split)+'</div>'
             + '<div><div class="peyebrow">Wer hält den Coin?</div>'
             + (tf.split && tf.split.length ? splitHtml(tf.split) : '<div style="font-size:13px;color:var(--muted);">'+esc(tf.hinweis)+'</div>')
             + '</div></div>';
@@ -575,8 +575,12 @@
       const shareUrl = 'https://klaryx.de/check.html?token=' + encodeURIComponent(d.token);
       const shareText = 'Klaryx Scam-Check für ' + titel + ' – prüf Solana-Coins auf Betrug:';
       const shBtn = 'border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 13px;font-size:12px;text-decoration:none;font-family:inherit;cursor:pointer;background:transparent;';
+      // Daten für die teilbare Bildkarte merken.
+      window.__klrxCard = { name: (d.name||'Unbekannter Token'), symbol: (d.symbol||''), token: d.token,
+        ampel: d.ampel||'gelb', wort: ampelWort, sub: ampelSub };
       html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 4px;">'
            +  '<span style="font-size:12px;color:var(--muted);">Ergebnis teilen:</span>'
+           +  '<button onclick="downloadCard()" style="'+shBtn.replace('background:transparent','background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff')+'">🖼 Als Bild</button>'
            +  '<button onclick="copyShare(\''+shareUrl+'\',this)" style="'+shBtn+'">🔗 Link kopieren</button>'
            +  '<a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl)+'" style="'+shBtn+'">X</a>'
            +  '<a target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(shareUrl)+'&text='+encodeURIComponent(shareText)+'" style="'+shBtn+'">Telegram</a>'
@@ -598,6 +602,62 @@
     }
     btn.disabled=false;
   }
+  // Teilbare Bildkarte (kompakt): Coin + Gauge + Verdikt + Logo + klaryx.de.
+  // Rendert clientseitig als PNG (1200x630, Social-Standardformat) – kein Server nötig.
+  function downloadCard(){
+    var c = window.__klrxCard; if(!c) return;
+    var farbe = { gruen:'#22d3a0', gelb:'#f5c542', rot:'#ff6b6b' }[c.ampel] || '#f5c542';
+    var frac  = c.ampel==='gruen' ? 0.25 : c.ampel==='rot' ? 0.9 : 0.55;
+    // Gauge tief genug, dass der Scheitel (cy-r) klar unter dem Coin-Namen liegt.
+    var r=150, cx=600, cy=420, half=Math.PI*r, fill=half*frac;   // Scheitel bei y=270
+    var ang=Math.PI - Math.PI*frac, px=cx+r*Math.cos(ang), py=cy-r*Math.sin(ang);
+    var trackPath='M '+(cx-r)+' '+cy+' A '+r+' '+r+' 0 0 1 '+(cx+r)+' '+cy;
+    var titel = c.name + (c.symbol ? ' ('+c.symbol+')' : '');
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">'
+      + '<defs><radialGradient id="glow" cx="50%" cy="43%" r="42%">'
+      +   '<stop offset="0%" stop-color="'+farbe+'" stop-opacity="0.10"/>'
+      +   '<stop offset="100%" stop-color="'+farbe+'" stop-opacity="0"/>'
+      + '</radialGradient></defs>'
+      + '<rect width="1200" height="630" fill="#080b12"/>'
+      + '<rect width="1200" height="630" fill="url(#glow)"/>'
+      // Logo-K oben links
+      + '<g transform="translate(70,58)"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fa4ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>'
+      + '<rect x="0" y="0" width="14" height="46" rx="3" fill="url(#lg)"/><path d="M16 23 L40 0 L50 0 L27 23 L50 46 L40 46 Z" fill="url(#lg)"/></g>'
+      + '<text x="140" y="92" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#dde0eb">Klaryx</text>'
+      + '<text x="140" y="117" font-family="monospace" font-size="15" fill="#4e5870">Solana Scam-Check</text>'
+      // Coin-Name (klar über dem Gauge, Scheitel liegt bei y=270)
+      + '<text x="600" y="200" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" font-weight="700" fill="#dde0eb">'+escSvg(titel)+'</text>'
+      // Gauge
+      + '<path d="'+trackPath+'" fill="none" stroke="#141926" stroke-width="28" stroke-linecap="round"/>'
+      + '<path d="'+trackPath+'" fill="none" stroke="'+farbe+'" stroke-width="28" stroke-linecap="round" stroke-dasharray="'+fill.toFixed(1)+' '+half.toFixed(1)+'"/>'
+      + '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="15" fill="'+farbe+'"/>'
+      // Verdikt (im Gauge-Bogen)
+      + '<text x="600" y="410" text-anchor="middle" font-family="Arial,sans-serif" font-size="58" font-weight="700" fill="'+farbe+'">'+escSvg(c.wort)+'</text>'
+      + '<text x="600" y="470" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" fill="#4e5870">'+escSvg(c.sub)+'</text>'
+      // Footer
+      + '<text x="600" y="580" text-anchor="middle" font-family="monospace" font-size="22" fill="#5b7fff">klaryx.de · Solana-Coins auf Betrug prüfen</text>'
+      + '</svg>';
+    var img = new Image();
+    var svgBlob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
+    var url = URL.createObjectURL(svgBlob);
+    img.onload = function(){
+      var cv = document.createElement('canvas'); cv.width=1200; cv.height=630;
+      var ctx = cv.getContext('2d'); ctx.drawImage(img,0,0);
+      URL.revokeObjectURL(url);
+      cv.toBlob(function(blob){
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'klaryx-'+(c.symbol||c.name||'check').toLowerCase().replace(/[^a-z0-9]/g,'')+'.png';
+        a.click();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+      }, 'image/png');
+    };
+    img.onerror = function(){ alert('Bild konnte nicht erzeugt werden.'); URL.revokeObjectURL(url); };
+    img.src = url;
+  }
+  function escSvg(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
   function copyShare(url, btn){
     const done = () => { const o = btn.textContent; btn.textContent = '✓ kopiert'; setTimeout(() => { btn.textContent = o; }, 1500); };
     if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(() => window.prompt('Link:', url)); }
