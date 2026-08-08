@@ -19,6 +19,19 @@ if not SUPABASE_SERVICE_KEY:
     raise ValueError('SUPABASE_SERVICE_ROLE_KEY Environment Variable not set!')
 
 CG = "https://api.coingecko.com/api/v3"
+KLRX_MINT = "2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD"
+HOLDERS_URL = "https://klaryx-bot.mahirgulabi.workers.dev/holders?mint=" + KLRX_MINT
+
+
+def get_onchain_holders():
+    """Echte On-Chain-Holderzahl (deckt sich mit Solscan), via Worker. None bei Fehler."""
+    try:
+        d = requests.get(HOLDERS_URL, timeout=15).json()
+        h = d.get("holders")
+        return h if isinstance(h, int) else None
+    except Exception as e:
+        print(f"WARN On-Chain-Holder-Fehler: {e}")
+        return None
 
 
 def get_week_info():
@@ -33,7 +46,9 @@ def get_klaryx_community_metrics():
                    "Content-Type": "application/json"}
         url = f"{SUPABASE_URL}/rest/v1/wallets?select=wallet_address,registered_at,badge,tier,einladungen"
         wallets = requests.get(url, headers=headers, timeout=10).json()
-        total = len(wallets)
+        portal_total = len(wallets)                      # registrierte Wallets (für Prozente)
+        onchain_total = get_onchain_holders()            # echte Holderzahl (deckt sich mit Solscan)
+        total = onchain_total if onchain_total is not None else portal_total
         today = datetime.now()
         week_start = today - timedelta(days=today.weekday())
         new_this_week = sum(1 for w in wallets if w.get('registered_at') and
@@ -44,7 +59,8 @@ def get_klaryx_community_metrics():
             badge_counts[w.get('badge', 'Free')] = badge_counts.get(w.get('badge', 'Free'), 0) + 1
             tier_counts[w.get('tier', 'Free')] = tier_counts.get(w.get('tier', 'Free'), 0) + 1
         total_referrals = sum((w.get('einladungen', 0) or 0) for w in wallets)
-        return {'total_wallets': total, 'new_this_week': new_this_week,
+        # total_wallets = angezeigte Holder-Zahl (on-chain); portal_wallets = Registrierungen für Verteilungs-%.
+        return {'total_wallets': total, 'portal_wallets': portal_total, 'new_this_week': new_this_week,
                 'top_referrers': top_referrers, 'badge_distribution': badge_counts,
                 'tier_distribution': tier_counts, 'total_referrals': total_referrals}
     except Exception as e:
@@ -137,9 +153,10 @@ def block_market(market):
 
 
 def block_community(metrics):
-    total = metrics['total_wallets']
+    total = metrics['total_wallets']                       # on-chain Holder (angezeigt)
+    portal = metrics.get('portal_wallets', total)          # Registrierungen (für Wachstums-%)
     new = metrics['new_this_week']
-    growth = (new / total * 100) if total > 0 else 0
+    growth = (new / portal * 100) if portal > 0 else 0
     return f"""
     <div style="background: rgba(34,211,160,0.05); border:1px solid rgba(34,211,160,0.2); padding:20px; border-radius:8px; margin:15px 0;">
       <h3 style="color:#22d3a0; margin-top:0;">Klaryx Community</h3>
@@ -174,8 +191,9 @@ def block_solana(market):
 
 def block_intel(metrics):
     badge_rows = ""
+    _pbase = metrics.get('portal_wallets', metrics['total_wallets'])
     for badge, count in sorted(metrics['badge_distribution'].items(), key=lambda x: x[1], reverse=True):
-        pct = (count / metrics['total_wallets'] * 100) if metrics['total_wallets'] > 0 else 0
+        pct = (count / _pbase * 100) if _pbase > 0 else 0
         badge_rows += f'<li>{badge}: <strong>{count}</strong> ({pct:.1f}%)</li>'
     ref_rows = ""
     for w in [x for x in metrics['top_referrers'] if (x.get('einladungen', 0) or 0) > 0][:5]:

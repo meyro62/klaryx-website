@@ -23,6 +23,23 @@ TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')
 
 
+KLRX_MINT = "2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD"
+HOLDERS_URL = "https://klaryx-bot.mahirgulabi.workers.dev/holders?mint=" + KLRX_MINT
+
+
+def get_onchain_holders():
+    """Echte On-Chain-Holderzahl (deckt sich mit Solscan), via Worker."""
+    try:
+        req = urllib.request.Request(HOLDERS_URL, headers={"User-Agent": "Klaryx-Announce/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            d = json.loads(r.read().decode())
+        h = d.get("holders")
+        return h if isinstance(h, int) else None
+    except Exception as e:
+        print(f"WARN On-Chain-Holder-Fehler: {e}")
+        return None
+
+
 def get_stats():
     try:
         req = urllib.request.Request(
@@ -30,9 +47,12 @@ def get_stats():
             headers={"apikey": SERVICE_KEY, "Authorization": f"Bearer {SERVICE_KEY}"})
         with urllib.request.urlopen(req, timeout=20) as r:
             wallets = json.loads(r.read().decode())
-        total = len(wallets)
+        # Gesamt-Holder = echte On-Chain-Zahl (deckt sich mit Solscan). Fallback: Portal-Registrierungen.
+        onchain = get_onchain_holders()
+        total = onchain if onchain is not None else len(wallets)
         today = datetime.now()
         week_start = today - timedelta(days=today.weekday())
+        # "Neue diese Woche" bleibt aus der Portal-DB (on-chain ist das nicht zuverlässig ableitbar).
         new = sum(1 for w in wallets if w.get('registered_at') and
                   datetime.fromisoformat(w['registered_at']).date() >= week_start.date())
         top = max(wallets, key=lambda w: w.get('einladungen', 0) or 0, default=None)
