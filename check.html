@@ -527,9 +527,18 @@
         var svg = '<svg width="130" height="130" viewBox="0 0 130 130">'
           + '<circle cx="65" cy="65" r="52" fill="none" stroke="var(--surface2)" stroke-width="16"/>';
         if (split && split.length){
+          // Sortieren: erst nach Farbe (grün → gelb → rot), innerhalb der Farbe nach % aufsteigend.
+          // So beginnt der Donut bei 12 Uhr mit Grün und läuft geordnet durch.
+          var farbRang = { pool:0, burn:0, creator:0, unknown:1 };   // grün=0, gelb=1 (rot=2 bei künftigen Kinds)
+          var geordnet = split.slice().sort(function(a,b){
+            var ra = farbRang[a.kind] != null ? farbRang[a.kind] : 1;
+            var rb = farbRang[b.kind] != null ? farbRang[b.kind] : 1;
+            if (ra !== rb) return ra - rb;              // Farbgruppe zuerst
+            return (b.pct||0) - (a.pct||0);             // innerhalb: größte zuerst
+          });
           // Jedes Split-Segment mit seiner Farbe, aneinandergereiht (Anteil an 100% Supply).
           var offset = 0;
-          split.forEach(function(h){
+          geordnet.forEach(function(h){
             var frac = (h.pct||0)/100, seg = c*frac;
             var col = kindFarbe[h.kind] || 'var(--gelb)';
             svg += '<circle cx="65" cy="65" r="52" fill="none" stroke="'+col+'" stroke-width="16" stroke-dasharray="'+seg.toFixed(1)+' '+(c-seg).toFixed(1)+'" stroke-dashoffset="'+(-c*offset).toFixed(1)+'" transform="rotate(-90 65 65)"/>';
