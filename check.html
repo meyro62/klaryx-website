@@ -580,7 +580,7 @@
         ampel: d.ampel||'gelb', wort: ampelWort, sub: ampelSub };
       html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 4px;">'
            +  '<span style="font-size:12px;color:var(--muted);">Ergebnis teilen:</span>'
-           +  '<button onclick="downloadCard()" style="'+shBtn.replace('background:transparent','background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff')+'">🖼 Als Bild</button>'
+           +  '<button onclick="downloadCard()" style="'+shBtn.replace('background:transparent','background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff')+'">'+((navigator.canShare) ? '🖼 Bild teilen' : '🖼 Als Bild')+'</button>'
            +  '<button onclick="copyShare(\''+shareUrl+'\',this)" style="'+shBtn+'">🔗 Link kopieren</button>'
            +  '<a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl)+'" style="'+shBtn+'">X</a>'
            +  '<a target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(shareUrl)+'&text='+encodeURIComponent(shareText)+'" style="'+shBtn+'">Telegram</a>'
@@ -644,14 +644,31 @@
     img.onload = function(){
       var cv = document.createElement('canvas'); cv.width=1200; cv.height=630;
       var ctx = cv.getContext('2d'); ctx.drawImage(img,0,0);
-      // toDataURL (data:) statt toBlob (blob:) – die CSP erlaubt nur data:/https:.
-      var a = document.createElement('a');
-      a.href = cv.toDataURL('image/png');
-      a.download = 'klaryx-'+(c.symbol||c.name||'check').toLowerCase().replace(/[^a-z0-9]/g,'')+'.png';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      var fname = 'klaryx-'+(c.symbol||c.name||'check').toLowerCase().replace(/[^a-z0-9]/g,'')+'.png';
+      var shareUrl = 'https://klaryx.de/check.html?token=' + encodeURIComponent(c.token);
+      var shareText = 'Klaryx Scam-Check für ' + (c.name||'diesen Coin') + ' – prüf Solana-Coins auf Betrug: ' + shareUrl;
+      cv.toBlob(function(blob){
+        if(!blob){ downloadDataUrl(cv, fname); return; }
+        var file = new File([blob], fname, { type: 'image/png' });
+        // 1) Wenn der Browser Datei-Teilen kann (Handys + moderne Desktops): Teilen-Menü MIT Bild.
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'Klaryx Scam-Check', text: shareText })
+            .catch(function(){ /* Nutzer hat abgebrochen – nichts tun */ });
+        } else {
+          // 2) Fallback (ältere Desktops): Bild herunterladen.
+          downloadDataUrl(cv, fname);
+        }
+      }, 'image/png');
     };
     img.onerror = function(){ alert('Bild konnte nicht erzeugt werden.'); };
     img.src = 'data:image/svg+xml;base64,' + b64;
+  }
+  // Bild als Download speichern (data:-URL, CSP-konform).
+  function downloadDataUrl(cv, fname){
+    var a = document.createElement('a');
+    a.href = cv.toDataURL('image/png');
+    a.download = fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
   function escSvg(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
 
