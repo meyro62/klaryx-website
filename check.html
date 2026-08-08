@@ -510,7 +510,7 @@
              +  (f.split && f.split.length ? '' : '<div class="val">'+esc(f.wert)+'</div>')
              +  (f.split && f.split.length ? splitHtml(f.split) : '')
              +  '<div class="hin">'+esc(f.hinweis)
-             +  (f.link ? ' <a href="'+esc(f.link)+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;white-space:nowrap;">'+esc(f.linkText||'ansehen ↗')+'</a>' : '')
+             +  (f.link ? '<a href="'+esc(f.link)+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:inline-block;margin-top:6px;">'+esc(f.linkText||'ansehen ↗')+'</a>' : '')
              +  '</div></div>';
       const GROUPS = [
         { title: 'Kontrolle des Erstellers', labels: ['Mint Authority','Freeze Authority','Metadaten','Ersteller-Wallet'] },
