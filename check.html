@@ -582,9 +582,6 @@
            +  '<span style="font-size:12px;color:var(--muted);">Ergebnis teilen:</span>'
            +  '<button onclick="downloadCard()" style="'+shBtn.replace('background:transparent','background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff')+'">'+(klrxCanShareFiles() ? '🖼 Bild teilen' : '🖼 Als Bild')+'</button>'
            +  '<button onclick="copyShare(\''+shareUrl+'\',this)" style="'+shBtn+'">🔗 Link kopieren</button>'
-           +  '<a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl)+'" style="'+shBtn+'">X</a>'
-           +  '<a target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(shareUrl)+'&text='+encodeURIComponent(shareText)+'" style="'+shBtn+'">Telegram</a>'
-           +  '<a target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(shareText+' '+shareUrl)+'" style="'+shBtn+'">WhatsApp</a>'
            +  '</div>';
       html += '<div style="border:1px solid rgba(91,127,255,.35);border-radius:12px;padding:14px 16px;margin-top:16px;background:rgba(91,127,255,.06);">'
            +  '<div style="font-size:14px;font-weight:600;margin-bottom:4px;">Diesen Coin im Auge behalten?</div>'
