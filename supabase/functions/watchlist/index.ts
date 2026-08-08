@@ -27,11 +27,16 @@ function validAddr(a: unknown): a is string {
   try { return typeof a === "string" && bs58.decode(a).length === 32; } catch { return false; }
 }
 
-// Tier + Limit aus der Zahl der geworbenen Wallets (wie im Sender)
+// Tier + Wächter-Plätze aus der Zahl der geworbenen Wallets.
+// Gestaffelt über alle Badge-Stufen, damit frühe Nutzer schon Belohnung spüren
+// (kein leeres Loch mehr zwischen Free und Platin).
 function limitForRefs(refs: number): { tier: string; limit: number } {
-  if (refs >= 50) return { tier: "Tiefe", limit: 20 };
-  if (refs >= 25) return { tier: "Einblick", limit: 5 };
-  return { tier: "Free", limit: 1 };
+  if (refs >= 50) return { tier: "Tiefe", limit: 25 };     // Diamant
+  if (refs >= 25) return { tier: "Einblick", limit: 10 };  // Platin
+  if (refs >= 10) return { tier: "Free", limit: 5 };       // Gold
+  if (refs >= 5)  return { tier: "Free", limit: 3 };       // Silber
+  if (refs >= 1)  return { tier: "Free", limit: 2 };       // Bronze
+  return { tier: "Free", limit: 1 };                        // Free
 }
 
 Deno.serve(async (req) => {

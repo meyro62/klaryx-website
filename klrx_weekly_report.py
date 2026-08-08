@@ -131,22 +131,25 @@ def generate_disclaimer():
 
 
 def block_market(market):
-    if not market['majors']:
-        return '<p style="color:#4e5870;font-size:13px;">Marktdaten aktuell nicht verfuegbar.</p>'
+    # Solana-fokussiert: Top-Solana-Token nach Volumen (passt zum Klaryx-Thema),
+    # statt generischer BTC/ETH/SOL-Übersicht. Free zeigt die Top 5, Details in Einblick/Tiefe.
+    coins = market.get('solana_top') or []
+    if not coins:
+        return '<p style="color:#4e5870;font-size:13px;">Solana-Marktdaten aktuell nicht verfuegbar.</p>'
     rows = ""
-    for c in market['majors']:
+    for c in coins[:5]:
         rows += (f'<tr><td style="padding:8px;"><strong>{c["symbol"]}</strong> '
                  f'<span style="color:#4e5870;">{c["name"]}</span></td>'
                  f'<td style="padding:8px;text-align:right;">{_usd(c["price"])}</td>'
-                 f'<td style="padding:8px;text-align:right;">{_pct(c["ch24h"])}</td>'
-                 f'<td style="padding:8px;text-align:right;">{_pct(c["ch7d"])}</td></tr>')
+                 f'<td style="padding:8px;text-align:right;">{_pct(c.get("ch7d"))}</td></tr>')
     return f"""
     <div style="background: rgba(91,127,255,0.05); border:1px solid rgba(91,127,255,0.2); padding:20px; border-radius:8px; margin:15px 0;">
-      <h3 style="color:#5b7fff; margin-top:0;">Marktueberblick</h3>
+      <h3 style="color:#5b7fff; margin-top:0;">Solana-Marktueberblick</h3>
+      <p style="color:#4e5870; font-size:12px; margin:0 0 10px;">Top-Token im Solana-Oekosystem nach Handelsvolumen. Rein beschreibend.</p>
       <table style="width:100%; border-collapse:collapse; font-size:13px; color:#dde0eb;">
         <tr style="color:#4e5870; font-size:11px; text-transform:uppercase;">
-          <td style="padding:8px;">Coin</td><td style="padding:8px;text-align:right;">Preis</td>
-          <td style="padding:8px;text-align:right;">24h</td><td style="padding:8px;text-align:right;">7 Tage</td></tr>
+          <td style="padding:8px;">Token</td><td style="padding:8px;text-align:right;">Preis</td>
+          <td style="padding:8px;text-align:right;">7 Tage</td></tr>
         {rows}
       </table>
     </div>"""
