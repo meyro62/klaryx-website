@@ -580,7 +580,7 @@
         ampel: d.ampel||'gelb', wort: ampelWort, sub: ampelSub };
       html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 4px;">'
            +  '<span style="font-size:12px;color:var(--muted);">Ergebnis teilen:</span>'
-           +  '<button onclick="downloadCard()" style="'+shBtn.replace('background:transparent','background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff')+'">'+((navigator.canShare) ? '🖼 Bild teilen' : '🖼 Als Bild')+'</button>'
+           +  '<button onclick="downloadCard()" style="'+shBtn.replace('background:transparent','background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff')+'">'+(klrxCanShareFiles() ? '🖼 Bild teilen' : '🖼 Als Bild')+'</button>'
            +  '<button onclick="copyShare(\''+shareUrl+'\',this)" style="'+shBtn+'">🔗 Link kopieren</button>'
            +  '<a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl)+'" style="'+shBtn+'">X</a>'
            +  '<a target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(shareUrl)+'&text='+encodeURIComponent(shareText)+'" style="'+shBtn+'">Telegram</a>'
@@ -662,6 +662,14 @@
     };
     img.onerror = function(){ alert('Bild konnte nicht erzeugt werden.'); };
     img.src = 'data:image/svg+xml;base64,' + b64;
+  }
+  // Prüft, ob der Browser Datei-Teilen kann (für den Button-Text).
+  function klrxCanShareFiles(){
+    try {
+      if(!navigator.canShare) return false;
+      var f = new File([new Blob(['x'],{type:'image/png'})],'t.png',{type:'image/png'});
+      return navigator.canShare({ files:[f] });
+    } catch(e){ return false; }
   }
   // Bild als Download speichern (data:-URL, CSP-konform).
   function downloadDataUrl(cv, fname){
