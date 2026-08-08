@@ -11,6 +11,7 @@
     ["check.html", "Klartext-Check"],
     ["link-check.html", "Link-Check"],
     ["warnliste.html", "Warnliste"],
+    ["analyse.html", "Analyse"],
     ["markt.html", "Markt"],
     ["watchlist.html", "Wächter"],
     ["lernpfad.html", "Lernpfad"],
@@ -62,7 +63,7 @@
   var footerHTML =
     '<footer style="text-align:center;padding:40px 24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">' +
       '<div style="font-size:11px;opacity:.8;margin-bottom:18px;">$KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko</div>' +
-      grp("Werkzeuge", [["check.html", "Klartext-Check"], ["link-check.html", "Link-Check"], ["warnliste.html", "Warnliste"], ["markt.html", "Markt"], ["watchlist.html", "Wächter"]]) +
+      grp("Werkzeuge", [["check.html", "Klartext-Check"], ["link-check.html", "Link-Check"], ["warnliste.html", "Warnliste"], ["analyse.html", "Analyse"], ["markt.html", "Markt"], ["watchlist.html", "Wächter"]]) +
       grp("Lernen", [["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"], ["lernpfad.html", "Lernpfad"], ["check.html#warnzeichen", "Sicherheit"]]) +
       grp("Projekt", [["ueber-klrx.html", "Über den Token"], ["klaryx_milestones.html", "Meilensteine"], ["klaryx_halloffame.html", "Hall of Fame"], ["portal.html", "Portal"], ["klaryx_wallet_setup.html", "Wallet Setup"], ["https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD", "Solscan", true]]) +
       grp("Rechtliches", [["klaryx_impressum.html", "Impressum"], ["klaryx_datenschutz.html", "Datenschutz"], ["klaryx_disclaimer.html", "Disclaimer"], ["klaryx_legal.html", "Rechtliche Hinweise"], ["mailto:info@klaryx.de", "Kontakt"]]) +
