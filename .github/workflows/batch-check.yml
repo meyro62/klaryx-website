@@ -1,0 +1,38 @@
+name: Batch Coin Check
+
+# Füllt die Analyse-Datenbank: prüft frische Solana-Coins über den Klaryx-Check.
+# Manuell startbar (workflow_dispatch) UND täglich automatisch (selbstfütternde DB).
+on:
+  workflow_dispatch:
+    inputs:
+      anzahl:
+        description: 'Wie viele Coins prüfen?'
+        required: false
+        default: '300'
+  schedule:
+    - cron: '0 6 * * *'   # täglich 06:00 UTC – hält die Datenbank frisch
+
+jobs:
+  batch_check:
+    runs-on: ubuntu-latest
+    name: Frische Coins durch den Klaryx-Check jagen
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Batch-Check ausführen
+        env:
+          ANZAHL: ${{ github.event.inputs.anzahl || '300' }}
+        run: |
+          echo "🔎 Starte Batch-Check ($ANZAHL Coins)…"
+          node .github/scripts/batch_check.mjs
+
+      - name: Fertig
+        run: echo "✅ Batch-Check abgeschlossen – Daten sind in check_analytics. Siehe klaryx.de/analyse.html"
