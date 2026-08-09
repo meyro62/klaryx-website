@@ -59,7 +59,7 @@ const PUB="sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
 const C={gruen:'#22d3a0',gelb:'#f5c542',rot:'#ff6b6b',accent:'#5b7fff',accent2:'#a78bfa',muted:'#4e5870',grid:'#1a2236',text:'#dde0eb',bg:'#080b12'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const p2=n=>String(n).padStart(2,'0');
-function fmtDate(s){ if(!s) return '–'; const d=new Date(s); if(isNaN(d)) return '–'; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+'. '+p2(d.getHours())+':'+p2(d.getMinutes()); }
+function fmtDate(s){ if(!s) return '–'; const d=new Date(s); if(isNaN(d)) return '–'; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+'.'+d.getFullYear()+' '+p2(d.getHours())+':'+p2(d.getMinutes()); }
 function copyMint(addr,el){
   const done=ok=>{ const o=el.innerHTML; el.innerHTML=ok?'✓':'✕'; el.classList.toggle('ok',ok); setTimeout(()=>{el.innerHTML=o;el.classList.remove('ok');},1200); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(addr).then(()=>done(true)).catch(()=>done(false)); }
@@ -67,36 +67,38 @@ function copyMint(addr,el){
 }
 
 async function load(){
-  let rows=[];
+  let d;
   try{
-    const r=await fetch(SB+"/rest/v1/check_analytics?select=token_address,name,symbol,ampel,listed,mint_active,freeze_active,liquidity_usd,top10_pct,age_days,checked_at&order=checked_at.desc&limit=2000",
-      {headers:{apikey:PUB,Authorization:"Bearer "+PUB}});
-    rows=await r.json();
+    // Server-seitige Aggregation: rechnet über ALLE Zeilen (dedupliziert pro Coin),
+    // umgeht das 1000-Zeilen-Limit von PostgREST. Antwort ist ein fertiges JSON.
+    const r=await fetch(SB+"/rest/v1/rpc/analytics_summary",
+      {method:"POST",headers:{apikey:PUB,Authorization:"Bearer "+PUB,"Content-Type":"application/json"},body:JSON.stringify({p_recent:20})});
+    d=await r.json();
   }catch(e){ document.getElementById('content').innerHTML='<div class="loading">Daten derzeit nicht verfügbar.</div>'; return; }
-  // Test-Reste rausfiltern (nur echte Solana-Adressen, 32-44 Base58)
-  rows=(rows||[]).filter(x=>/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(x.token_address));
-  if(!rows.length){ document.getElementById('content').innerHTML='<div class="loading">Noch keine Daten – sobald Coins geprüft werden, erscheint hier die Auswertung.</div>'; return; }
-  render(rows);
+  if(!d || d.total_checks==null || d.coins===0){ document.getElementById('content').innerHTML='<div class="loading">Noch keine Daten – sobald Coins geprüft werden, erscheint hier die Auswertung.</div>'; return; }
+  render(d);
 }
 
-function render(rows){
-  // --- Kennzahlen ---
-  const total=rows.length;
-  const uniq=new Set(rows.map(r=>r.token_address)).size;
-  const amp={gruen:0,gelb:0,rot:0};
-  rows.forEach(r=>{ if(amp[r.ampel]!=null) amp[r.ampel]++; });
-  const top10vals=rows.map(r=>r.top10_pct).filter(v=>v!=null);
-  const avgTop10=top10vals.length?(top10vals.reduce((a,b)=>a+b,0)/top10vals.length):null;
-  const mintAktiv=rows.filter(r=>r.mint_active===true).length;
-  const nichtGelistet=rows.filter(r=>r.listed===false).length;
+function render(d){
+  // --- Kennzahlen (server-seitig aggregiert, pro Coin dedupliziert) ---
+  const total=d.total_checks;                 // alle Checks (Historie)
+  const uniq=d.coins;                          // verschiedene Coins
+  const amp={gruen:d.gruen||0,gelb:d.gelb||0,rot:d.rot||0};
+  const avgTop10=d.avg_top10;                  // Ø über eindeutige Coins
+  const mintAktiv=d.mint_aktiv||0;
+  const nichtGelistet=d.nicht_gelistet||0;
+  const buckets=Array.isArray(d.buckets)?d.buckets:[0,0,0,0,0];
+  const recent=Array.isArray(d.recent)?d.recent:[];
 
   const html=`
   <div class="kpis">
     <div class="kpi"><div class="val">${total}</div><div class="lbl">Checks gesamt</div></div>
     <div class="kpi"><div class="val">${uniq}</div><div class="lbl">Verschiedene Coins</div></div>
     <div class="kpi"><div class="val" style="color:${C.rot}">${amp.rot}</div><div class="lbl">🔴 Auffällig (rot)</div></div>
-    <div class="kpi"><div class="val">${avgTop10!=null?avgTop10.toFixed(0)+'%':'—'}</div><div class="lbl">Ø Top-10-Holder</div></div>
+    <div class="kpi"><div class="val">${avgTop10!=null?avgTop10+'%':'—'}</div><div class="lbl">Ø Top-10-Holder</div></div>
   </div>
+
+  <p class="sub" style="margin:-6px 0 20px;font-size:12.5px;">Diagramme zählen je <strong>eindeutigem Coin</strong> (jeweils neuester Check). „Checks gesamt" zeigt die volle Historie.</p>
 
   <div class="grid2">
     <div class="panel"><h3>Ampel-Verteilung</h3><div class="chartbox"><canvas id="chAmpel"></canvas></div></div>
@@ -107,7 +109,7 @@ function render(rows){
 
   <div class="panel"><h3>Zuletzt geprüfte Coins</h3>
     <div class="twrap"><table><thead><tr><th>Coin</th><th>Ampel</th><th>Top-10</th><th>Liquidität</th><th>Alter</th><th>Geprüft</th></tr></thead>
-    <tbody>${rows.slice(0,15).map(r=>`<tr>
+    <tbody>${recent.map(r=>`<tr>
       <td class="nowrap">${esc(r.name||r.token_address.slice(0,6)+'…')} <span style="color:var(--muted);font-size:11px;">${esc(r.symbol||'')}</span><button class="copybtn" title="Mint-Adresse kopieren" onclick="copyMint('${esc(r.token_address)}',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></td>
       <td><span class="amp" style="background:${C[r.ampel]||C.muted}"></span>${esc(r.ampel||'–')}</td>
       <td class="mono">${r.top10_pct!=null?r.top10_pct.toFixed(1)+'%':'–'}</td>
@@ -130,9 +132,7 @@ function render(rows){
     data:{labels:['Mint aktiv','Nicht gelistet'],datasets:[{data:[mintAktiv,nichtGelistet],backgroundColor:[C.gelb,C.accent],borderRadius:6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:C.grid}},y:{grid:{color:C.grid},beginAtZero:true,ticks:{precision:0}}}}});
 
-  // Holder-Konzentration Histogramm (Buckets)
-  const buckets=[0,0,0,0,0]; // <20,20-40,40-60,60-80,>80
-  top10vals.forEach(v=>{ const i=v<20?0:v<40?1:v<60?2:v<80?3:4; buckets[i]++; });
+  // Holder-Konzentration Histogramm – Buckets kommen fertig vom Server (d.buckets)
   new Chart(document.getElementById('chConc'),{type:'bar',
     data:{labels:['<20%','20–40%','40–60%','60–80%','>80%'],datasets:[{data:buckets,backgroundColor:[C.gruen,C.gruen,C.gelb,C.rot,C.rot],borderRadius:6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:C.grid}},y:{grid:{color:C.grid},beginAtZero:true,ticks:{precision:0}}}}});
