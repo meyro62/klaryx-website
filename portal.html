@@ -224,9 +224,10 @@
 
     <!-- CSV-EXPORT SECTION (exklusiv für registrierte KLRX-Halter, jedes Tier) -->
     <div class="report-section" style="background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px;">
-      <h3 style="color: var(--accent2); margin-bottom: 8px;">📥 Scan-Datensatz (CSV)</h3>
-      <p style="font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6;">Exklusiv für registrierte KLRX-Halter: der komplette, deduplizierte Klaryx-Prüfdatensatz – ein Coin, eine Zeile, jeweils neuester Stand. Reine beschreibende On-Chain-Fakten, keine Anlageberatung.</p>
-      <button id="csvBtn" onclick="downloadKlaryxCsv()" style="width: auto;">CSV herunterladen</button>
+      <h3 style="color: var(--accent2); margin-bottom: 8px;">📥 Scan-Datensatz</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6;">Exklusiv für registrierte KLRX-Halter: der komplette, deduplizierte Klaryx-Prüfdatensatz – ein Coin, eine Zeile, jeweils neuester Stand. Als <strong>CSV</strong> (für Excel) oder <strong>JSON</strong> (zum Weiterverarbeiten). Reine beschreibende On-Chain-Fakten, keine Anlageberatung.</p>
+      <button id="csvBtn" onclick="downloadKlaryxData('csv')" style="width: auto;">CSV herunterladen</button>
+      <button id="jsonBtn" onclick="downloadKlaryxData('json')" style="width: auto; margin-left: 8px;">Als JSON</button>
     </div>
 
     <!-- REPORTS SECTION -->
@@ -836,13 +837,14 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
     alert('Link kopiert!');
   }
 
-  // CSV-Export – exklusiv für registrierte KLRX-Halter. Nutzt denselben Signatur-Proof
-  // wie die Registrierung; die Edge Function "export" prüft Signatur + Halter-Status
-  // und liefert den Datensatz als CSV zurück.
-  async function downloadKlaryxCsv() {
+  // Datensatz-Export (CSV oder JSON) – exklusiv für registrierte KLRX-Halter. Nutzt denselben
+  // Signatur-Proof wie die Registrierung; die Edge Function "export" prüft Signatur + Halter-Status
+  // und liefert den Datensatz im gewählten Format zurück.
+  async function downloadKlaryxData(format) {
+    format = (format === 'json') ? 'json' : 'csv';
     const wallet = currentWallet;
     if (!wallet) { alert('Bitte zuerst deine Wallet verbinden.'); return; }
-    const btn = document.getElementById('csvBtn');
+    const btn = document.getElementById(format === 'json' ? 'jsonBtn' : 'csvBtn');
     const label = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = 'Signatur anfordern…'; }
     try {
@@ -850,10 +852,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
       if (!proof || !proof.signature) { if (btn) { btn.disabled = false; btn.textContent = label; } return; }
       if (btn) btn.textContent = 'Lade Datensatz…';
       const SB_URL = 'https://wpxcgducfkbozecknfdw.supabase.co';
-      const resp = await fetch(`${SB_URL}/functions/v1/export`, {
+      const resp = await fetch(`${SB_URL}/functions/v1/export` + (format === 'json' ? '?format=json' : ''), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: wallet, message: proof.message, signature: proof.signature })
+        body: JSON.stringify({ wallet: wallet, message: proof.message, signature: proof.signature, format: format })
       });
       if (!resp.ok) {
         let e = {}; try { e = await resp.json(); } catch (_) {}
@@ -861,17 +863,18 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
         if (btn) { btn.disabled = false; btn.textContent = label; }
         return;
       }
-      const csv = await resp.text();
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const text = await resp.text();
+      const mime = format === 'json' ? 'application/json' : 'text/csv';
+      const blob = new Blob([text], { type: mime + ';charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'klaryx-scancheck-' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.download = 'klaryx-scancheck-' + new Date().toISOString().slice(0, 10) + '.' + format;
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
       if (btn) { btn.textContent = '✓ Heruntergeladen'; setTimeout(() => { btn.textContent = label; btn.disabled = false; }, 1800); }
     } catch (err) {
-      console.error('CSV-Export Fehler:', err);
+      console.error('Datensatz-Export Fehler:', err);
       alert('Export-Fehler: ' + ((err && err.message) || err));
       if (btn) { btn.disabled = false; btn.textContent = label; }
     }
