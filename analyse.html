@@ -86,9 +86,11 @@ function render(d){
   const amp={gruen:d.gruen||0,gelb:d.gelb||0,rot:d.rot||0};
   const avgTop10=d.avg_top10;                  // Ø über eindeutige Coins
   const mintAktiv=d.mint_aktiv||0;
-  const nichtGelistet=d.nicht_gelistet||0;
+  const freezeAktiv=d.freeze_aktiv||0;
+  const metaMutable=d.meta_mutable||0;
   const buckets=Array.isArray(d.buckets)?d.buckets:[0,0,0,0,0];
   const recent=Array.isArray(d.recent)?d.recent:[];
+  const worsened=Array.isArray(d.worsened)?d.worsened:[];
 
   const html=`
   <div class="kpis">
@@ -106,6 +108,19 @@ function render(d){
   </div>
 
   <div class="panel" style="margin-bottom:16px;"><h3>Holder-Konzentration (Verteilung der geprüften Coins)</h3><div class="chartbox"><canvas id="chConc"></canvas></div></div>
+
+  <div class="panel" style="margin-bottom:16px;">
+    <h3>Liquidität eingebrochen <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;">· im Beobachtungszeitraum</span></h3>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px;">Coins, deren Liquidität seit unserer ersten Messung um mindestens die Hälfte gefallen ist – ein mögliches Zeichen für einen Rugpull im Gange. Rein beschreibende Tatsache über die Vergangenheit, keine Handelsempfehlung.</p>
+    ${worsened.length ? `<div class="twrap"><table><thead><tr><th>Coin</th><th>Liquidität früher</th><th>jetzt</th><th>Änderung</th><th>Zuletzt</th></tr></thead>
+    <tbody>${worsened.map(w=>`<tr>
+      <td class="nowrap">${esc(w.name||w.token_address.slice(0,6)+'…')} <span style="color:var(--muted);font-size:11px;">${esc(w.symbol||'')}</span><button class="copybtn" title="Mint-Adresse kopieren" onclick="copyMint('${esc(w.token_address)}',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></td>
+      <td class="mono">$${Math.round(w.liq_first).toLocaleString('de-DE')}</td>
+      <td class="mono">$${Math.round(w.liq_now).toLocaleString('de-DE')}</td>
+      <td class="mono" style="color:var(--rot);font-weight:600;">${w.liq_change_pct}%</td>
+      <td class="mono nowrap" style="color:var(--muted);font-size:11.5px">${fmtDate(w.last_at)}</td>
+    </tr>`).join('')}</tbody></table></div>` : `<p style="color:var(--muted);padding:8px 0 4px;font-size:13.5px;">Aktuell kein auffälliger Liquiditäts-Einbruch unter den geprüften Coins – oder noch zu wenig Verlaufsdaten. Diese Ansicht wird über die Zeit aussagekräftiger, je öfter Coins mehrfach geprüft werden.</p>`}
+  </div>
 
   <div class="panel"><h3>Zuletzt geprüfte Coins</h3>
     <div class="twrap"><table><thead><tr><th>Coin</th><th>Ampel</th><th>Top-10</th><th>Liquidität</th><th>Alter</th><th>Geprüft</th></tr></thead>
@@ -127,10 +142,11 @@ function render(d){
     data:{labels:['Grün ('+amp.gruen+')','Gelb ('+amp.gelb+')','Rot ('+amp.rot+')'],datasets:[{data:[amp.gruen,amp.gelb,amp.rot],backgroundColor:[C.gruen,C.gelb,C.rot],borderColor:C.bg,borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>' '+c.label.replace(/\s*\(\d+\)$/,'')+': '+c.parsed}}}}});
 
-  // Ersteller-Flags (Balken)
+  // Ersteller-Kontrolle (Balken) – die drei Hebel, die ein Ersteller nachträglich missbrauchen kann.
+  // Je weniger, desto besser: Mint aus = kein Nachprägen, Freeze aus = kein Einfrieren, Metadaten fix = keine Umbenennung.
   new Chart(document.getElementById('chFlags'),{type:'bar',
-    data:{labels:['Mint aktiv','Nicht gelistet'],datasets:[{data:[mintAktiv,nichtGelistet],backgroundColor:[C.gelb,C.accent],borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:C.grid}},y:{grid:{color:C.grid},beginAtZero:true,ticks:{precision:0}}}}});
+    data:{labels:['Mint aktiv','Freeze aktiv','Metadaten veränderbar'],datasets:[{data:[mintAktiv,freezeAktiv,metaMutable],backgroundColor:[C.rot,C.rot,C.gelb],borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.parsed+' von '+uniq+' Coins'}}},scales:{x:{grid:{color:C.grid}},y:{grid:{color:C.grid},beginAtZero:true,ticks:{precision:0}}}}});
 
   // Holder-Konzentration Histogramm – Buckets kommen fertig vom Server (d.buckets)
   new Chart(document.getElementById('chConc'),{type:'bar',
