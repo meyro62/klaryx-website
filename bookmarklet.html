@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klaryx-Bookmarklet – Coin-Check mit einem Klick aus dem Chart</title>
+<meta name="description" content="Ein Klick vom DEX-Chart zum Klaryx-Scam-Check. Zieh das Bookmarklet in deine Lesezeichenleiste und prüfe jeden Solana-Coin direkt von Dexscreener, Birdeye, pump.fun & Co. – kostenlos, auf Deutsch.">
+<link rel="canonical" href="https://klaryx.de/bookmarklet.html">
+<meta name="keywords" content="Solana Coin prüfen Bookmarklet, Scam Check Dexscreener, Rugpull prüfen ein Klick, Klaryx Lesezeichen, Coin Adresse checken">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Klaryx-Bookmarklet – Coin-Check mit einem Klick">
+<meta property="og:description" content="Zieh das Bookmarklet in deine Lesezeichenleiste und prüfe jeden Solana-Coin direkt aus dem Chart.">
+<meta property="og:url" content="https://klaryx.de/bookmarklet.html">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{--bg:#080b12;--surface:#0f1420;--surface2:#141926;--border:#1a2236;--text:#dde0eb;--muted:#4e5870;--accent:#5b7fff;--accent2:#a78bfa;--gruen:#22d3a0;--gelb:#f5c542;--rot:#ff6b6b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7}
+  .wrap{max-width:720px;margin:0 auto;padding:48px 24px 60px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:12px}
+  .sub{color:var(--muted);max-width:600px;margin-bottom:32px}
+  .dragbox{background:linear-gradient(160deg,var(--surface),#0b0f18);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;margin-bottom:14px}
+  .bm{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;padding:16px 34px;font-size:17px;font-weight:700;text-decoration:none;cursor:grab;box-shadow:0 6px 20px rgba(91,127,255,.35)}
+  .bm:active{cursor:grabbing}
+  .draghint{font-size:12.5px;color:var(--muted);margin-top:16px}
+  .draghint strong{color:var(--text)}
+  h2{font-size:19px;font-weight:600;margin:34px 0 12px}
+  ol{margin:0 0 8px 20px}
+  ol li{margin-bottom:8px}
+  .platforms{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 8px}
+  .chip{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text)}
+  .note{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.6}
+  .note strong{color:var(--text)}
+  code{font-family:'Space Mono',monospace;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px 6px;color:var(--accent2)}
+  .manual{margin-top:14px}
+  textarea{width:100%;height:96px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;resize:vertical}
+  .copybtn{margin-top:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+  .copybtn:hover{border-color:var(--accent)}
+  .disc{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:32px;line-height:1.6}
+  a.inline{color:var(--accent);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<header></header>
+<div class="wrap">
+  <div class="eyebrow">Klaryx-Werkzeug</div>
+  <h1>Ein Klick vom Chart zum Scam-Check.</h1>
+  <p class="sub">Du bist auf Dexscreener, Birdeye oder pump.fun und willst wissen, ob der Coin ein Scam ist? Statt die Adresse zu suchen und zu kopieren, klickst du einfach auf dein Klaryx-Lesezeichen – und der Klartext-Check öffnet sich sofort mit dem richtigen Coin.</p>
+
+  <div class="dragbox">
+    <a class="bm" href="javascript:(function(){var B='[1-9A-HJ-NP-Za-km-z]{32,44}',h=location.hostname,go=function(m){location.href='https://klaryx.de/check.html?token='+m},fail=function(){if(confirm('Klaryx: keine Coin-Adresse auf dieser Seite gefunden. Klaryx trotzdem oeffnen?'))location.href='https://klaryx.de/check.html'};if(/birdeye|pump\.fun|solscan|solana\.fm|gmgn|photon|bullx|jup\.ag/.test(h)){var u=location.href.match(new RegExp('(?:token/|address/|coin/|sol/|/)('+B+')(?:[/?#]|$)'));if(u)return go(u[1])}if(/dexscreener|dextools/.test(h)){var p=location.pathname.match(new RegExp('/('+B+')'));if(p){fetch('https://api.dexscreener.com/latest/dex/pairs/solana/'+p[1]).then(function(r){return r.json()}).then(function(d){var m=d&&d.pairs&&d.pairs[0]&&d.pairs[0].baseToken&&d.pairs[0].baseToken.address;m?go(m):fail()}).catch(fail);return}}var e=null;[].slice.call(document.getElementsByTagName('a')).some(function(x){var mm=x.href.match(new RegExp('(?:solscan\\.io/token/|solana\\.fm/address/|explorer\\.solana\\.com/address/)('+B+')'));if(mm){e=mm[1];return true}});if(e)return go(e);var g=location.href.match(new RegExp('('+B+')'));if(g)return go(g[1]);fail()})();">🔎 Coin bei Klaryx prüfen</a>
+    <div class="draghint">Zieh diesen Button hoch in deine <strong>Lesezeichenleiste</strong> ↑<br>(nicht klicken – <strong>ziehen</strong>)</div>
+  </div>
+
+  <h2>So funktioniert's</h2>
+  <ol>
+    <li>Lesezeichenleiste einblenden (Strg/Cmd + Umschalt + B), falls sie nicht sichtbar ist.</li>
+    <li>Den blauen Button oben in die Leiste ziehen – fertig, das Lesezeichen ist gespeichert.</li>
+    <li>Auf einer Coin-Seite (z. B. Dexscreener) einfach auf das Lesezeichen klicken.</li>
+    <li>Klaryx öffnet sich und prüft den Coin automatisch. Kein Kopieren nötig.</li>
+  </ol>
+
+  <h2>Wo es funktioniert</h2>
+  <div class="platforms">
+    <span class="chip">Dexscreener</span>
+    <span class="chip">Birdeye</span>
+    <span class="chip">pump.fun</span>
+    <span class="chip">Solscan</span>
+    <span class="chip">GMGN</span>
+    <span class="chip">Photon</span>
+    <span class="chip">BullX</span>
+    <span class="chip">DEXTools</span>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted);margin-top:6px;">Bei Dexscreener steht in der Adresszeile nur die Pool-Adresse – das Bookmarklet löst sie automatisch in die echte Coin-Adresse (Mint) auf. Auf anderen Seiten wird die Adresse direkt aus der Seite gelesen.</p>
+
+  <div class="note"><strong>Ehrliche Einschränkung:</strong> Manche Seiten mit sehr strengen Sicherheitsrichtlinien (CSP) blockieren Lesezeichen-Skripte generell – dann passiert beim Klick nichts. Das liegt an der jeweiligen Seite, nicht an Klaryx. Findet das Bookmarklet keine Adresse, öffnet es Klaryx, wo du sie manuell einfügen kannst.</div>
+
+  <div class="manual">
+    <h2>Lieber manuell anlegen?</h2>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:8px;">Neues Lesezeichen erstellen, einen Namen wie „Klaryx prüfen" vergeben und als Adresse/URL diesen Code einfügen:</p>
+    <textarea id="bmcode" readonly onclick="this.select()">javascript:(function(){var B='[1-9A-HJ-NP-Za-km-z]{32,44}',h=location.hostname,go=function(m){location.href='https://klaryx.de/check.html?token='+m},fail=function(){if(confirm('Klaryx: keine Coin-Adresse auf dieser Seite gefunden. Klaryx trotzdem oeffnen?'))location.href='https://klaryx.de/check.html'};if(/birdeye|pump\.fun|solscan|solana\.fm|gmgn|photon|bullx|jup\.ag/.test(h)){var u=location.href.match(new RegExp('(?:token/|address/|coin/|sol/|/)('+B+')(?:[/?#]|$)'));if(u)return go(u[1])}if(/dexscreener|dextools/.test(h)){var p=location.pathname.match(new RegExp('/('+B+')'));if(p){fetch('https://api.dexscreener.com/latest/dex/pairs/solana/'+p[1]).then(function(r){return r.json()}).then(function(d){var m=d&&d.pairs&&d.pairs[0]&&d.pairs[0].baseToken&&d.pairs[0].baseToken.address;m?go(m):fail()}).catch(fail);return}}var e=null;[].slice.call(document.getElementsByTagName('a')).some(function(x){var mm=x.href.match(new RegExp('(?:solscan\\.io/token/|solana\\.fm/address/|explorer\\.solana\\.com/address/)('+B+')'));if(mm){e=mm[1];return true}});if(e)return go(e);var g=location.href.match(new RegExp('('+B+')'));if(g)return go(g[1]);fail()})();</textarea>
+    <button class="copybtn" onclick="var t=document.getElementById('bmcode');t.select();navigator.clipboard&&navigator.clipboard.writeText(t.value);this.textContent='✓ Kopiert';var b=this;setTimeout(function(){b.textContent='Code kopieren';},1400);">Code kopieren</button>
+  </div>
+
+  <div class="disc"><strong>Hinweis:</strong> Der Klaryx-Check zeigt beschreibende On-Chain-Fakten (Mint-/Freeze-Rechte, Halter-Verteilung, Liquidität) mit Klartext-Erklärung. Er ist keine Anlageberatung und kein Kauf-/Verkaufssignal. Prüfe die Fakten immer selbst. Das Bookmarklet leitet nur die Coin-Adresse an <a class="inline" href="check.html">den Klartext-Check</a> weiter – es sendet keine persönlichen Daten.</div>
+</div>
+<footer></footer>
+<script src="partials.js?v=2"></script>
+</body>
+</html>
