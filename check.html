@@ -513,7 +513,7 @@
              +  (f.link ? '<a href="'+esc(f.link)+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;display:inline-block;margin-top:6px;">'+esc(f.linkText||'ansehen ↗')+'</a>' : '')
              +  '</div></div>';
       const GROUPS = [
-        { title: 'Kontrolle des Erstellers', labels: ['Mint Authority','Freeze Authority','Metadaten','Ersteller-Wallet'] },
+        { title: 'Kontrolle des Erstellers', labels: ['Mint Authority','Freeze Authority','Permanent Delegate','Transfer Hook','Transfer-Gebühr','Metadaten','Ersteller-Wallet'] },
         { title: 'Markt', labels: ['Liquidität','LP-Liquidität (Raydium)','Volumen 24h','Alter'] },
         { title: 'Verteilung', labels: ['Top-10-Holder'] },
       ];
@@ -580,6 +580,24 @@
       }
       const rest = d.facts.filter(f => !used.has(f.label));
       if(rest.length){ html += '<div style="'+gtStyle+'">Weitere</div><div class="facts">' + rest.map(factHtml).join('') + '</div>'; }
+      // Angaben des Projekts (deskriptiv, vom Ersteller, UNGEPRÜFT). Website läuft durch den Link-Check.
+      if(d.projekt){
+        var pj = d.projekt;
+        var chipS = 'border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:12px;text-decoration:none;';
+        var pjH = '<div style="'+gtStyle+'">Angaben des Projekts</div><div class="panel">';
+        if(pj.description){ pjH += '<div style="font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:12px;">'+esc(pj.description)+'</div>'; }
+        var chips = [];
+        if(pj.website){ chips.push('<a href="link-check.html?url='+encodeURIComponent(pj.website)+'" style="'+chipS+'background:rgba(91,127,255,.12);border-color:rgba(91,127,255,.4);color:var(--accent);font-weight:600;">🌐 Website prüfen →</a>'); }
+        (pj.socials||[]).forEach(function(s){
+          var t = String(s.type||'').toLowerCase();
+          var lbl = (t==='twitter'||t==='x') ? 'X' : t==='telegram' ? 'Telegram' : t==='discord' ? 'Discord' : (s.type||'Link');
+          chips.push('<a href="'+esc(s.url)+'" target="_blank" rel="noopener nofollow" style="'+chipS+'">'+esc(lbl)+' ↗</a>');
+        });
+        if(chips.length){ pjH += '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips.join('')+'</div>'; }
+        pjH += '<div style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;">Diese Angaben stammen vom Token-Ersteller (Metadaten/DEX) und sind <strong>ungeprüft</strong> – ein Scam kann hier alles behaupten. Prüf die Website mit einem Klick durch den <strong>Link-Check</strong>.</div>';
+        pjH += '</div>';
+        html += pjH;
+      }
       html += '<div class="panel" style="margin-top:16px;"><div class="peyebrow">Ausführlich</div><div style="font-size:14px;line-height:1.7;color:var(--text);">'+esc(d.erklaerung).replace(/\n/g,'<br>')+'</div></div>';
       const shareUrl = 'https://klaryx.de/check.html?token=' + encodeURIComponent(d.token);
       const shareText = 'Klaryx Scam-Check für ' + titel + ' – prüf Solana-Coins auf Betrug:';
