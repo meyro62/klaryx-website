@@ -12,8 +12,29 @@ const ZIEL = parseInt(process.env.ANZAHL || "300", 10);
 const PAUSE_MS = 1500;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Etablierte, bekannte Solana-Coins – für Balance in den Daten (werden eher grün/gelb).
+const ETABLIERT = [
+  "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", // BONK
+  "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", // WIF
+  "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",  // JUP
+  "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr", // POPCAT
+  "9Qq3cwZkScM2TUXLHaMWJHxaJYaPEeG1uP1UmuFCCh7R", // PENGU
+  "CcSttKajAXQbY4mU7vMhpSP6YFunzn7cBc59o5oDebbo", // MOODENG
+  "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3", // PYTH
+  "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",  // JITO
+  "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R", // RAY
+  "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5",  // MEW
+  "8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn", // ZEUS
+  "AZsHEMXd36Bj1EMNXhowJajpUXzrKcK57wW4ZGXVa7yR", // GUAC
+  "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump", // PNUT
+  "CzLSujWBLFssjncfkh59rUFqvafWcY5tzedWJSuypump", // GOAT
+  "5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC", // FWOG
+  "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9", // BOME
+];
+
 async function sammleAdressen(mindestens) {
   const addrs = new Set();
+  ETABLIERT.forEach((a) => addrs.add(a));   // Balance: bekannte Coins mit rein
   const terms = [
     "cat","dog","pepe","moon","ai","baby","frog","bull","gem","doge","meme","gold",
     "trump","elon","inu","shib","floki","wojak","chad","turbo","mog","brett","andy",

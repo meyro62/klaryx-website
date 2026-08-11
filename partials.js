@@ -68,7 +68,7 @@
       grp("Projekt", [["ueber-klrx.html", "Über den Token"], ["klaryx_milestones.html", "Meilensteine"], ["klaryx_halloffame.html", "Hall of Fame"], ["portal.html", "Portal"], ["klaryx_wallet_setup.html", "Wallet Setup"], ["https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD", "Solscan", true]]) +
       grp("Rechtliches", [["klaryx_impressum.html", "Impressum"], ["klaryx_datenschutz.html", "Datenschutz"], ["klaryx_disclaimer.html", "Disclaimer"], ["klaryx_legal.html", "Rechtliche Hinweise"], ["mailto:info@klaryx.de", "Kontakt"]]) +
       grp("Folgen", [["https://x.com/klaryxhq", "X", true], ["https://discord.gg/abyTeFaghX", "Discord", true], ["https://t.me/klaryxhq", "Telegram", true]]) +
-      '<div style="margin-top:18px;font-size:11px;opacity:.7;">klaryx.de · © 2026 Meyro</div>' +
+      '<div style="margin-top:18px;font-size:11px;opacity:.7;">klaryx.de · © 2026 Klaryx</div>' +
     '</footer>';
 
   // ---- "Weitere Ratgeber" (nur auf Ratgeber-Seiten, interne Vernetzung/SEO) ----
