@@ -6,48 +6,68 @@
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   if (page === "" ) page = "index.html";
 
-  // Menüpunkte (href, Label). Reihenfolge = Reihenfolge im Menü.
-  var NAV = [
+  // Direkt sichtbare Tools (die aktiven Werkzeuge) + gruppierte Bereiche (Dropdown / mobil eingerückt).
+  var NAV_DIRECT = [
     ["check.html", "Klartext-Check"],
     ["link-check.html", "Link-Check"],
-    ["warnliste.html", "Warnliste"],
-    ["analyse.html", "Analyse"],
-    ["markt.html", "Markt"],
-    ["watchlist.html", "Wächter"],
-    ["lernpfad.html", "Lernpfad"],
-    ["faq.html", "FAQ"],
-    ["klaryx_milestones.html", "Meilensteine"]
+    ["bookmarklet.html", "Bookmarklet"]
+  ];
+  var NAV_GROUPS = [
+    ["Daten",   [["warnliste.html", "Warnliste"], ["analyse.html", "Analyse"], ["markt.html", "Markt"], ["watchlist.html", "Wächter"]]],
+    ["Lernen",  [["lernpfad.html", "Lernpfad"], ["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"]]],
+    ["Projekt", [["ueber-klrx.html", "Über KLRX"], ["klaryx_milestones.html", "Meilensteine"], ["klaryx_halloffame.html", "Hall of Fame"], ["klaryx_wallet_setup.html", "Wallet Setup"]]]
   ];
 
-  function isActive(href) {
-    return href.toLowerCase() === page;
-  }
+  function isActive(href) { return href.toLowerCase() === page; }
+  function grpActive(items) { return items.some(function (n) { return isActive(n[0]); }); }
 
   var muted = "color:var(--muted);text-decoration:none;";
   var active = "color:var(--text);text-decoration:none;";
 
-  // ---- Desktop-Nav ----
-  var deskLinks = NAV.map(function (n) {
+  // ---- Desktop-Nav: Direkt-Links + Gruppen mit Hover-Dropdown ----
+  var deskDirect = NAV_DIRECT.map(function (n) {
     return '<a href="' + n[0] + '" style="' + (isActive(n[0]) ? active : muted) + 'font-size:13px;">' + n[1] + '</a>';
   }).join("");
+  var deskGroups = NAV_GROUPS.map(function (g) {
+    var items = g[1].map(function (n) {
+      return '<a href="' + n[0] + '" style="' + (isActive(n[0]) ? active : muted) + '">' + n[1] + '</a>';
+    }).join("");
+    return '<div class="khdr-grp"><span class="khdr-gl" style="' + (grpActive(g[1]) ? active : muted) + 'font-size:13px;">' + g[0] + ' <span style="font-size:8px;opacity:.7;">▼</span></span>'
+      + '<div class="khdr-dd">' + items + '</div></div>';
+  }).join("");
 
-  // ---- Mobile-Nav ----
-  var mobLinks = NAV.map(function (n) {
+  // ---- Mobile-Nav: Direkt-Links, dann Bereiche mit Überschrift + eingerückten Links ----
+  var mobDirect = NAV_DIRECT.map(function (n) {
     return '<a href="' + n[0] + '" style="' + (isActive(n[0]) ? active : muted) + 'padding:12px 24px;border-bottom:1px solid var(--border);font-size:14px;">' + n[1] + '</a>';
+  }).join("");
+  var mobGroups = NAV_GROUPS.map(function (g) {
+    var head = '<div style="padding:14px 24px 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);opacity:.55;">' + g[0] + '</div>';
+    var items = g[1].map(function (n) {
+      return '<a href="' + n[0] + '" style="' + (isActive(n[0]) ? active : muted) + 'padding:9px 24px 9px 36px;border-bottom:1px solid var(--border);font-size:14px;">' + n[1] + '</a>';
+    }).join("");
+    return head + items;
   }).join("");
 
   var headerHTML =
     '<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);">' +
       '<a href="index.html" style="font-family:\'Space Mono\',monospace;font-size:16px;font-weight:700;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Klaryx</a>' +
-      '<div class="khdr-d" style="display:flex;align-items:center;gap:22px;">' + deskLinks +
+      '<div class="khdr-d" style="display:flex;align-items:center;gap:20px;">' + deskDirect + deskGroups +
         '<a href="portal.html" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;">Portal →</a>' +
       '</div>' +
       '<button class="khdr-b" onclick="var m=document.getElementById(\'khdrM\');m.style.display=m.style.display===\'flex\'?\'none\':\'flex\';" style="display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:0;">☰</button>' +
     '</header>' +
-    '<div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">' + mobLinks +
+    '<div id="khdrM" style="display:none;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);">' + mobDirect + mobGroups +
       '<a href="portal.html" style="color:var(--accent);text-decoration:none;padding:12px 24px;font-size:14px;">Portal →</a>' +
     '</div>' +
-    '<style>@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}</style>';
+    '<style>' +
+      '.khdr-grp{position:relative;padding:8px 0}' +
+      '.khdr-gl{cursor:pointer;display:inline-flex;align-items:center;gap:3px}' +
+      '.khdr-dd{position:absolute;top:100%;right:0;min-width:170px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;flex-direction:column;gap:1px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.45)}' +
+      '.khdr-grp:hover .khdr-dd{display:flex}' +
+      '.khdr-dd a{padding:8px 12px;border-radius:7px;font-size:13px;white-space:nowrap}' +
+      '.khdr-dd a:hover{background:var(--surface2)}' +
+      '@media(max-width:640px){.khdr-d{display:none!important}.khdr-b{display:block!important}}' +
+    '</style>';
 
   // ---- Footer (eine Quelle) ----
   // Gruppierter Footer: alle Links bleiben, nur nach Zweck sortiert (aufgeräumter als eine lange Kette).
