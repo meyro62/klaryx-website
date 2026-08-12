@@ -29,12 +29,19 @@
   .note{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--rot);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px}
   .note b{color:var(--text)}
   h2{font-size:15px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:26px 0 12px;font-weight:600}
-  .rowcard{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;text-decoration:none;color:var(--text);transition:border-color .15s}
-  .rowcard:hover{border-color:var(--rot)}
-  .rowcard .rdot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--rot)}
-  .rowcard .rn{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .rowcard .rm{flex:1;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .rowcard .cnt{font-family:'Space Mono',monospace;font-size:11px;color:var(--rot);font-weight:700;flex:none}
+  .wcard{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:9px;text-decoration:none;color:var(--text);transition:border-color .15s}
+  .wcard:hover{border-color:var(--rot)}
+  .wtop{display:flex;align-items:center;gap:9px}
+  .wtop .rdot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--rot)}
+  .wname{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wsym{color:var(--muted);font-size:12px;font-weight:400}
+  .wcnt{margin-left:auto;font-family:'Space Mono',monospace;font-size:11px;color:var(--rot);font-weight:700;flex:none}
+  .wmint{display:flex;align-items:center;gap:6px;margin-top:5px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+  .copybtn{background:none;border:none;color:var(--muted);cursor:pointer;padding:0 3px;opacity:.6;transition:.15s;line-height:1}
+  .copybtn:hover{color:var(--accent);opacity:1}
+  .copybtn.ok{color:var(--gruen);opacity:1}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-family:'Space Mono',monospace}
   .empty{font-size:13px;color:var(--muted)}
   .cta{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;padding:12px 24px;font-weight:600;text-decoration:none;margin-top:8px}
   footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2}
@@ -80,8 +87,9 @@
   <h2>Am häufigsten als 🔴 geprüft</h2>
   <div id="tokens"><div class="empty">Lädt…</div></div>
 
-  <div style="margin-top:28px;">
+  <div style="margin-top:26px;">
     <a class="cta" href="check.html">Einen Coin selbst prüfen &#8594;</a>
+    <p style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6;">Die Liste entsteht <b>automatisch</b>: Wird ein Coin wiederholt als 🔴 geprüft, erscheint er hier von selbst – ohne Meldung, ohne manuelle Pflege.</p>
   </div>
 </div>
 
@@ -102,32 +110,55 @@
   const PUB = "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const shortMint = (a) => a ? (a.slice(0,4)+"…"+a.slice(-4)) : "";
-  const shortHost = (h) => h ? (h.length>26 ? h.slice(0,24)+"…" : h) : "";
+  const eur = (v) => "$"+Math.round(v).toLocaleString("de-DE");
+  const p2 = (n) => String(n).padStart(2,"0");
+  const fmtDate = (s) => { const d=new Date(s); return isNaN(d) ? "" : p2(d.getDate())+"."+p2(d.getMonth()+1)+"."; };
+  function copyIcon(){ return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }
+  function copyMint(addr, el){
+    var done = function(ok){ var o=el.innerHTML; el.innerHTML = ok?'✓':'✕'; el.classList.toggle('ok',ok); setTimeout(function(){ el.innerHTML=o; el.classList.remove('ok'); }, 1200); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(addr).then(function(){done(true);}).catch(function(){done(false);}); }
+    else { try{ var t=document.createElement('textarea'); t.value=addr; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); done(true); }catch(e){ done(false); } }
+  }
 
-  async function load(kind, boxId, isLink){
-    const box = document.getElementById(boxId);
+  async function load(){
+    const box = document.getElementById('tokens');
     try{
-      const r = await fetch(SB_URL+"/rest/v1/recent_checks?select=token_address,name,symbol,ampel,checks,kind&ampel=eq.rot&kind=eq."+kind+"&order=checks.desc,checked_at.desc&limit=30",
+      const r = await fetch(SB_URL+"/rest/v1/recent_checks?select=token_address,name,symbol,checks,checked_at&ampel=eq.rot&kind=eq.token&order=checks.desc,checked_at.desc&limit=30",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length){
-        box.innerHTML = '<div class="empty">Aktuell keine als 🔴 markierten '+(isLink?'Links':'Coins')+' im Prüf-Verlauf.</div>';
-        return;
+        box.innerHTML = '<div class="empty">Aktuell keine als 🔴 markierten Coins im Prüf-Verlauf.</div>'; return;
       }
+      // Anreichern: Details (Top-10, Liquidität, Alter) aus check_analytics – Daten, die wir eh haben.
+      const details = {};
+      try{
+        const addrs = rows.map(function(x){ return x.token_address; }).filter(Boolean);
+        const q = SB_URL+"/rest/v1/check_analytics?select=token_address,top10_pct,liquidity_usd,age_days,checked_at&ampel=eq.rot&token_address=in.("+addrs.map(encodeURIComponent).join(",")+")&order=checked_at.desc&limit=1000";
+        const dr = await fetch(q, { headers:{ apikey:PUB, Authorization:"Bearer "+PUB } });
+        const drows = await dr.json();
+        (Array.isArray(drows)?drows:[]).forEach(function(d){ if(!details[d.token_address]) details[d.token_address]=d; });   // erste = neueste
+      }catch(_e){}
       box.innerHTML = rows.map(function(x){
-        var href = isLink ? ('link-check.html?url='+encodeURIComponent(x.token_address)) : ('check.html?token='+encodeURIComponent(x.token_address));
-        var name = isLink ? ('🔗 '+esc(shortHost(x.token_address))) : (x.name ? esc(x.name) : shortMint(x.token_address));
-        var rm = isLink ? esc(x.token_address) : shortMint(x.token_address);
-        return '<a class="rowcard" href="'+href+'">'
-          + '<span class="rdot"></span>'
-          + '<span class="rn">'+name+'</span>'
-          + '<span class="rm">'+rm+'</span>'
-          + '<span class="cnt">'+(x.checks||1)+'×</span>'
+        var href = 'check.html?token='+encodeURIComponent(x.token_address);
+        var name = x.name ? esc(x.name) : shortMint(x.token_address);
+        var sym  = x.symbol ? ' <span class="wsym">'+esc(x.symbol)+'</span>' : '';
+        var d = details[x.token_address] || {};
+        var chips = [];
+        if(d.top10_pct!=null) chips.push('<span class="chip">Top-10 '+Math.round(d.top10_pct)+'%</span>');
+        if(d.liquidity_usd!=null) chips.push('<span class="chip">Liq '+eur(d.liquidity_usd)+'</span>');
+        if(d.age_days!=null) chips.push('<span class="chip">Alter '+Math.round(d.age_days)+' T</span>');
+        var when = d.checked_at || x.checked_at; if(when && fmtDate(when)) chips.push('<span class="chip">zuletzt '+fmtDate(when)+'</span>');
+        return '<a class="wcard" href="'+href+'">'
+          + '<div class="wtop"><span class="rdot"></span><span class="wname">'+name+sym+'</span><span class="wcnt">'+(x.checks||1)+'×</span></div>'
+          + '<div class="wmint">'+shortMint(x.token_address)
+          +   '<span class="copybtn" title="Mint-Adresse kopieren" onclick="event.preventDefault();event.stopPropagation();copyMint(\''+esc(x.token_address)+'\',this)">'+copyIcon()+'</span>'
+          + '</div>'
+          + (chips.length ? '<div class="chips">'+chips.join('')+'</div>' : '')
           + '</a>';
       }).join('');
     }catch(e){ box.innerHTML = '<div class="empty">Liste derzeit nicht verfügbar.</div>'; }
   }
-  load("token","tokens",false);
+  load();
 </script>
 <script src="partials.js?v=2"></script>
 </body>
