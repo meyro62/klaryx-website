@@ -30,6 +30,7 @@ jobs:
       - name: Batch-Check ausführen
         env:
           ANZAHL: ${{ github.event.inputs.anzahl || '300' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           echo "🔎 Starte Batch-Check ($ANZAHL Coins)…"
           node .github/scripts/batch_check.mjs

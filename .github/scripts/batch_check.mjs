@@ -12,6 +12,64 @@ const ZIEL = parseInt(process.env.ANZAHL || "300", 10);
 const PAUSE_MS = 1500;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// --- pump.fun-Erfassung: Datengenerator für die spätere Graduation-/Creator-Korrelation ---
+// Läuft NUR hier im Batch (GitHub Actions), nicht im nutzerseitigen Worker. Die pump.fun-API
+// ist inoffiziell; alles ist in try/catch – fällt sie aus, läuft der Batch normal weiter.
+const SB_URL = process.env.SUPABASE_URL || "https://wpxcgducfkbozecknfdw.supabase.co";
+const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const PF_NEUESTE = 100;                       // frischeste Launches (created_timestamp)
+const PF_TOP = 40;                            // nahe Graduation / bereits migriert (market_cap)
+const PF_INITIAL_RESERVES = 793100000000000; // Start-Reserve der Bonding Curve (= 0 % verkauft)
+const pumpMeta = [];                          // {token_address, creator, complete, graduation_pct, market_cap_usd}
+
+// Graduation-Fortschritt aus den Bonding-Curve-Reserven (0 % = frisch, 100 % = migriert).
+function gradPct(c) {
+  if (c.complete) return 100;
+  const r = Number(c.real_token_reserves);
+  if (!isFinite(r) || r <= 0) return null;
+  return +Math.max(0, Math.min(100, (1 - r / PF_INITIAL_RESERVES) * 100)).toFixed(1);
+}
+
+async function sammlePumpFun(addrs) {
+  for (const [sort, limit] of [["created_timestamp", PF_NEUESTE], ["market_cap", PF_TOP]]) {
+    try {
+      const url = "https://frontend-api-v3.pump.fun/coins?offset=0&limit=" + limit +
+                  "&sort=" + sort + "&order=DESC&includeNsfw=true";
+      const d = await (await fetch(url, { headers: { accept: "application/json" } })).json();
+      if (Array.isArray(d)) d.forEach((c) => {
+        if (!c || !c.mint) return;
+        addrs.add(c.mint);
+        pumpMeta.push({
+          token_address: c.mint,
+          creator: c.creator || null,
+          complete: !!c.complete,
+          graduation_pct: gradPct(c),
+          market_cap_usd: c.usd_market_cap != null ? +Number(c.usd_market_cap).toFixed(2) : null,
+        });
+      });
+      console.log(`pump.fun (${sort}): ${Array.isArray(d) ? d.length : 0} Coins geholt.`);
+    } catch (e) { console.log(`pump.fun-Quelle (${sort}) nicht erreichbar: ${e.message}`); }
+    await sleep(400);
+  }
+}
+
+// Schreibt die erfassten pump.fun-Metadaten als Zeitpunkt-Snapshot in pumpfun_meta.
+async function schreibePumpMeta() {
+  if (!SB_KEY) { console.log("Kein SUPABASE_SERVICE_ROLE_KEY gesetzt – pump.fun-Meta wird NICHT gespeichert."); return; }
+  if (!pumpMeta.length) { console.log("Keine pump.fun-Meta zu speichern."); return; }
+  const seen = new Map();
+  pumpMeta.forEach((m) => seen.set(m.token_address, m)); // Duplikate im selben Lauf zusammenfassen
+  const rows = [...seen.values()];
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/pumpfun_meta", {
+      method: "POST",
+      headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify(rows),
+    });
+    console.log(r.ok ? `pump.fun-Meta gespeichert: ${rows.length} Coins.` : `pump.fun-Meta Fehler: ${r.status} ${await r.text()}`);
+  } catch (e) { console.log(`pump.fun-Meta Schreibfehler: ${e.message}`); }
+}
+
 // Etablierte, bekannte Solana-Coins – für Balance in den Daten (werden eher grün/gelb).
 const ETABLIERT = [
   "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", // BONK
@@ -35,6 +93,7 @@ const ETABLIERT = [
 async function sammleAdressen(mindestens) {
   const addrs = new Set();
   ETABLIERT.forEach((a) => addrs.add(a));   // Balance: bekannte Coins mit rein
+  await sammlePumpFun(addrs);               // frische + fast graduierte pump.fun-Coins (+ Meta erfassen)
   const terms = [
     "cat","dog","pepe","moon","ai","baby","frog","bull","gem","doge","meme","gold",
     "trump","elon","inu","shib","floki","wojak","chad","turbo","mog","brett","andy",
@@ -92,6 +151,7 @@ async function main() {
     } else { fail++; }
     await sleep(PAUSE_MS);
   }
+  await schreibePumpMeta();   // pump.fun-Metadaten sichern (für spätere Korrelation)
   console.log(`\nFertig: ${ok} ok, ${fail} fehlgeschlagen | 🟢 ${z.gruen}  🟡 ${z.gelb}  🔴 ${z.rot}`);
 }
 main();
