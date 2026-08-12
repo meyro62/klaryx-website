@@ -79,7 +79,7 @@
   <div class="eyebrow">Markt-Überblick</div>
   <h1>Die größten Solana-Token.</h1>
   <p class="sub">Ein rein beschreibender Überblick der größten handelbaren Solana-Token nach Marktkapitalisierung – aus öffentlichen Daten. Stablecoins und tokenisierte Fonds sind ausgenommen. Zahlen, keine Wertung, keine Kauf- oder Verkaufsempfehlung.</p>
-  <div class="note">💡 Willst du einen bestimmten Token genauer prüfen? Der <a href="check.html" style="color:var(--accent);text-decoration:none;">Klartext-Check</a> zeigt dir Mint-/Freeze-Authority, Liquidität und Holder-Konzentration im Klartext.</div>
+  <div class="note">💡 Die Spalte <b>Klaryx</b> zeigt unsere Sicherheits-Ampel (🟢/🟡/🔴), sofern der Coin schon einmal geprüft wurde – sonst „–". Für die volle Prüfung (Mint-/Freeze-Rechte, Liquidität, Halter-Konzentration) auf <a href="check.html" style="color:var(--accent);text-decoration:none;">prüfen ↗</a> tippen.</div>
 
   <div class="meta">
     <div class="updated" id="updated">Lade Daten…</div>
@@ -96,11 +96,12 @@
           <th>24h</th>
           <th class="hidem">Marktkap.</th>
           <th class="hidem">Volumen 24h</th>
+          <th>Klaryx</th>
           <th>Prüfen</th>
         </tr>
       </thead>
       <tbody id="rows">
-        <tr><td colspan="7"><div class="msg">Lade Markt-Daten…</div></td></tr>
+        <tr><td colspan="8"><div class="msg">Lade Markt-Daten…</div></td></tr>
       </tbody>
     </table>
   </div>
@@ -159,16 +160,34 @@
   async function loadTop(){
     const rows = document.getElementById("rows");
     const upd = document.getElementById("updated");
-    rows.innerHTML = '<tr><td colspan="6"><div class="msg">Lade Markt-Daten…</div></td></tr>';
+    rows.innerHTML = '<tr><td colspan="8"><div class="msg">Lade Markt-Daten…</div></td></tr>';
     upd.textContent = "Lade Daten…";
     try{
       const r = await fetch(TOP_URL, { cache: "no-store" });
       const d = await r.json();
       const coins = (d && d.coins) || [];
       if(!coins.length){
-        rows.innerHTML = '<tr><td colspan="7"><div class="msg">Momentan keine Daten verfügbar. Bitte später erneut versuchen.</div></td></tr>';
+        rows.innerHTML = '<tr><td colspan="8"><div class="msg">Momentan keine Daten verfügbar. Bitte später erneut versuchen.</div></td></tr>';
         upd.textContent = "";
         return;
+      }
+      // Klaryx-Sicherheits-Ampel aus EIGENEN Check-Daten (nur wo der Token bereits geprüft wurde).
+      const ampelMap = {};
+      try{
+        const SB = "https://wpxcgducfkbozecknfdw.supabase.co", PUB = "sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
+        const mints = coins.map(function(c){ return c.mint; }).filter(Boolean);
+        if(mints.length){
+          const q = SB+"/rest/v1/check_analytics?select=token_address,ampel,checked_at&token_address=in.("+mints.map(encodeURIComponent).join(",")+")&order=checked_at.desc&limit=1000";
+          const arows = await fetch(q, { headers:{ apikey:PUB, Authorization:"Bearer "+PUB } }).then(function(r){ return r.json(); });
+          (Array.isArray(arows)?arows:[]).forEach(function(a){ if(!ampelMap[a.token_address]) ampelMap[a.token_address] = a.ampel; });
+        }
+      }catch(_e){}
+      function ampelCell(mint){
+        var a = mint ? ampelMap[mint] : null;
+        if(!a) return '<td class="num"><span style="color:#4e5870;font-size:12px;">–</span></td>';
+        var col = a==='gruen' ? '#22d3a0' : a==='rot' ? '#ff6b6b' : '#f5c542';
+        var wort = a==='gruen' ? 'grün' : a==='rot' ? 'rot' : 'gelb';
+        return '<td class="num"><span style="color:'+col+';font-weight:600;white-space:nowrap;">● '+wort+'</span></td>';
       }
       rows.innerHTML = coins.map((c, i) =>
         '<tr>'+
@@ -181,6 +200,7 @@
           '<td class="num">'+fmtChange(c.change24)+'</td>'+
           '<td class="num hidem">'+fmtBig(c.marketCap)+'</td>'+
           '<td class="num hidem">'+fmtBig(c.vol24)+'</td>'+
+          ampelCell(c.mint)+
           '<td>'+(c.mint
             ? '<a class="chk" href="check.html?token='+encodeURIComponent(c.mint)+'">prüfen ↗</a>'+
               '<button class="cp" title="Mint-Adresse kopieren" onclick="copyMint(\''+esc(c.mint)+'\',this)">⧉</button>'
@@ -190,7 +210,7 @@
       const t = d.updated ? new Date(d.updated) : new Date();
       upd.textContent = "Stand: " + t.toLocaleString("de-DE") + " · Quelle: CoinGecko";
     }catch(e){
-      rows.innerHTML = '<tr><td colspan="7"><div class="msg">Fehler beim Laden. Bitte später erneut versuchen.</div></td></tr>';
+      rows.innerHTML = '<tr><td colspan="8"><div class="msg">Fehler beim Laden. Bitte später erneut versuchen.</div></td></tr>';
       upd.textContent = "";
     }
   }
