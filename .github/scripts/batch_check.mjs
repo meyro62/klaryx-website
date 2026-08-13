@@ -5,10 +5,11 @@
  * Klaryx-Check-Endpunkt. Jeder Check schreibt automatisch in check_analytics.
  * Läuft als GitHub Action (Node ist dort vorinstalliert) – kein npm install.
  *
- * Anzahl per Umgebungsvariable ANZAHL (Default 300).
+ * Anzahl per Umgebungsvariable ANZAHL (Default 1000). Der Adress-Harvest skaliert mit:
+ * pump.fun wird seitenweise geholt, bis die Zielzahl erreicht ist (bis die API-Liste endet).
  */
 const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/check";
-const ZIEL = parseInt(process.env.ANZAHL || "300", 10);
+const ZIEL = parseInt(process.env.ANZAHL || "1000", 10);
 const PAUSE_MS = 1500;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -30,27 +31,43 @@ function gradPct(c) {
   return +Math.max(0, Math.min(100, (1 - r / PF_INITIAL_RESERVES) * 100)).toFixed(1);
 }
 
-async function sammlePumpFun(addrs) {
-  for (const [sort, limit] of [["created_timestamp", PF_NEUESTE], ["market_cap", PF_TOP]]) {
-    try {
-      const url = "https://frontend-api-v3.pump.fun/coins?offset=0&limit=" + limit +
-                  "&sort=" + sort + "&order=DESC&includeNsfw=true";
-      const d = await (await fetch(url, { headers: { accept: "application/json" } })).json();
-      if (Array.isArray(d)) d.forEach((c) => {
-        if (!c || !c.mint) return;
-        addrs.add(c.mint);
-        pumpMeta.push({
-          token_address: c.mint,
-          creator: c.creator || null,
-          complete: !!c.complete,
-          graduation_pct: gradPct(c),
-          market_cap_usd: c.usd_market_cap != null ? +Number(c.usd_market_cap).toFixed(2) : null,
-        });
+// Holt EINE Seite pump.fun-Coins, fuegt Mints + Metadaten hinzu, gibt die Anzahl zurueck.
+async function pumpSeite(addrs, sort, offset, limit) {
+  try {
+    const url = "https://frontend-api-v3.pump.fun/coins?offset=" + offset + "&limit=" + limit +
+                "&sort=" + sort + "&order=DESC&includeNsfw=true";
+    const d = await (await fetch(url, { headers: { accept: "application/json" } })).json();
+    if (!Array.isArray(d)) return 0;
+    d.forEach((c) => {
+      if (!c || !c.mint) return;
+      addrs.add(c.mint);
+      pumpMeta.push({
+        token_address: c.mint,
+        creator: c.creator || null,
+        complete: !!c.complete,
+        graduation_pct: gradPct(c),
+        market_cap_usd: c.usd_market_cap != null ? +Number(c.usd_market_cap).toFixed(2) : null,
       });
-      console.log(`pump.fun (${sort}): ${Array.isArray(d) ? d.length : 0} Coins geholt.`);
-    } catch (e) { console.log(`pump.fun-Quelle (${sort}) nicht erreichbar: ${e.message}`); }
-    await sleep(400);
+    });
+    return d.length;
+  } catch (e) { console.log(`pump.fun (${sort}@${offset}) nicht erreichbar: ${e.message}`); return 0; }
+}
+
+// Sammelt pump.fun-Coins, bis ~ziel Adressen zusammen sind: ein paar nahe der Graduation
+// (market_cap) plus so viele der NEUESTEN, wie fuer die Zielzahl noetig sind (seitenweise).
+async function sammlePumpFun(addrs, ziel) {
+  const top = await pumpSeite(addrs, "market_cap", 0, PF_TOP);
+  console.log(`pump.fun (market_cap): ${top} Coins geholt.`);
+  let off = 0, geholt = 0;
+  const MAX_OFF = 30000;   // Sicherheitsdeckel gegen tiefe Offsets / Endlosschleife
+  while (addrs.size < ziel && off < MAX_OFF) {
+    const n = await pumpSeite(addrs, "created_timestamp", off, PF_NEUESTE);
+    geholt += n;
+    if (n === 0) break;    // leere Seite = Ende der API-Liste erreicht
+    off += PF_NEUESTE;
+    await sleep(300);      // freundlich zur inoffiziellen API
   }
+  console.log(`pump.fun (created_timestamp): ${geholt} Coins ueber ${off / PF_NEUESTE} Seiten geholt.`);
 }
 
 // Schreibt die erfassten pump.fun-Metadaten als Zeitpunkt-Snapshot in pumpfun_meta.
@@ -60,14 +77,20 @@ async function schreibePumpMeta() {
   const seen = new Map();
   pumpMeta.forEach((m) => seen.set(m.token_address, m)); // Duplikate im selben Lauf zusammenfassen
   const rows = [...seen.values()];
-  try {
-    const r = await fetch(SB_URL + "/rest/v1/pumpfun_meta", {
-      method: "POST",
-      headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify(rows),
-    });
-    console.log(r.ok ? `pump.fun-Meta gespeichert: ${rows.length} Coins.` : `pump.fun-Meta Fehler: ${r.status} ${await r.text()}`);
-  } catch (e) { console.log(`pump.fun-Meta Schreibfehler: ${e.message}`); }
+  let ok = 0;
+  // In Bloecken schreiben, damit auch grosse Laeufe (9999) nicht an einer Riesen-Anfrage scheitern.
+  for (let i = 0; i < rows.length; i += 1000) {
+    const chunk = rows.slice(i, i + 1000);
+    try {
+      const r = await fetch(SB_URL + "/rest/v1/pumpfun_meta", {
+        method: "POST",
+        headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify(chunk),
+      });
+      if (r.ok) ok += chunk.length; else console.log(`pump.fun-Meta Fehler: ${r.status} ${await r.text()}`);
+    } catch (e) { console.log(`pump.fun-Meta Schreibfehler: ${e.message}`); }
+  }
+  console.log(`pump.fun-Meta gespeichert: ${ok}/${rows.length} Coins.`);
 }
 
 // Berechnet die Sammel-/Börsen-Wallet-Liste (infra_wallets) neu – Wallets, die in >=5
@@ -108,7 +131,7 @@ const ETABLIERT = [
 async function sammleAdressen(mindestens) {
   const addrs = new Set();
   ETABLIERT.forEach((a) => addrs.add(a));   // Balance: bekannte Coins mit rein
-  await sammlePumpFun(addrs);               // frische + fast graduierte pump.fun-Coins (+ Meta erfassen)
+  await sammlePumpFun(addrs, mindestens);   // frische pump.fun-Coins seitenweise bis zur Zielzahl (+ Meta)
   const terms = [
     "cat","dog","pepe","moon","ai","baby","frog","bull","gem","doge","meme","gold",
     "trump","elon","inu","shib","floki","wojak","chad","turbo","mog","brett","andy",

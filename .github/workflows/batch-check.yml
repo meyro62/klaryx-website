@@ -8,7 +8,7 @@ on:
       anzahl:
         description: 'Wie viele Coins prüfen?'
         required: false
-        default: '300'
+        default: '1000'
   schedule:
     - cron: '0 6 * * *'   # täglich 06:00 UTC – hält die Datenbank frisch
 
@@ -29,7 +29,7 @@ jobs:
 
       - name: Batch-Check ausführen
         env:
-          ANZAHL: ${{ github.event.inputs.anzahl || '300' }}
+          ANZAHL: ${{ github.event.inputs.anzahl || '1000' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           echo "🔎 Starte Batch-Check ($ANZAHL Coins)…"
