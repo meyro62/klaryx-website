@@ -2,6 +2,13 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<script>
+  // Clickjacking-Schutz: Das Portal (Wallet-Signatur) darf nicht in einen fremden Frame
+  // eingebettet werden. GitHub Pages kann keinen frame-ancestors-Header setzen, daher hier
+  // als Sofortmaßnahme Frame-Busting. Sauberer Header-Weg später via Cloudflare vor GitHub Pages.
+  try { if (window.top !== window.self) { window.top.location = window.self.location.href; } }
+  catch (e) { document.documentElement.style.display = 'none'; }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.supabase.co https://browser.sentry-cdn.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://*.supabase.co https://*.solana.com https://api.coingecko.com https://*.sentry.io https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; font-src 'self' data:;">
 <title>Klaryx Portal</title>
@@ -255,6 +262,12 @@
       // Filter out non-critical errors to stay within free tier quota
       if (event.level === 'info' || event.level === 'debug') {
         return null; // Don't send debug/info logs to Sentry
+      }
+      // Datenschutz: Wallet-Adressen NIE voll an Sentry senden – auf kurze Kennung reduzieren.
+      const kurz = (v) => (typeof v === 'string' && v.length >= 12) ? (v.slice(0, 4) + '…' + v.slice(-4)) : v;
+      if (event.tags) {
+        if (event.tags.walletAddress) event.tags.walletAddress = kurz(event.tags.walletAddress);
+        if (event.tags.wallet) event.tags.wallet = kurz(event.tags.wallet);
       }
       return event;
     }
@@ -619,7 +632,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz';
 
       // Display report with title
       const reportHTML = `<h4 style="color: var(--accent); margin-bottom: 10px;">${reportData.title || 'Marktbericht'}</h4>${reportData.content_html}`;
-      document.getElementById('reportContent').innerHTML = reportHTML;
+      // SECURITY: Report-HTML aus der DB vor dem Einfügen sanitizen (Stored-XSS-Schutz).
+      document.getElementById('reportContent').innerHTML = DOMPurify.sanitize(reportHTML);
       document.getElementById('reportSection').style.display = 'block';
       console.log('✅ Report geladen erfolgreich');
     } catch (err) {
