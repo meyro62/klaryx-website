@@ -70,6 +70,21 @@ async function schreibePumpMeta() {
   } catch (e) { console.log(`pump.fun-Meta Schreibfehler: ${e.message}`); }
 }
 
+// Berechnet die Sammel-/Börsen-Wallet-Liste (infra_wallets) neu – Wallets, die in >=5
+// verschiedenen etablierten Token als Top-Halter auftauchen. Läuft NACH den heutigen Checks,
+// damit die frischen Halter-Daten einfließen.
+async function refreshInfra() {
+  if (!SB_KEY) { console.log("Kein SUPABASE_SERVICE_ROLE_KEY – infra_wallets wird nicht aktualisiert."); return; }
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/rpc/refresh_infra_wallets", {
+      method: "POST",
+      headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ min_tokens: 5 }),
+    });
+    console.log(r.ok ? `infra_wallets aktualisiert: ${(await r.text()).trim()} Wallets.` : `infra_wallets Fehler: ${r.status} ${await r.text()}`);
+  } catch (e) { console.log(`infra_wallets Fehler: ${e.message}`); }
+}
+
 // Etablierte, bekannte Solana-Coins – für Balance in den Daten (werden eher grün/gelb).
 const ETABLIERT = [
   "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", // BONK
@@ -152,6 +167,7 @@ async function main() {
     await sleep(PAUSE_MS);
   }
   await schreibePumpMeta();   // pump.fun-Metadaten sichern (für spätere Korrelation)
+  await refreshInfra();       // Sammel-/Börsen-Wallet-Liste neu berechnen (aus frischen Halter-Daten)
   console.log(`\nFertig: ${ok} ok, ${fail} fehlgeschlagen | 🟢 ${z.gruen}  🟡 ${z.gelb}  🔴 ${z.rot}`);
 }
 main();
