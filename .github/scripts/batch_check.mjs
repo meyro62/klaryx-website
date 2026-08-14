@@ -56,18 +56,22 @@ async function pumpSeite(addrs, sort, offset, limit) {
 // Sammelt pump.fun-Coins, bis ~ziel Adressen zusammen sind: ein paar nahe der Graduation
 // (market_cap) plus so viele der NEUESTEN, wie fuer die Zielzahl noetig sind (seitenweise).
 async function sammlePumpFun(addrs, ziel) {
-  const top = await pumpSeite(addrs, "market_cap", 0, PF_TOP);
-  console.log(`pump.fun (market_cap): ${top} Coins geholt.`);
-  let off = 0, geholt = 0;
-  const MAX_OFF = 30000;   // Sicherheitsdeckel gegen tiefe Offsets / Endlosschleife
-  while (addrs.size < ziel && off < MAX_OFF) {
-    const n = await pumpSeite(addrs, "created_timestamp", off, PF_NEUESTE);
-    geholt += n;
-    if (n === 0) break;    // leere Seite = Ende der API-Liste erreicht
-    off += PF_NEUESTE;
-    await sleep(300);      // freundlich zur inoffiziellen API
+  // Jede pump.fun-Liste ist per Offset bei ~1000-1500 gedeckelt, liefert aber ANDERE Coins:
+  // created_timestamp = neueste, market_cap = groesste, last_trade_timestamp = zuletzt gehandelt.
+  // Nacheinander angezapft holt das maximal viele einzigartige Adressen aus der kostenlosen API.
+  for (const sort of ["created_timestamp", "market_cap", "last_trade_timestamp"]) {
+    if (addrs.size >= ziel) break;
+    let off = 0, geholt = 0;
+    const MAX_OFF = 5000;   // pump.fun kappt ohnehin frueher; Deckel gegen Endlosschleife
+    while (addrs.size < ziel && off < MAX_OFF) {
+      const n = await pumpSeite(addrs, sort, off, PF_NEUESTE);
+      geholt += n;
+      if (n === 0) break;   // Ende der Liste (pump.fun kappt die Offset-Tiefe)
+      off += PF_NEUESTE;
+      await sleep(300);     // freundlich zur inoffiziellen API
+    }
+    console.log(`pump.fun (${sort}): ${geholt} geholt / Adressen gesamt jetzt ${addrs.size}.`);
   }
-  console.log(`pump.fun (created_timestamp): ${geholt} Coins ueber ${off / PF_NEUESTE} Seiten geholt.`);
 }
 
 // Schreibt die erfassten pump.fun-Metadaten als Zeitpunkt-Snapshot in pumpfun_meta.
