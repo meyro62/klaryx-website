@@ -92,6 +92,21 @@ async function main() {
       });
       if (w.ok) { ok++; console.log("gespeichert: " + n.title.slice(0, 60)); }
       else console.log(`Speicher-Fehler ${w.status}: ${await w.text()}`);
+
+      // Klaryx-relevanter Fund? -> in internen Speicher (klaryx_findings) zur Kontrolle/Task.
+      if (s.klaryx_relevant) {
+        try {
+          const f = await fetch(SB_URL + "/rest/v1/klaryx_findings?on_conflict=source_id", {
+            method: "POST",
+            headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify({
+              source_id: n.source_id, title: n.title, source_url: n.source_url,
+              kategorie: s.kategorie || null, handlung: s.handlung || null, schwere: s.schwere || null,
+            }),
+          });
+          console.log(f.ok ? "  🔒 Klaryx-relevanter Fund: " + n.title.slice(0, 50) : `  Fund-Fehler ${f.status}`);
+        } catch (e) { console.log("  Fund-Schreibfehler: " + e.message); }
+      }
     } catch (e) { console.log("Verarbeitungsfehler: " + e.message); }
     await sleep(1000);
   }
