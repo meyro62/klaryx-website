@@ -218,7 +218,7 @@ async function sammleAdressen(mindestens) {
 async function checkeOne(addr) {
   for (let v = 0; v < 3; v++) {
     try {
-      const r = await fetch(WORKER + "?token=" + encodeURIComponent(addr));
+      const r = await fetch(WORKER + "?nosummary=1&token=" + encodeURIComponent(addr));
       if (r.status === 429) { await sleep(4000); continue; }
       return await r.json();
     } catch { await sleep(1500); }
