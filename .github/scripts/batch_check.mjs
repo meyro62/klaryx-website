@@ -132,6 +132,29 @@ const ETABLIERT = [
   "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9", // BOME
 ];
 
+// Jupiter-Token-Universum: grosse freie Quelle handelbarer Solana-Token (Feld "id" = Mint).
+// Fuellt bei GROSSEN Zielzahlen auf, wenn pump.fun (per Offset gedeckelt) nicht reicht.
+// Bei normalen Laeufen (~1000) meist ungenutzt, weil pump.fun das Ziel schon erreicht.
+async function sammleJupiter(addrs, ziel) {
+  if (addrs.size >= ziel) return;
+  const urls = [
+    "https://lite-api.jup.ag/tokens/v2/tag?query=verified",
+    "https://lite-api.jup.ag/tokens/v2/toptraded/24h?limit=100",
+    "https://lite-api.jup.ag/tokens/v2/toporganicscore/24h?limit=100",
+  ];
+  for (const url of urls) {
+    if (addrs.size >= ziel) break;
+    try {
+      const d = await (await fetch(url, { headers: { accept: "application/json" } })).json();
+      const arr = Array.isArray(d) ? d : (Array.isArray(d?.tokens) ? d.tokens : []);
+      const vor = addrs.size;
+      arr.forEach((t) => { const m = t && (t.id || t.address || t.mint); if (m) addrs.add(m); });
+      console.log(`Jupiter (${url.replace("https://lite-api.jup.ag/tokens/v2/", "")}): +${addrs.size - vor} / gesamt ${addrs.size}.`);
+    } catch (e) { console.log(`Jupiter-Quelle nicht erreichbar: ${e.message}`); }
+    await sleep(300);
+  }
+}
+
 async function sammleAdressen(mindestens) {
   const addrs = new Set();
   ETABLIERT.forEach((a) => addrs.add(a));   // Balance: bekannte Coins mit rein
@@ -165,6 +188,7 @@ async function sammleAdressen(mindestens) {
     } catch {}
     await sleep(400);
   }
+  await sammleJupiter(addrs, mindestens);   // grosse Zusatzquelle handelbarer Token (fuellt bei hohen Zielzahlen auf)
   return [...addrs];
 }
 
