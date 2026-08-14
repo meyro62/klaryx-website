@@ -1,0 +1,100 @@
+#!/usr/bin/env node
+/**
+ * KLARYX – News-Fetch
+ * Holt Solana-Sicherheits-News per RSS (Cointelegraph-Tags, keyfrei), filtert auf
+ * Solana + Sicherheit, laesst den Worker eine deutsche KI-Kurzzusammenfassung machen und
+ * speichert Titel + Zusammenfassung + Stichpunkte + Quell-Link in Supabase (Tabelle news).
+ * NIE Volltext speichern – nur eigene Zusammenfassung + Link (urheberrechtssicher).
+ * Laeuft als GitHub Action. Alles in try/catch – faellt eine Quelle aus, laeuft der Rest weiter.
+ */
+const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev";
+const SB_URL = process.env.SUPABASE_URL || "https://wpxcgducfkbozecknfdw.supabase.co";
+const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const FEEDS = [
+  ["Cointelegraph", "https://cointelegraph.com/rss/tag/solana"],
+  ["Cointelegraph", "https://cointelegraph.com/rss/tag/hacks"],
+  ["Cointelegraph", "https://cointelegraph.com/rss/tag/scams"],
+];
+const SOLANA_RE   = /\bsolana\b|\bSOL\b|pump\.?fun|\bSPL\b/i;
+const SECURITY_RE = /hack|scam|exploit|drain|phish|rug|stolen|steal|betrug|malware|vulnerab|sicherheit|angriff|attack|breach|fraud|drainer|honeypot|wallet/i;
+const MAX_NEU = 10;   // pro Lauf hoechstens so viele neue News zusammenfassen (schont AI/Zeit)
+
+function decode(s) {
+  return String(s || "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+function tag(item, name) {
+  const m = item.match(new RegExp("<" + name + "[^>]*>([\\s\\S]*?)</" + name + ">", "i"));
+  return m ? decode(m[1]) : "";
+}
+async function holeFeed(name, url) {
+  try {
+    const xml = await (await fetch(url, { headers: { "User-Agent": "Klaryx-News/1.0", accept: "application/rss+xml, application/xml, text/xml" } })).text();
+    const parts = xml.split(/<item[ >]/i).slice(1);
+    return parts.map((p) => "<item " + p.split(/<\/item>/i)[0] + "</item>").map((it) => {
+      const d = tag(it, "pubDate"); const t = d ? new Date(d) : null;
+      return {
+        source_name: name,
+        title: tag(it, "title"),
+        source_url: tag(it, "link"),
+        desc: tag(it, "description"),
+        published_at: t && !isNaN(t) ? t.toISOString() : null,
+        source_id: tag(it, "guid") || tag(it, "link"),
+      };
+    }).filter((n) => n.title && n.source_url);
+  } catch (e) { console.log("Feed-Fehler " + url + ": " + e.message); return []; }
+}
+
+async function main() {
+  let all = [];
+  for (const [name, url] of FEEDS) { all = all.concat(await holeFeed(name, url)); await sleep(300); }
+  const seen = new Map();
+  all.forEach((n) => { if (n.source_id && !seen.has(n.source_id)) seen.set(n.source_id, n); });
+  let items = [...seen.values()].filter((n) => {
+    const t = n.title + " " + n.desc;
+    return SOLANA_RE.test(t) && SECURITY_RE.test(t);   // Solana + Sicherheit
+  });
+  items.sort((a, b) => String(b.published_at || "").localeCompare(String(a.published_at || "")));
+  console.log(`${all.length} Roh-Items, ${items.length} gefilterte Solana-Sicherheits-News.`);
+
+  if (!SB_KEY) { console.log("Kein SUPABASE_SERVICE_ROLE_KEY – Abbruch."); return; }
+  const vorhanden = new Set();
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id&order=created_at.desc&limit=500",
+      { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
+    (await r.json() || []).forEach((x) => x && x.source_id && vorhanden.add(x.source_id));
+  } catch (e) { console.log("Vorhandene News lesen fehlgeschlagen: " + e.message); }
+
+  const neu = items.filter((n) => !vorhanden.has(n.source_id)).slice(0, MAX_NEU);
+  console.log(`${neu.length} neue News zu verarbeiten.`);
+  let ok = 0;
+  for (const n of neu) {
+    try {
+      const s = await (await fetch(WORKER + "/summarize", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: n.title, desc: n.desc }),
+      })).json();
+      if (!s || !s.summary) { console.log("Keine Zusammenfassung: " + n.title.slice(0, 60)); await sleep(800); continue; }
+      const row = {
+        source_id: n.source_id, title: n.title, summary: s.summary, bullets: s.bullets || [],
+        source_name: n.source_name, source_url: n.source_url, published_at: n.published_at,
+      };
+      const w = await fetch(SB_URL + "/rest/v1/news?on_conflict=source_id", {
+        method: "POST",
+        headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify(row),
+      });
+      if (w.ok) { ok++; console.log("gespeichert: " + n.title.slice(0, 60)); }
+      else console.log(`Speicher-Fehler ${w.status}: ${await w.text()}`);
+    } catch (e) { console.log("Verarbeitungsfehler: " + e.message); }
+    await sleep(1000);
+  }
+  console.log(`Fertig: ${ok} News gespeichert.`);
+}
+main();

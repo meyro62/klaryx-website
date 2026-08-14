@@ -14,7 +14,7 @@
   ];
   var NAV_GROUPS = [
     ["Daten",   [["warnliste.html", "Warnliste"], ["analyse.html", "Analyse"], ["markt.html", "Markt"], ["watchlist.html", "Wächter"]]],
-    ["Lernen",  [["lernpfad.html", "Lernpfad"], ["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"]]],
+    ["Lernen",  [["news.html", "News"], ["lernpfad.html", "Lernpfad"], ["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"]]],
     ["Projekt", [["ueber-klrx.html", "Über KLRX"], ["klaryx_milestones.html", "Meilensteine"], ["klaryx_halloffame.html", "Hall of Fame"], ["klaryx_wallet_setup.html", "Wallet Setup"]]]
   ];
 
@@ -84,7 +84,7 @@
     '<footer style="text-align:center;padding:40px 24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">' +
       '<div style="font-size:11px;opacity:.8;margin-bottom:18px;">$KLRX ist kein Finanzprodukt · Kein Gewinnversprechen · Teilnahme auf eigenes Risiko</div>' +
       grp("Werkzeuge", [["check.html", "Klartext-Check"], ["link-check.html", "Link-Check"], ["warnliste.html", "Warnliste"], ["analyse.html", "Analyse"], ["markt.html", "Markt"], ["watchlist.html", "Wächter"], ["bookmarklet.html", "Bookmarklet"]]) +
-      grp("Lernen", [["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"], ["lernpfad.html", "Lernpfad"], ["check.html#warnzeichen", "Sicherheit"]]) +
+      grp("Lernen", [["news.html", "News"], ["ratgeber.html", "Ratgeber"], ["faq.html", "FAQ"], ["lernpfad.html", "Lernpfad"], ["check.html#warnzeichen", "Sicherheit"]]) +
       grp("Projekt", [["ueber-klrx.html", "Über den Token"], ["klaryx_milestones.html", "Meilensteine"], ["klaryx_halloffame.html", "Hall of Fame"], ["portal.html", "Portal"], ["klaryx_wallet_setup.html", "Wallet Setup"], ["https://solscan.io/token/2Dc81HQDDSCUWVUD1XeyUmv8nyLD46ai9VuDBsr7z2RD", "Solscan", true]]) +
       grp("Rechtliches", [["klaryx_impressum.html", "Impressum"], ["klaryx_datenschutz.html", "Datenschutz"], ["klaryx_disclaimer.html", "Disclaimer"], ["klaryx_legal.html", "Rechtliche Hinweise"], ["mailto:info@klaryx.de", "Kontakt"]]) +
       grp("Folgen", [["https://x.com/klaryxhq", "X", true], ["https://discord.gg/abyTeFaghX", "Discord", true], ["https://t.me/klaryxhq", "Telegram", true]]) +

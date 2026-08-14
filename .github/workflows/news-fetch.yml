@@ -1,0 +1,33 @@
+name: News Fetch
+
+# Holt Solana-Sicherheits-News per RSS, fasst sie via Worker (KI) auf Deutsch zusammen
+# und speichert sie in Supabase (Tabelle news). Manuell startbar + taeglich.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * *'   # täglich 05:00 UTC = 07:00 Berlin (Sommer)
+
+jobs:
+  news_fetch:
+    runs-on: ubuntu-latest
+    name: Solana-Sicherheits-News holen und zusammenfassen
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: News-Fetch ausführen
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "📰 Hole Solana-Sicherheits-News…"
+          node .github/scripts/news_fetch.mjs
+
+      - name: Fertig
+        run: echo "✅ News-Fetch abgeschlossen – siehe klaryx.de/news.html"

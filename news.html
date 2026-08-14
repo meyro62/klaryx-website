@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wpxcgducfkbozecknfdw.supabase.co; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solana-Sicherheits-News auf Deutsch | Klaryx</title>
+<meta name="description" content="Aktuelle Solana-Sicherheits- und Betrugs-News, kurz auf Deutsch zusammengefasst – mit Link zur Quelle. Hacks, Scams, Drainer, neue Maschen. Kein Finanzprodukt.">
+<link rel="canonical" href="https://klaryx.de/news.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Solana-Sicherheits-News auf Deutsch | Klaryx">
+<meta property="og:description" content="Hacks, Scams, Drainer, neue Maschen – kurz auf Deutsch, mit Quelle.">
+<meta property="og:url" content="https://klaryx.de/news.html">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{ --bg:#080b12; --surface:#0f1420; --surface2:#141926; --border:#1a2236; --text:#dde0eb; --muted:#4e5870; --accent:#5b7fff; --accent2:#a78bfa; --gelb:#f5c542; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7}
+  .wrap{max-width:820px;margin:0 auto;padding:44px 24px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:12px}
+  .sub{color:var(--muted);font-size:16px;max-width:620px;margin-bottom:20px}
+  .disc{background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.25);border-radius:10px;padding:12px 16px;font-size:12.5px;color:#d9c47e;margin-bottom:28px;line-height:1.6}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:16px}
+  .card h2{font-size:17px;font-weight:700;line-height:1.35;margin-bottom:8px}
+  .card .sum{font-size:14.5px;color:#c6cad9;margin-bottom:10px}
+  .card ul{list-style:none;margin:0 0 12px;padding:0}
+  .card li{font-size:13.5px;color:var(--muted);padding-left:16px;position:relative;margin-bottom:5px;line-height:1.6}
+  .card li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+  .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px}
+  .meta a{color:var(--accent);text-decoration:none;font-weight:600}
+  .meta a:hover{text-decoration:underline}
+  .empty{color:var(--muted);font-size:14px;padding:20px 0}
+</style>
+</head>
+<body>
+<header></header>
+
+<div class="wrap">
+  <div class="eyebrow">Sicherheits-News</div>
+  <h1>Solana-Sicherheit im Blick.</h1>
+  <p class="sub">Aktuelle Hacks, Scams, Drainer und neue Maschen im Solana-Umfeld – kurz auf Deutsch zusammengefasst, mit Link zur Originalquelle. Damit du weißt, worauf du gerade achten musst.</p>
+  <div class="disc">⚠️ Die Zusammenfassungen sind <b>KI-generiert</b> und können Fehler enthalten – die Details bitte immer in der <b>verlinkten Quelle</b> prüfen. Rein informativ, keine Anlageberatung, keine Preisprognose.</div>
+  <div id="feed"><div class="empty">Lädt…</div></div>
+</div>
+
+<footer></footer>
+<script src="partials.js?v=6"></script>
+<script>
+(async function(){
+  var SB="https://wpxcgducfkbozecknfdw.supabase.co", PUB="sb_publishable_0aS939mOkGvtYssxWYycCA_35k8Hmwz";
+  var feed=document.getElementById("feed");
+  function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":String(s));return d.innerHTML;}
+  function host(u){try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){return "Quelle";}}
+  function datum(s){if(!s)return "";var d=new Date(s);if(isNaN(d))return "";return d.toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});}
+  try{
+    var r=await fetch(SB+"/rest/v1/news?select=title,summary,bullets,source_name,source_url,published_at&order=published_at.desc.nullslast&limit=60",{headers:{apikey:PUB,Authorization:"Bearer "+PUB}});
+    var rows=await r.json();
+    if(!Array.isArray(rows)||!rows.length){feed.innerHTML='<div class="empty">Noch keine News – der nächste Lauf füllt die Liste.</div>';return;}
+    feed.innerHTML=rows.map(function(n){
+      var bl=Array.isArray(n.bullets)?n.bullets:[];
+      var lis=bl.map(function(b){return "<li>"+esc(b)+"</li>";}).join("");
+      var q=n.source_url?'<a href="'+esc(n.source_url)+'" target="_blank" rel="noopener nofollow">Quelle: '+esc(n.source_name||host(n.source_url))+' ↗</a>':"";
+      var dt=datum(n.published_at);
+      return '<div class="card"><h2>'+esc(n.title)+'</h2>'+
+        (n.summary?'<div class="sum">'+esc(n.summary)+'</div>':"")+
+        (lis?'<ul>'+lis+'</ul>':"")+
+        '<div class="meta">'+q+(dt?'<span>· '+dt+'</span>':"")+'</div></div>';
+    }).join("");
+  }catch(e){ feed.innerHTML='<div class="empty">News konnten nicht geladen werden. Bitte später erneut versuchen.</div>'; }
+})();
+</script>
+</body>
+</html>
