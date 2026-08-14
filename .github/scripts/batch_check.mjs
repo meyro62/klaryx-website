@@ -5,11 +5,11 @@
  * Klaryx-Check-Endpunkt. Jeder Check schreibt automatisch in check_analytics.
  * Läuft als GitHub Action (Node ist dort vorinstalliert) – kein npm install.
  *
- * Anzahl per Umgebungsvariable ANZAHL (Default 1000). Der Adress-Harvest skaliert mit:
- * pump.fun wird seitenweise geholt, bis die Zielzahl erreicht ist (bis die API-Liste endet).
+ * Anzahl per Umgebungsvariable ANZAHL (Default 5000). Der Adress-Harvest skaliert mit:
+ * Re-Check bekannter Coins (fuer Verlaeufe) + pump.fun (frisch) + Jupiter (Auffueller).
  */
 const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/check";
-const ZIEL = parseInt(process.env.ANZAHL || "1000", 10);
+const ZIEL = parseInt(process.env.ANZAHL || "5000", 10);
 const PAUSE_MS = 1500;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -155,9 +155,32 @@ async function sammleJupiter(addrs, ziel) {
   }
 }
 
+// Re-Check: zuletzt gesehene Coins erneut pruefen, damit VERLAEUFE entstehen (Liquiditaet ueber
+// Zeit -> Rug-Erkennung, Graduation-Fortschritt). Das ist der eigentliche Wert der Daten, nicht
+// die reine Menge. Zieht die zuletzt geprueften Coins der letzten 4 Tage aus check_analytics.
+async function sammleRecheck(addrs, maxCoins) {
+  if (!SB_KEY) { console.log("Kein SUPABASE_SERVICE_ROLE_KEY – Re-Check uebersprungen."); return; }
+  try {
+    const seit = new Date(Date.now() - 4 * 86400000).toISOString();  // letzte 4 Tage
+    const distinct = new Set();
+    for (let page = 0; page < 3 && distinct.size < maxCoins; page++) {
+      const url = SB_URL + "/rest/v1/check_analytics?select=token_address&checked_at=gte." +
+                  encodeURIComponent(seit) + "&order=checked_at.desc&limit=1000&offset=" + (page * 1000);
+      const rows = await (await fetch(url, { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } })).json();
+      if (!Array.isArray(rows) || !rows.length) break;
+      rows.forEach((r) => { if (r.token_address && distinct.size < maxCoins) distinct.add(r.token_address); });
+      if (rows.length < 1000) break;
+    }
+    const vor = addrs.size;
+    distinct.forEach((a) => addrs.add(a));
+    console.log(`Re-Check: +${addrs.size - vor} bekannte Coins (letzte 4 Tage) fuer Verlaeufe.`);
+  } catch (e) { console.log(`Re-Check-Quelle nicht erreichbar: ${e.message}`); }
+}
+
 async function sammleAdressen(mindestens) {
   const addrs = new Set();
   ETABLIERT.forEach((a) => addrs.add(a));   // Balance: bekannte Coins mit rein
+  await sammleRecheck(addrs, Math.min(2000, Math.floor(mindestens * 0.4)));  // Verlaeufe: bekannte Coins erneut pruefen
   await sammlePumpFun(addrs, mindestens);   // frische pump.fun-Coins seitenweise bis zur Zielzahl (+ Meta)
   const terms = [
     "cat","dog","pepe","moon","ai","baby","frog","bull","gem","doge","meme","gold",
