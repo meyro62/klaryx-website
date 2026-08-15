@@ -51,6 +51,35 @@ async function holeFeed(name, url) {
   } catch (e) { console.log("Feed-Fehler " + url + ": " + e.message); return []; }
 }
 
+// Reichert News, die frueher OHNE KI gespeichert wurden (summary=null), bei freier Quote nach.
+async function reichereAn() {
+  if (!SB_KEY) return;
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id,title&summary=is.null&order=created_at.desc&limit=8",
+      { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
+    const bare = await r.json();
+    if (!Array.isArray(bare) || !bare.length) return;
+    let ok = 0;
+    for (const n of bare) {
+      try {
+        const s = await (await fetch(WORKER + "/summarize", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: n.title, desc: "" }),
+        })).json();
+        if (!s || !s.summary) break;   // Quote noch nicht frei -> beim naechsten Lauf erneut
+        await fetch(SB_URL + "/rest/v1/news?source_id=eq." + encodeURIComponent(n.source_id), {
+          method: "PATCH",
+          headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ summary: s.summary, bullets: s.bullets || [] }),
+        });
+        ok++;
+      } catch (_e) {}
+      await sleep(800);
+    }
+    if (ok) console.log(`${ok} aeltere News nachtraeglich zusammengefasst.`);
+  } catch (e) { console.log("Anreichern fehlgeschlagen: " + e.message); }
+}
+
 async function main() {
   let all = [];
   for (const [name, url] of FEEDS) { all = all.concat(await holeFeed(name, url)); await sleep(300); }
@@ -76,13 +105,18 @@ async function main() {
   let ok = 0;
   for (const n of neu) {
     try {
-      const s = await (await fetch(WORKER + "/summarize", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: n.title, desc: n.desc }),
-      })).json();
-      if (!s || !s.summary) { console.log("Keine Zusammenfassung: " + n.title.slice(0, 60)); await sleep(800); continue; }
+      let s = {};
+      try {
+        s = await (await fetch(WORKER + "/summarize", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: n.title, desc: n.desc }),
+        })).json();
+      } catch (_e) {}
+      // Fallback: auch OHNE KI speichern (nur Titel + Quelle + Datum). So bleibt die Seite immer
+      // gefuellt, unabhaengig vom Workers-AI-Kontingent – die KI reichert nur an, wenn verfuegbar.
+      if (!s || !s.summary) { console.log("(ohne KI) " + n.title.slice(0, 60)); s = { summary: null, bullets: [] }; }
       const row = {
-        source_id: n.source_id, title: n.title, summary: s.summary, bullets: s.bullets || [],
+        source_id: n.source_id, title: n.title, summary: s.summary || null, bullets: s.bullets || [],
         source_name: n.source_name, source_url: n.source_url, published_at: n.published_at,
       };
       const w = await fetch(SB_URL + "/rest/v1/news?on_conflict=source_id", {
@@ -110,6 +144,7 @@ async function main() {
     } catch (e) { console.log("Verarbeitungsfehler: " + e.message); }
     await sleep(1000);
   }
+  await reichereAn();   // frueher ohne KI gespeicherte News nachtraeglich zusammenfassen (wenn Quote frei)
   console.log(`Fertig: ${ok} News gespeichert.`);
 }
 main();

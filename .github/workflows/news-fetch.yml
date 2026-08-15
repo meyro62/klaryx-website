@@ -5,7 +5,12 @@ name: News Fetch
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 5 * * *'   # täglich 05:00 UTC = 07:00 Berlin (Sommer)
+    # Mehrmals taeglich (nach dem Batch um 01:00), damit ein freies KI-Kontingent-Fenster
+    # zuverlaessig erwischt wird. Neue News werden dedupliziert, also kein doppeltes Speichern.
+    - cron: '0 3 * * *'
+    - cron: '0 9 * * *'
+    - cron: '0 15 * * *'
+    - cron: '0 21 * * *'
 
 jobs:
   news_fetch:
