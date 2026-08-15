@@ -89,15 +89,16 @@ async function holeFeed(name, url) {
 async function reichereAn() {
   if (!SB_KEY) return;
   try {
-    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id,title&summary=is.null&order=created_at.desc&limit=8",
+    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id,title&summary=is.null&order=created_at.desc&limit=15",
       { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
     const bare = await r.json();
     if (!Array.isArray(bare) || !bare.length) return;
-    let ok = 0;
+    let ok = 0, fails = 0;
     for (const n of bare) {
       try {
         const s = await summarize(n.title, "");
-        if (!s || !s.summary) break;   // KI (noch) nicht verfuegbar -> beim naechsten Lauf erneut
+        if (!s || !s.summary) { if (++fails >= 3) break; continue; }   // Einzelfehler ueberspringen; 3x hintereinander -> KI down
+        fails = 0;
         await fetch(SB_URL + "/rest/v1/news?source_id=eq." + encodeURIComponent(n.source_id), {
           method: "PATCH",
           headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
