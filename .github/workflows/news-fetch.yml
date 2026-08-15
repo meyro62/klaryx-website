@@ -30,6 +30,7 @@ jobs:
       - name: News-Fetch ausführen
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           echo "📰 Hole Solana-Sicherheits-News…"
           node .github/scripts/news_fetch.mjs

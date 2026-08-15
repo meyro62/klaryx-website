@@ -63,7 +63,7 @@
       var q=n.source_url?'<a href="'+esc(n.source_url)+'" target="_blank" rel="noopener nofollow">Quelle: '+esc(n.source_name||host(n.source_url))+' ↗</a>':"";
       var dt=datum(n.published_at);
       return '<div class="card"><h2>'+esc(n.title)+'</h2>'+
-        (n.summary?'<div class="sum">'+esc(n.summary)+'</div>':"")+
+        (typeof n.summary==="string"&&n.summary&&n.summary!=="[object Object]"?'<div class="sum">'+esc(n.summary)+'</div>':"")+
         (lis?'<ul>'+lis+'</ul>':"")+
         '<div class="meta">'+q+(dt?'<span>· '+dt+'</span>':"")+'</div></div>';
     }).join("");

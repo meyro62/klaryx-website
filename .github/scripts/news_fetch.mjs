@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
  * KLARYX – News-Fetch
- * Holt Solana-Sicherheits-News per RSS (Cointelegraph-Tags, keyfrei), filtert auf
- * Solana + Sicherheit, laesst den Worker eine deutsche KI-Kurzzusammenfassung machen und
- * speichert Titel + Zusammenfassung + Stichpunkte + Quell-Link in Supabase (Tabelle news).
+ * Holt Solana-News per RSS (deutsche Quellen + Cointelegraph), filtert auf Solana, laesst
+ * Groq (kostenlos, zuverlaessig) eine deutsche KI-Kurzzusammenfassung + Relevanz-Bewertung machen
+ * und speichert Titel + Zusammenfassung + Stichpunkte + Quell-Link in Supabase (Tabelle news).
  * NIE Volltext speichern – nur eigene Zusammenfassung + Link (urheberrechtssicher).
- * Laeuft als GitHub Action. Alles in try/catch – faellt eine Quelle aus, laeuft der Rest weiter.
+ * OHNE KI-Key wird trotzdem gespeichert (Titel + Link). Alles in try/catch.
  */
-const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev";
 const SB_URL = process.env.SUPABASE_URL || "https://wpxcgducfkbozecknfdw.supabase.co";
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const GROQ_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const FEEDS = [
@@ -21,6 +22,37 @@ const FEEDS = [
 const SOLANA_RE   = /\bsolana\b|\bSOL\b|pump\.?fun|\bSPL\b/i;
 const SECURITY_RE = /hack|scam|exploit|drain|phish|rug|stolen|steal|betrug|malware|vulnerab|sicherheit|angriff|attack|breach|fraud|drainer|honeypot|wallet/i;
 const MAX_NEU = 10;   // pro Lauf hoechstens so viele neue News zusammenfassen (schont AI/Zeit)
+
+// Deutsche KI-Zusammenfassung + Klaryx-Relevanz via Groq (OpenAI-kompatibel, kostenloser Tier).
+// Gibt {summary,bullets,klaryx_relevant,kategorie,handlung,schwere} oder null (kein Key/Fehler).
+async function summarize(title, desc) {
+  if (!GROQ_KEY || !title) return null;
+  const sys = "Du bist ein deutschsprachiger Krypto-Sicherheits-Redakteur fuer Klaryx (ein Solana-Scam-Check). AUFGABE 1: Fasse die Nachricht KURZ auf Deutsch zusammen (uebersetze bei Bedarf) - nutze AUSSCHLIESSLICH Titel + Kurzbeschreibung, erfinde nichts, keine Anlageberatung, keine Preisprognose. AUFGABE 2: Bewerte, ob die Nachricht fuer Klaryx HANDLUNGSRELEVANT ist - z.B. eine neue Betrugs-/Angriffsmasche, die unser Check erkennen sollte, ein Token-2022-Trick, eine Phishing-/Drainer-Methode, oder eine Schwachstelle in Krypto-Infrastruktur (Supabase/Cloudflare/RPC/GitHub). Reine Preis-/Markt-/Firmen-News ist NICHT relevant. Antworte NUR als JSON: {\"summary\":\"1-2 Saetze\",\"bullets\":[\"...\",\"...\"],\"klaryx_relevant\":false,\"kategorie\":\"\",\"handlung\":\"\",\"schwere\":\"hoch/mittel/niedrig\"}. WICHTIG: \"summary\" ist EIN deutscher Fliesstext als String, NIEMALS ein Objekt; \"bullets\" ist ein Array aus Strings. Hoechstens 3 Stichpunkte.";
+  const usr = "Titel: " + title + "\nKurzbeschreibung: " + (desc || "(keine)");
+  try {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + GROQ_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{ role: "system", content: sys }, { role: "user", content: usr }],
+        temperature: 0.2, max_tokens: 500, response_format: { type: "json_object" },
+      }),
+    });
+    if (!r.ok) { console.log(`Groq-Fehler ${r.status}: ${(await r.text()).slice(0, 140)}`); return null; }
+    const j = await r.json();
+    const out = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
+    const p = JSON.parse(out);
+    return {
+      summary: typeof p.summary === "string" ? p.summary.trim() : "",
+      bullets: Array.isArray(p.bullets) ? p.bullets.map((b) => String(b).trim()).filter(Boolean).slice(0, 3) : [],
+      klaryx_relevant: p.klaryx_relevant === true || p.klaryx_relevant === "true",
+      kategorie: String(p.kategorie || "").trim().slice(0, 60),
+      handlung: String(p.handlung || "").trim().slice(0, 300),
+      schwere: String(p.schwere || "").trim().toLowerCase().slice(0, 12),
+    };
+  } catch (e) { console.log("Groq-Fehler: " + e.message); return null; }
+}
 
 function decode(s) {
   return String(s || "")
@@ -63,11 +95,8 @@ async function reichereAn() {
     let ok = 0;
     for (const n of bare) {
       try {
-        const s = await (await fetch(WORKER + "/summarize", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: n.title, desc: "" }),
-        })).json();
-        if (!s || !s.summary) break;   // Quote noch nicht frei -> beim naechsten Lauf erneut
+        const s = await summarize(n.title, "");
+        if (!s || !s.summary) break;   // KI (noch) nicht verfuegbar -> beim naechsten Lauf erneut
         await fetch(SB_URL + "/rest/v1/news?source_id=eq." + encodeURIComponent(n.source_id), {
           method: "PATCH",
           headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
@@ -103,15 +132,9 @@ async function main() {
   let ok = 0;
   for (const n of neu) {
     try {
-      let s = {};
-      try {
-        s = await (await fetch(WORKER + "/summarize", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: n.title, desc: n.desc }),
-        })).json();
-      } catch (_e) {}
+      let s = await summarize(n.title, n.desc);
       // Fallback: auch OHNE KI speichern (nur Titel + Quelle + Datum). So bleibt die Seite immer
-      // gefuellt, unabhaengig vom Workers-AI-Kontingent – die KI reichert nur an, wenn verfuegbar.
+      // gefuellt, unabhaengig vom KI-Dienst – die KI reichert nur an, wenn verfuegbar.
       if (!s || !s.summary) { console.log("(ohne KI) " + n.title.slice(0, 60)); s = { summary: null, bullets: [] }; }
       const row = {
         source_id: n.source_id, title: n.title, summary: s.summary || null, bullets: s.bullets || [],
