@@ -13,9 +13,10 @@ const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const FEEDS = [
-  ["Cointelegraph", "https://cointelegraph.com/rss/tag/solana"],
-  ["Cointelegraph", "https://cointelegraph.com/rss/tag/hacks"],
-  ["Cointelegraph", "https://cointelegraph.com/rss/tag/scams"],
+  ["BTC-Echo", "https://www.btc-echo.de/feed/"],                  // deutsch
+  ["BeInCrypto", "https://de.beincrypto.com/feed/"],             // deutsch
+  ["Cointelegraph DE", "https://de.cointelegraph.com/rss"],      // deutsch
+  ["Cointelegraph", "https://cointelegraph.com/rss/tag/solana"], // englisch, Solana-Abdeckung (KI uebersetzt, wenn frei)
 ];
 const SOLANA_RE   = /\bsolana\b|\bSOL\b|pump\.?fun|\bSPL\b/i;
 const SECURITY_RE = /hack|scam|exploit|drain|phish|rug|stolen|steal|betrug|malware|vulnerab|sicherheit|angriff|attack|breach|fraud|drainer|honeypot|wallet/i;
@@ -85,12 +86,9 @@ async function main() {
   for (const [name, url] of FEEDS) { all = all.concat(await holeFeed(name, url)); await sleep(300); }
   const seen = new Map();
   all.forEach((n) => { if (n.source_id && !seen.has(n.source_id)) seen.set(n.source_id, n); });
-  let items = [...seen.values()].filter((n) => {
-    const t = n.title + " " + n.desc;
-    return SOLANA_RE.test(t) && SECURITY_RE.test(t);   // Solana + Sicherheit
-  });
+  let items = [...seen.values()].filter((n) => SOLANA_RE.test(n.title + " " + n.desc));   // Solana-bezogen
   items.sort((a, b) => String(b.published_at || "").localeCompare(String(a.published_at || "")));
-  console.log(`${all.length} Roh-Items, ${items.length} gefilterte Solana-Sicherheits-News.`);
+  console.log(`${all.length} Roh-Items, ${items.length} gefilterte Solana-News.`);
 
   if (!SB_KEY) { console.log("Kein SUPABASE_SERVICE_ROLE_KEY – Abbruch."); return; }
   const vorhanden = new Set();
