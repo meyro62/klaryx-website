@@ -19,7 +19,8 @@ const FEEDS = [
   ["Cointelegraph DE", "https://de.cointelegraph.com/rss"],      // deutsch
   ["Cointelegraph", "https://cointelegraph.com/rss/tag/solana"], // englisch, Solana-Abdeckung (KI uebersetzt, wenn frei)
 ];
-const SOLANA_RE   = /\bsolana\b|\bSOL\b|pump\.?fun|\bSPL\b/i;
+const SOLANA_RE   = /\bsolana\b|pump\.?fun/i;   // echtes "Solana"-Wort, nicht der SOL-Ticker (sonst matchen Multi-Coin-Listen)
+const NOISE_RE    = /price prediction|preisprognose|kursanalyse|price analysis/i;   // Preis-Roundups raus
 const SECURITY_RE = /hack|scam|exploit|drain|phish|rug|stolen|steal|betrug|malware|vulnerab|sicherheit|angriff|attack|breach|fraud|drainer|honeypot|wallet/i;
 const MAX_NEU = 10;   // pro Lauf hoechstens so viele neue News zusammenfassen (schont AI/Zeit)
 
@@ -115,7 +116,7 @@ async function main() {
   for (const [name, url] of FEEDS) { all = all.concat(await holeFeed(name, url)); await sleep(300); }
   const seen = new Map();
   all.forEach((n) => { if (n.source_id && !seen.has(n.source_id)) seen.set(n.source_id, n); });
-  let items = [...seen.values()].filter((n) => SOLANA_RE.test(n.title + " " + n.desc));   // Solana-bezogen
+  let items = [...seen.values()].filter((n) => SOLANA_RE.test(n.title + " " + n.desc) && !NOISE_RE.test(n.title));   // echt Solana, kein Preis-Rauschen
   items.sort((a, b) => String(b.published_at || "").localeCompare(String(a.published_at || "")));
   console.log(`${all.length} Roh-Items, ${items.length} gefilterte Solana-News.`);
 
