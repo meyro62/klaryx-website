@@ -77,13 +77,20 @@ function copyMint(addr,el){
 
 async function load(){
   let d;
-  try{
-    // Server-seitige Aggregation: rechnet über ALLE Zeilen (dedupliziert pro Coin),
-    // umgeht das 1000-Zeilen-Limit von PostgREST. Antwort ist ein fertiges JSON.
+  // Server-seitige Aggregation: rechnet über ALLE Zeilen (dedupliziert pro Coin),
+  // umgeht das 1000-Zeilen-Limit von PostgREST. Antwort ist ein fertiges JSON.
+  // Bei >5 MB timeoutet der RPC gelegentlich beim ersten (kalten) Aufruf -> bis zu 3x
+  // mit kurzer Pause versuchen, statt sofort "nicht verfügbar" zu zeigen.
+  async function hole(){
     const r=await fetch(SB+"/rest/v1/rpc/analytics_summary",
       {method:"POST",headers:{apikey:PUB,Authorization:"Bearer "+PUB,"Content-Type":"application/json"},body:JSON.stringify({p_recent:20})});
-    d=await r.json();
-  }catch(e){ document.getElementById('content').innerHTML='<div class="loading">Daten derzeit nicht verfügbar.</div>'; return; }
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }
+  for(let i=0;i<3;i++){
+    try{ d=await hole(); break; }
+    catch(e){ if(i===2){ document.getElementById('content').innerHTML='<div class="loading">Daten derzeit nicht verfügbar. Bitte aktualisieren.</div>'; return; } await new Promise(res=>setTimeout(res,1500)); }
+  }
   if(!d || d.total_checks==null || d.coins===0){ document.getElementById('content').innerHTML='<div class="loading">Noch keine Daten – sobald Coins geprüft werden, erscheint hier die Auswertung.</div>'; return; }
   render(d);
 }
@@ -155,7 +162,7 @@ function render(d){
   // Je weniger, desto besser: Mint aus = kein Nachprägen, Freeze aus = kein Einfrieren, Metadaten fix = keine Umbenennung.
   new Chart(document.getElementById('chFlags'),{type:'bar',
     data:{labels:['Mint aktiv','Freeze aktiv','Metadaten veränderbar'],datasets:[{data:[mintAktiv,freezeAktiv,metaMutable],backgroundColor:[C.rot,C.rot,C.gelb],borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.parsed+' von '+uniq+' Coins'}}},scales:{x:{grid:{color:C.grid}},y:{grid:{color:C.grid},beginAtZero:true,ticks:{precision:0}}}}});
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.parsed.y+' von '+uniq+' Coins'}}},scales:{x:{grid:{color:C.grid}},y:{grid:{color:C.grid},beginAtZero:true,ticks:{precision:0}}}}});
 
   // Holder-Konzentration Histogramm – Buckets kommen fertig vom Server (d.buckets)
   new Chart(document.getElementById('chConc'),{type:'bar',

@@ -85,19 +85,23 @@ async function holeFeed(name, url) {
   } catch (e) { console.log("Feed-Fehler " + url + ": " + e.message); return []; }
 }
 
-// Reichert News, die frueher OHNE KI gespeichert wurden (summary=null), bei freier Quote nach.
+// Reichert News, die frueher OHNE KI gespeichert wurden (summary=null), nach.
+// Reihenfolge = Anzeige-Reihenfolge (published_at desc), damit die sichtbare Liste von oben
+// aufgefuellt wird – keine englischen Luecken mehr in der Mitte. Ein Lauf schafft die ganze
+// sichtbare Seite (60). Groq-Ratelimit wird mit 2,5 s Pause pro Call respektiert.
 async function reichereAn() {
-  if (!SB_KEY) return;
+  if (!SB_KEY || !GROQ_KEY) return;
   try {
-    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id,title&summary=is.null&order=created_at.desc&limit=15",
+    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id,title&summary=is.null&order=published_at.desc.nullslast&limit=60",
       { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
     const bare = await r.json();
     if (!Array.isArray(bare) || !bare.length) return;
+    console.log(`${bare.length} leere News zum Nachfuellen.`);
     let ok = 0, fails = 0;
     for (const n of bare) {
       try {
         const s = await summarize(n.title, "");
-        if (!s || !s.summary) { if (++fails >= 3) break; continue; }   // Einzelfehler ueberspringen; 3x hintereinander -> KI down
+        if (!s || !s.summary) { if (++fails >= 4) { console.log("KI 4x hintereinander leer -> Abbruch, Rest naechster Lauf."); break; } continue; }
         fails = 0;
         await fetch(SB_URL + "/rest/v1/news?source_id=eq." + encodeURIComponent(n.source_id), {
           method: "PATCH",
@@ -106,7 +110,7 @@ async function reichereAn() {
         });
         ok++;
       } catch (_e) {}
-      await sleep(800);
+      await sleep(2500);
     }
     if (ok) console.log(`${ok} aeltere News nachtraeglich zusammengefasst.`);
   } catch (e) { console.log("Anreichern fehlgeschlagen: " + e.message); }
