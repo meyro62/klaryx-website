@@ -10,7 +10,7 @@
 const SB_URL = process.env.SUPABASE_URL || "https://wpxcgducfkbozecknfdw.supabase.co";
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const GROQ_KEY = process.env.GROQ_API_KEY || "";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "openai/gpt-oss-120b";   // llama-3.3-70b-versatile wurde 2026-08-16 von Groq abgeschaltet
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const FEEDS = [
