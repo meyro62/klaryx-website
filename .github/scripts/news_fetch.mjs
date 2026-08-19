@@ -59,8 +59,10 @@ function decode(s) {
   return String(s || "")
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/<[^>]+>/g, " ")
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch { return " "; } })   // Hex-Entities (&#x201C;)
+    .replace(/&#(\d+);/g, (_, n) => { try { return String.fromCodePoint(parseInt(n, 10)); } catch { return " "; } })          // numerische Entities (&#8220; -> „)
     .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ").trim();
 }
 function tag(item, name) {
@@ -114,6 +116,31 @@ async function reichereAn() {
     }
     if (ok) console.log(`${ok} aeltere News nachtraeglich zusammengefasst.`);
   } catch (e) { console.log("Anreichern fehlgeschlagen: " + e.message); }
+}
+
+// Repariert bereits gespeicherte Titel mit rohen HTML-Entities (&#8220; etc.), die der
+// alte Decoder nicht umgewandelt hat. Idempotent: saubere Titel bleiben unveraendert.
+async function repariereTitel() {
+  if (!SB_KEY) return;
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/news?select=source_id,title&order=published_at.desc.nullslast&limit=200",
+      { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
+    const rows = await r.json();
+    if (!Array.isArray(rows)) return;
+    let fixed = 0;
+    for (const n of rows) {
+      const clean = decode(n.title);
+      if (clean && clean !== n.title) {
+        await fetch(SB_URL + "/rest/v1/news?source_id=eq." + encodeURIComponent(n.source_id), {
+          method: "PATCH",
+          headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ title: clean }),
+        });
+        fixed++;
+      }
+    }
+    if (fixed) console.log(`${fixed} Titel mit HTML-Entities korrigiert.`);
+  } catch (e) { console.log("Titel-Reparatur fehlgeschlagen: " + e.message); }
 }
 
 async function main() {
@@ -171,6 +198,7 @@ async function main() {
     } catch (e) { console.log("Verarbeitungsfehler: " + e.message); }
     await sleep(1000);
   }
+  await repariereTitel();   // schon gespeicherte Titel mit rohen Entities (&#8220;) korrigieren
   await reichereAn();   // frueher ohne KI gespeicherte News nachtraeglich zusammenfassen (wenn Quote frei)
   console.log(`Fertig: ${ok} News gespeichert.`);
 }
