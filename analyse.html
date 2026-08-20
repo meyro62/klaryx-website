@@ -123,12 +123,12 @@ function render(d){
     <div class="panel"><h3>Kontrolle des Erstellers</h3><div class="chartbox"><canvas id="chFlags"></canvas></div></div>
   </div>
 
-  <div class="panel" style="margin-bottom:16px;"><h3>Holder-Konzentration (Verteilung der geprüften Coins)</h3><div class="chartbox"><canvas id="chConc"></canvas></div></div>
+  <div class="panel" style="margin-bottom:16px;"><h3>Holder-Konzentration <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;">· Pool &amp; Bonding-Curve herausgerechnet</span></h3><p style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px;">Zeigt nur die Konzentration bei echten Einzel-Wallets. Anteile, die beweisbar in Liquiditäts-Pools, Bonding-Curves oder Börsen-Sammelwallets liegen, sind herausgerechnet – so entsteht kein Fehlbild bei brandneuen Coins.</p><div class="chartbox"><canvas id="chConc"></canvas></div></div>
 
   <div class="panel" style="margin-bottom:16px;">
     <h3>Liquidität eingebrochen <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;">· im Beobachtungszeitraum</span></h3>
-    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px;">Coins, deren Liquidität seit unserer ersten Messung um mindestens die Hälfte gefallen ist – ein mögliches Zeichen für einen Rugpull im Gange. Rein beschreibende Tatsache über die Vergangenheit, keine Handelsempfehlung.</p>
-    ${worsened.length ? `<div class="twrap"><table><thead><tr><th>Coin</th><th>Liquidität früher</th><th>jetzt</th><th>Änderung</th><th>Zuletzt</th></tr></thead>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px;">Coins, deren Liquidität gegenüber ihrer üblichen (medianen) Liquidität um mindestens die Hälfte gefallen ist – ein mögliches Zeichen für einen Rugpull im Gange. Nur Coins mit genügend Messungen; einzelne Ausreißer-Werte werden ignoriert. Rein beschreibende Tatsache über die Vergangenheit, keine Handelsempfehlung.</p>
+    ${worsened.length ? `<div class="twrap"><table><thead><tr><th>Coin</th><th>Liquidität (üblich)</th><th>jetzt</th><th>Änderung</th><th>Zuletzt</th></tr></thead>
     <tbody>${worsened.map(w=>`<tr>
       <td class="nowrap">${esc(w.name||w.token_address.slice(0,6)+'…')} <span style="color:var(--muted);font-size:11px;">${esc(w.symbol||'')}</span><button class="copybtn" title="Mint-Adresse kopieren" onclick="copyMint('${esc(w.token_address)}',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></td>
       <td class="mono">$${Math.round(w.liq_first).toLocaleString('de-DE')}</td>

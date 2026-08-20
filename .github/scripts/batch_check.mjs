@@ -10,6 +10,7 @@
  */
 const WORKER = "https://klaryx-bot.mahirgulabi.workers.dev/check";
 const ZIEL = parseInt(process.env.ANZAHL || "5000", 10);
+const bekannt = new Set();   // bereits gepruefte/etablierte Coins: getAsset (DAS) sparen, metadata_mutable steht schon in der DB
 const PAUSE_MS = 1500;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -112,6 +113,21 @@ async function refreshInfra() {
   } catch (e) { console.log(`infra_wallets Fehler: ${e.message}`); }
 }
 
+// Laedt ALLE bereits bekannten Coins (metadata_mutable schon in der DB) -> getAsset (DAS) sparen.
+async function ladeBekannte() {
+  if (!SB_KEY) { console.log("Kein SUPABASE_SERVICE_ROLE_KEY – bekannte Coins nicht geladen (getAsset wird oefter gezahlt)."); return; }
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/rpc/known_tokens", {
+      method: "POST",
+      headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const arr = await r.json();
+    if (Array.isArray(arr)) { arr.forEach((a) => bekannt.add(a)); console.log(`Bekannte Coins geladen: ${bekannt.size} (getAsset wird dort gespart).`); }
+    else console.log("known_tokens: unerwartete Antwort, ueberspringe.");
+  } catch (e) { console.log(`known_tokens nicht erreichbar: ${e.message}`); }
+}
+
 // Etablierte, bekannte Solana-Coins – für Balance in den Daten (werden eher grün/gelb).
 const ETABLIERT = [
   "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", // BONK
@@ -172,14 +188,15 @@ async function sammleRecheck(addrs, maxCoins) {
       if (rows.length < 1000) break;
     }
     const vor = addrs.size;
-    distinct.forEach((a) => addrs.add(a));
+    distinct.forEach((a) => { addrs.add(a); bekannt.add(a); });
     console.log(`Re-Check: +${addrs.size - vor} bekannte Coins (letzte 4 Tage) fuer Verlaeufe.`);
   } catch (e) { console.log(`Re-Check-Quelle nicht erreichbar: ${e.message}`); }
 }
 
 async function sammleAdressen(mindestens) {
   const addrs = new Set();
-  ETABLIERT.forEach((a) => addrs.add(a));   // Balance: bekannte Coins mit rein
+  await ladeBekannte();   // zuerst alle bereits bekannten Coins markieren (getAsset-Ersparnis)
+  ETABLIERT.forEach((a) => { addrs.add(a); bekannt.add(a); });   // Balance: bekannte Coins mit rein (getAsset sparbar)
   await sammleRecheck(addrs, Math.min(2000, Math.floor(mindestens * 0.4)));  // Verlaeufe: bekannte Coins erneut pruefen
   await sammlePumpFun(addrs, mindestens);   // frische pump.fun-Coins seitenweise bis zur Zielzahl (+ Meta)
   const terms = [
@@ -218,7 +235,13 @@ async function sammleAdressen(mindestens) {
 async function checkeOne(addr) {
   for (let v = 0; v < 3; v++) {
     try {
-      const r = await fetch(WORKER + "?nosummary=1&token=" + encodeURIComponent(addr));
+      // Light-Modus fuer pump.fun-Coins: spart die Ersteller-Wallet-Calls (getTransaction/Signaturen).
+      // Holder-Aufschluesselung/Konzentration/Alter bleiben voll erhalten. Nicht-pump-Coins voll pruefen
+      // (deren Halter-Labels fuettern infra_wallets; pump-Coins sind dort ohnehin ausgeschlossen).
+      const lightQ = addr.endsWith("pump") ? "&light=1" : "";
+      // getAsset (DAS, ~10 Credits) nur beim ERSTEN Check holen; bekannte Coins ueberspringen (metadata_mutable ist schon gespeichert).
+      const metaQ = bekannt.has(addr) ? "&nometa=1" : "";
+      const r = await fetch(WORKER + "?nosummary=1" + lightQ + metaQ + "&token=" + encodeURIComponent(addr));
       if (r.status === 429) { await sleep(4000); continue; }
       return await r.json();
     } catch { await sleep(1500); }
