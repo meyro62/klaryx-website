@@ -10,66 +10,32 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
-    name: Export Database Tables to JSON
+    name: Export Database Tables to private Artifact
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Export Database via Supabase REST API
         env:
           SUPABASE_URL: https://wpxcgducfkbozecknfdw.supabase.co
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          # Create backup directory
           mkdir -p backups
-
-          # Export wallets table
-          echo "Backing up wallets..."
-          curl -s -X GET "$SUPABASE_URL/rest/v1/wallets?limit=10000" \
-            -H "apikey: $SUPABASE_SERVICE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
-            > backups/wallets-$(date +%Y-%m-%d).json
-
-          # Export referrals table
-          echo "Backing up referrals..."
-          curl -s -X GET "$SUPABASE_URL/rest/v1/referrals?limit=10000" \
-            -H "apikey: $SUPABASE_SERVICE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
-            > backups/referrals-$(date +%Y-%m-%d).json
-
-          # Export reports table
-          echo "Backing up reports..."
-          curl -s -X GET "$SUPABASE_URL/rest/v1/reports?limit=10000" \
-            -H "apikey: $SUPABASE_SERVICE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
-            > backups/reports-$(date +%Y-%m-%d).json
-
-          # Export referral_payouts table
-          echo "Backing up referral_payouts..."
-          curl -s -X GET "$SUPABASE_URL/rest/v1/referral_payouts?limit=10000" \
-            -H "apikey: $SUPABASE_SERVICE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
-            > backups/referral_payouts-$(date +%Y-%m-%d).json
-
+          for TABLE in wallets referrals reports referral_payouts; do
+            echo "Backing up $TABLE ..."
+            curl -s -X GET "$SUPABASE_URL/rest/v1/$TABLE?limit=100000" \
+              -H "apikey: $SUPABASE_SERVICE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+              > "backups/$TABLE-$(date +%Y-%m-%d).json"
+          done
           echo "✅ Database backup created"
           ls -lh backups/
 
-      - name: Commit and push backup
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_BACKUP }}
-        run: |
-          git config --global user.email "backup@klaryx.de"
-          git config --global user.name "Backup Bot"
-          git add backups/
-          git commit -m "Backup: Database export $(date +%Y-%m-%d)" || echo "No changes to commit"
-          git push https://${{ github.actor }}:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git main || echo "Push failed or no changes"
-
-      - name: Clean old backups
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_BACKUP }}
-        run: |
-          find backups -name "*.json" -type f -mtime +7 -delete || true
-          git add -A
-          git commit -m "Cleanup: Remove old backups" || echo "No old backups to clean"
-          git push https://${{ github.actor }}:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git main || echo "Nothing to push"
+      # WICHTIG: Nutzerdaten (Wallets/Referrals/Payouts) NIEMALS ins (öffentliche) Repo committen.
+      # Stattdessen als privates GitHub-Actions-Artifact ablegen – nur für Repo-Mitglieder,
+      # mit Aufbewahrungsfrist. Zum echten Offsite-Backup ggf. auf einen privaten Bucket (S3/R2) pushen.
+      - name: Upload backup as private artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: klaryx-db-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 14
+          if-no-files-found: error

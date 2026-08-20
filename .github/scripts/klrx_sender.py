@@ -24,6 +24,7 @@ import os
 import sys
 import json
 import subprocess
+import time
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_DOWN
 
@@ -135,6 +136,35 @@ def log_payout(addr, amount, reason, signature):
     }], prefer="return=minimal")
 
 
+def _retry(fn, *args, tries=4, **kw):
+    """Ruft fn mit Retry/Backoff. True bei Erfolg, sonst False (kein Raise)."""
+    for i in range(tries):
+        try:
+            fn(*args, **kw)
+            return True
+        except Exception as e:
+            if i == tries - 1:
+                print(f"  ! {getattr(fn, '__name__', 'call')} endgueltig fehlgeschlagen: {str(e)[:120]}")
+                return False
+            time.sleep(1.5 * (i + 1))
+    return False
+
+
+def fetch_paid_sums():
+    """Bereits GELOGGTE Auszahlungssumme je Wallet aus referral_payouts.
+       Zweite Wahrheit gegen Doppelzahlung: selbst wenn klrx_sent_onchain mal
+       nicht geschrieben wurde, verhindert der geloggte Betrag ein erneutes Senden."""
+    rows = sb_request("GET", "referral_payouts?select=wallet_address,amount&limit=100000") or []
+    sums = {}
+    for r in rows:
+        try:
+            w = r["wallet_address"]
+            sums[w] = sums.get(w, Decimal("0")) + Decimal(str(r.get("amount") or 0))
+        except Exception:
+            pass
+    return sums
+
+
 # ---------------------------------------------------------- Solana-Transfer
 def send_klrx(wallet_address: str, amount: Decimal):
     """Sendet <amount> KLRX on-chain. Gibt (status, info) zurück.
@@ -207,6 +237,7 @@ def main():
     check_sol_balance()
 
     wallets = fetch_wallets()
+    paid = fetch_paid_sums()   # geloggte Auszahlungen (Reconcile gegen Doppelzahlung)
     ref_counts = compute_referral_counts(wallets)
     print(f"{len(wallets)} Wallet(s), {sum(ref_counts.values())} Referral(s) gesamt\n")
 
@@ -217,7 +248,7 @@ def main():
         addr = w["wallet_address"]
         refs = ref_counts.get(addr, 0)
         owed = owed_balance(refs)
-        already = Decimal(str(w.get("klrx_sent_onchain") or 0))
+        already = max(Decimal(str(w.get("klrx_sent_onchain") or 0)), paid.get(addr, Decimal("0")))
         delta = (owed - already).quantize(Decimal("0.000000001"))
         badge, tier = get_badge(refs), get_tier(refs)
 
@@ -242,7 +273,17 @@ def main():
         status, info = send_klrx(addr, delta)
         if status == "ok":
             new_sent = (already + delta)
-            update_wallet(addr, {
+            reason = "free_claim" if already == 0 else "referral"
+            # DURABLE ZUERST: Auszahlung protokollieren (inkl. tx-Signatur). So fuehrt ein
+            # spaeterer DB-Fehler NIE zu einer Doppelzahlung – der naechste Lauf liest
+            # referral_payouts (fetch_paid_sums). Gelingt selbst das nach Retries nicht,
+            # wird der Lauf HART gestoppt (Mensch gleicht ab) statt blind weiterzuzahlen.
+            if not _retry(log_payout, addr, delta, reason, info):
+                print(f"\n::error::KRITISCH: {delta} KLRX an {addr} GESENDET (tx {info}), aber "
+                      f"referral_payouts NICHT geschrieben. Lauf gestoppt – bitte manuell abgleichen.")
+                sys.exit(1)
+            # Best-effort: Anzeige-/Statusfelder. Fehler hier ist unkritisch (Reconcile deckt ab).
+            if not _retry(update_wallet, addr, {
                 "klrx_sent_onchain": str(new_sent),
                 "klrx_balance": str(owed),
                 "badge": badge,
@@ -250,12 +291,8 @@ def main():
                 "einladungen": refs,
                 "claim_status": "Gesendet",
                 "claim_sent_at": datetime.now(timezone.utc).isoformat(),
-            })
-            reason = "free_claim" if already == 0 else "referral"
-            try:
-                log_payout(addr, delta, reason, info)
-            except Exception as e:
-                print(f"(Audit-Log übersprungen: {str(e)[:70]}) ", end="")
+            }):
+                print("(Wallet-Update fehlgeschlagen – naechster Lauf gleicht via referral_payouts ab) ", end="")
             print(f"✅ {info[:24]}")
             sent_total += delta
             ok += 1

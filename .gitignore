@@ -1,5 +1,6 @@
 *.json
-!backups/*.json
+# Nutzerdaten-Backups NIE ins Repo (werden als privates Artifact abgelegt, siehe daily-backup.yml):
+backups/
 .env
 .env.*
 !.env.example

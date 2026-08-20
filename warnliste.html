@@ -81,7 +81,7 @@
   <p class="sub">Diese Solana-Coins wurden im Klaryx-Check wiederholt als 🔴 auffällig bewertet. Die Liste bildet ab, was die Community am häufigsten prüft – tippe auf einen Eintrag, um die Prüfung selbst zu sehen.</p>
 
   <div class="note">
-    <b>Rein beschreibend, datenbasiert.</b> Diese Liste entsteht automatisch aus öffentlichen On-Chain-Daten (Mint-/Freeze-Rechte, Liquidität, Verteilung, Alter) – <b>nicht</b> aus Nutzer-Anschuldigungen. Ein Eintrag ist <b>kein Vorwurf gegen eine Person</b> und keine Aussage über Absichten, sondern nur der Hinweis, dass typische Risiko-Signale vorliegen. Kein Finanzprodukt, keine Anlageberatung. Prüfe immer selbst.
+    <b>Rein beschreibend, datenbasiert, automatisiert.</b> Diese Liste entsteht automatisch aus öffentlichen On-Chain-Daten (Mint-/Freeze-Rechte, Liquidität, Verteilung, Alter) zu einem bestimmten Messzeitpunkt – <b>nicht</b> aus Nutzer-Anschuldigungen. Ein Eintrag ist <b>kein Vorwurf gegen eine Person, ein Unternehmen oder ein Produkt</b> und keine Aussage über Absichten, sondern nur der Hinweis, dass typische Risiko-Signale vorliegen; diese können auch bei völlig legitimen Token auftreten. Bekannte, regulierte oder etablierte Assets (z. B. tokenisierte Aktien/ETFs, Stablecoins, Wrapped-/Staked-Token) werden hier ausgenommen. Kein Finanzprodukt, keine Anlageberatung. Prüfe immer selbst.
   </div>
 
   <h2>Am häufigsten als 🔴 geprüft</h2>
@@ -120,12 +120,26 @@
     else { try{ var t=document.createElement('textarea'); t.value=addr; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); done(true); }catch(e){ done(false); } }
   }
 
+  // Bekannte/regulierte/etablierte Assets NIE auf die öffentliche, namentliche Warnliste (Rechts-/Reputationsschutz):
+  // tokenisierte Aktien/ETFs (xStocks/Ondo/Backed), Stablecoins, Wrapped-/Staked-Token, große Majors.
+  const WL_ALLOWLIST_MINTS = new Set([
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr","2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+    "So11111111111111111111111111111111111111112"
+  ]);
+  const WL_ALLOWLIST_RX = /(xstock|tokenized|\bondo\b|backed|wrapped|staked\s*sol|\bbsol\b|\bmsol\b|\bjitosol\b|\bwbtc\b|\bweth\b|\busd[cs]\b|\beur[ct]\b)/i;
+  function wlAusgenommen(x){
+    if (x && WL_ALLOWLIST_MINTS.has(x.token_address)) return true;
+    return WL_ALLOWLIST_RX.test(((x&&x.name)||"")+" "+((x&&x.symbol)||""));
+  }
+
   async function load(){
     const box = document.getElementById('tokens');
     try{
       const r = await fetch(SB_URL+"/rest/v1/recent_checks?select=token_address,name,symbol,checks,checked_at&ampel=eq.rot&kind=eq.token&order=checks.desc,checked_at.desc&limit=30",
         { headers:{ apikey:PUB, Authorization:"Bearer "+PUB }, cache:"no-store" });
-      const rows = await r.json();
+      let rows = await r.json();
+      if(Array.isArray(rows)) rows = rows.filter(function(x){ return !wlAusgenommen(x); });   // regulierte/etablierte Assets ausnehmen
       if(!Array.isArray(rows) || !rows.length){
         box.innerHTML = '<div class="empty">Aktuell keine als 🔴 markierten Coins im Prüf-Verlauf.</div>'; return;
       }
