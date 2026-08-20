@@ -124,7 +124,7 @@ select cron.schedule('send-klrx-daily', '0 10 * * *',
 ### Für User
 1. Öffne `portal.html`
 2. Gib deine Solana Wallet ein
-3. Registriere dich (Free Claim 0.01 KLRX)
+3. Registriere dich (Free Claim 0.1 KLRX)
 4. Teile deinen Einladungslink
 5. Verdiene KLRX durch Einladungen
 

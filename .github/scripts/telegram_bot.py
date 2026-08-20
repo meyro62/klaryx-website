@@ -13,6 +13,17 @@ import logging
 import requests
 from datetime import datetime
 
+
+def klrx_balance(refs: int) -> float:
+    """KLRX-Gesamtguthaben - EXAKT wie portal.html / klrx_sender.py.
+       0 Refs -> 0.1 | 25 -> 1.0 | 50+ -> 2.0 (Deckel)."""
+    bal = 0.1
+    if 0 < refs <= 25:
+        bal += refs * 0.036
+    elif refs > 25:
+        bal += 25 * 0.036 + min(refs - 25, 25) * 0.04
+    return round(bal, 3)
+
 # python-telegram-bot
 try:
     from telegram import Update
@@ -131,7 +142,7 @@ async def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Gehe zu https://klaryx.de/portal.html um deinen persönlichen Referral Link zu kopieren.
 
 **💰 Verdiene mit Referrals:**
-• Jeder Referral = +0.005 KLRX
+• 0,1 KLRX Free Claim, dann mehr pro Einladung (bis 2 KLRX bei 50 Refs)
 • Jeder Referral = +1 zur Referral Count
 • 25 Refs = Einblick Tier Unlock 🔵
 • 50 Refs = Tiefe Tier Unlock 🟣
@@ -206,8 +217,8 @@ async def leaderboard_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         for idx, (wallet, count) in enumerate(sorted_wallets):
             medal = medals[idx] if idx < len(medals) else f"{idx+1}️⃣"
-            bonus = count * 0.005
-            message += f"{medal} `{wallet[:8]}...{wallet[-4:]}` • {count} Refs (+{bonus:.3f} KLRX)\n"
+            guthaben = klrx_balance(count)
+            message += f"{medal} `{wallet[:8]}...{wallet[-4:]}` • {count} Refs ({guthaben:.3f} KLRX)\n"
 
         message += "\n💡 Kannst du es in die Top 10 schaffen? Teile deinen Link!"
 

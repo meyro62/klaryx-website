@@ -151,7 +151,7 @@ async def get_referral_link(ctx):
         )
         embed.add_field(
             name='💡 Tipps zum Verdienen:',
-            value='• Teile deinen Link überall (Twitter, Telegram, Discord)\n• Jeder Referral = +0.005 KLRX\n• 25 Refs = Einblick Tier Unlock (Community Intelligence)\n• 50 Refs = Tiefe Tier Unlock (Network Analysis)\n• 100 Refs = Legend Status (Hall of Fame)',
+            value='• Teile deinen Link überall (Twitter, Telegram, Discord)\n• 0,1 KLRX Free Claim, dann mehr pro Einladung (bis 2 KLRX bei 50 Refs)\n• 25 Refs = Einblick Tier Unlock (Community Intelligence)\n• 50 Refs = Tiefe Tier Unlock (Network Analysis)\n• 100 Refs = Legend Status (Hall of Fame)',
             inline=False
         )
         embed.set_footer(text='Aktiv referren = Aktive Community = Mehr Wert für alle!')
@@ -219,7 +219,7 @@ async def sync_roles():
     TODO: Connect to Supabase REST API to:
     - Get top referrers from wallets table
     - Assign @Referrer (25+) role
-    - Assign @Legend (50+) role
+    - Assign @Legend (100+) role
     """
     try:
         if not SERVER_ID:
